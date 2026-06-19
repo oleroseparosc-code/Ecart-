@@ -1259,12 +1259,15 @@ export function App() {
   }
 
   function updateRoundSummaryDraft(patch: Partial<Omit<RoundSummaryDraft, "rows">>) {
-    setRoundSummaryDraft((prev) => ({ ...(prev ?? generatedRoundSummaryDraft), ...patch }));
+    setRoundSummaryDraft((prev) => ({
+      ...(prev ?? (JSON.parse(JSON.stringify(generatedRoundSummaryDraft)) as RoundSummaryDraft)),
+      ...patch,
+    }));
   }
 
   function updateRoundSummaryRow(rowId: string, patch: Partial<RoundSummaryRow>) {
     setRoundSummaryDraft((prev) => {
-      const draft = prev ?? generatedRoundSummaryDraft;
+      const draft = prev ?? (JSON.parse(JSON.stringify(generatedRoundSummaryDraft)) as RoundSummaryDraft);
       return {
         ...draft,
         rows: draft.rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)),
@@ -1273,7 +1276,7 @@ export function App() {
   }
 
   function regenerateRoundSummaryDraft() {
-    setRoundSummaryDraft(generatedRoundSummaryDraft);
+    setRoundSummaryDraft(null);
   }
 
   function openRoundSummaryPrintPreview() {

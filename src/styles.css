@@ -1249,7 +1249,7 @@ button {
 
   /* Mobile inspection table sizing and scroll */
   .inspection-table-wrap {
-    max-height: 74vh;
+    max-height: 430px;
     overflow-y: auto;
     border: 1px solid var(--line);
     border-radius: 7px;
@@ -1266,6 +1266,12 @@ button {
   .inspection-table {
     min-width: auto !important;
     width: 100%;
+  }
+
+  .inspection-table th,
+  .inspection-table td {
+    padding: 3px 4px !important;
+    font-size: 11px !important;
   }
 
   .inspection-table th:nth-child(2),
@@ -1296,15 +1302,42 @@ button {
   }
 
   .inspection-table .date-input {
-    padding: 4px 6px;
-    font-size: 11px;
-    min-height: 30px;
+    padding: 2px 4px !important;
+    font-size: 10.5px !important;
+    min-height: 24px !important;
+    height: 24px !important;
   }
 
   .inspection-table .count-input {
-    padding: 4px;
-    font-size: 12px;
-    min-height: 30px;
+    padding: 2px !important;
+    font-size: 11px !important;
+    min-height: 24px !important;
+    height: 24px !important;
+  }
+
+  .inspection-table td strong {
+    display: block !important;
+    line-height: 1.25 !important;
+    font-size: 11px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .inspection-table td span,
+  .inspection-table td small {
+    display: inline !important;
+    margin-top: 0 !important;
+    margin-right: 6px !important;
+    font-size: 10px !important;
+    color: var(--muted) !important;
+  }
+
+  .inspection-table td .badge {
+    display: inline-flex !important;
+    margin-top: 0 !important;
+    min-height: 18px !important;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    vertical-align: middle !important;
   }
 }
 
@@ -1470,7 +1503,7 @@ button {
 
 /* Mobile Mode Simulation Column widths & Sticky Headers */
 .mobile-mode .inspection-table-wrap {
-  max-height: 74vh !important;
+  max-height: 430px !important;
   overflow-y: auto !important;
   border: 1px solid var(--line) !important;
   border-radius: 7px !important;
@@ -1487,6 +1520,12 @@ button {
 .mobile-mode .inspection-table {
   min-width: auto !important;
   width: 100% !important;
+}
+
+.mobile-mode .inspection-table th,
+.mobile-mode .inspection-table td {
+  padding: 3px 4px !important;
+  font-size: 11px !important;
 }
 
 .mobile-mode .inspection-table th:nth-child(2),
@@ -1517,14 +1556,41 @@ button {
 }
 
 .mobile-mode .inspection-table .date-input {
-  padding: 4px 6px !important;
-  font-size: 11px !important;
-  min-height: 30px !important;
+  padding: 2px 4px !important;
+  font-size: 10.5px !important;
+  min-height: 24px !important;
+  height: 24px !important;
 }
 
 .mobile-mode .inspection-table .count-input {
-  padding: 4px !important;
-  font-size: 12px !important;
-  min-height: 30px !important;
+  padding: 2px !important;
+  font-size: 11px !important;
+  min-height: 24px !important;
+  height: 24px !important;
+}
+
+.mobile-mode .inspection-table td strong {
+  display: block !important;
+  line-height: 1.25 !important;
+  font-size: 11px !important;
+  margin-bottom: 2px !important;
+}
+
+.mobile-mode .inspection-table td span,
+.mobile-mode .inspection-table td small {
+  display: inline !important;
+  margin-top: 0 !important;
+  margin-right: 6px !important;
+  font-size: 10px !important;
+  color: var(--muted) !important;
+}
+
+.mobile-mode .inspection-table td .badge {
+  display: inline-flex !important;
+  margin-top: 0 !important;
+  min-height: 18px !important;
+  padding: 1px 4px !important;
+  font-size: 9px !important;
+  vertical-align: middle !important;
 }
 
