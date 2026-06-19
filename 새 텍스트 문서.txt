@@ -1,0 +1,388 @@
+약사가 병동 점검 시에 사용하는 앱으로 범위를 좁히겠습니다. 간호사 역할(점검자 서명, nurse 권한, 간호 스테이션 복귀 시나리오 등)을 제거하고, 약사 단일 사용자 기준으로 명세를 재작성했습니다.
+
+---
+
+# 약사용 병동 약품 점검 앱 — 개발 명세서 (Spec for Codex)
+
+## 0. 문서 목적
+
+이 문서는 AI 코딩 에이전트(Codex)가 "약사용 병동 약품 및 E-cart 점검 앱"을 구현할 수 있도록 작성한 기술 명세서다. **본 앱의 사용자는 약사(약제팀)이며**, 약사가 각 병동을 순회하며 비품약·E-cart·특수약(냉장약)의 재고·유효기간·보관상태·라벨링을 점검하고, 그 결과를 PDF로 산출해 OCS/EMR에 연동하는 것을 목표로 한다. **약품 식별은 바코드 스캔 없이 OCR(유효기간 인식) + 부서별 인가 약품 목록 선택 방식으로만 수행한다.**
+
+---
+
+## 1. 기술 스택 (권장)
+
+| 구분 | 선택 | 비고 |
+|------|------|------|
+| 프레임워크 | React Native (Expo / EAS build) | iOS/Android |
+| 언어 | TypeScript | 타입 안정성 |
+| 상태관리 | Redux Toolkit 또는 Zustand | 전역 상태 |
+| 로컬 DB | SQLite (expo-sqlite) | 오프라인 우선 |
+| OCR | Google ML Kit Text Recognition (on-device) | `@react-native-ml-kit/text-recognition` |
+| 카메라 | react-native-vision-camera | OCR 프레임 캡처 |
+| PDF 생성 | expo-print | HTML→PDF |
+| 서명 캡처 | react-native-signature-canvas | Base64 출력(점검 약사 서명) |
+| 네트워크 | Axios + React Query | API 통신/캐싱 |
+| 인증 | JWT + 사번 기반 로그인 | 약사 계정 |
+
+---
+
+## 2. 핵심 설계 원칙
+
+1. **단일 사용자 역할 = 약사**: 모든 점검은 약사가 수행한다. 간호사·수간호사 워크플로우는 존재하지 않는다.
+2. **병동 선택 기반 동적 UI**: 약사는 순회 대상 병동을 선택하고, 해당 병동의 보유 특성(`ward_type`)에 따라 점검 탭이 동적으로 구성된다.
+3. **바코드 미사용**: 약품 식별은 (a) 병동별 인가 약품 목록에서 선택, (b) OCR 유효기간 자동 추출로만 수행한다.
+4. **오프라인 우선(Offline-First)**: 병동 내 네트워크 음영 지역에서도 점검·OCR·PDF 생성이 가능하며, 연결 복구 시 자동 동기화한다.
+5. **검증 강제(Validation)**: 수량 불일치·유효기간 경과·온도 이탈 등은 사유 입력 없이는 점검 완료 불가.
+6. **무결성 보장**: 점검 결과는 PDF로 고정 출력되고 약사 서명이 첨부된다.
+
+---
+
+## 3. 데이터 모델 (SQLite 스키마)
+
+```sql
+-- 약사(사용자)
+CREATE TABLE pharmacists (
+  id            INTEGER PRIMARY KEY,
+  employee_no   TEXT UNIQUE NOT NULL,   -- 사번
+  name          TEXT NOT NULL,
+  role          TEXT NOT NULL DEFAULT 'pharmacist'  -- 'pharmacist' | 'admin'
+);
+
+-- 병동/부서 (점검 대상)
+CREATE TABLE departments (
+  id            INTEGER PRIMARY KEY,
+  code          TEXT UNIQUE NOT NULL,   -- '71W', 'MICU' 등
+  name          TEXT NOT NULL,
+  ward_type     TEXT NOT NULL           -- 'BOTH' | 'STOCK_ONLY' | 'ECART_ONLY'
+);
+-- ward_type 정의:
+--   BOTH        : 비품약 + E-cart + 특수약 탭 모두 활성화
+--   STOCK_ONLY  : 비품약 + 특수약 탭 활성화
+--   ECART_ONLY  : E-cart 탭 단독 활성화
+
+-- 약품 마스터 (OCS 동기화 대상)
+CREATE TABLE drugs (
+  id               INTEGER PRIMARY KEY,
+  drug_code        TEXT UNIQUE NOT NULL, -- 'XAPH1', 'XEPIN' 등
+  name             TEXT NOT NULL,        -- 'Acetaminophen'
+  spec             TEXT,                 -- 규격
+  storage_type     TEXT NOT NULL,        -- 'ROOM' | 'REFRIGERATED' | 'LIGHT_PROTECTED'
+  is_high_alert    INTEGER DEFAULT 0,    -- 고위험약품 (0/1)
+  is_lasa          INTEGER DEFAULT 0,    -- 유사모양/유사발음 (0/1)
+  is_multidose     INTEGER DEFAULT 0,    -- 다회용 바이알 (인슐린 등)
+  opened_shelf_life_days INTEGER         -- 개봉 후 유효일수(예: 28). NULL이면 미적용
+);
+
+-- 병동별 인가 약품 + 표준 보유 수량
+CREATE TABLE department_drug_allocation (
+  id            INTEGER PRIMARY KEY,
+  department_id INTEGER NOT NULL,
+  drug_id       INTEGER NOT NULL,
+  category      TEXT NOT NULL,          -- 'STOCK' | 'ECART' | 'SPECIAL'
+  required_qty  INTEGER NOT NULL,       -- 표준 보유 수량
+  FOREIGN KEY (department_id) REFERENCES departments(id),
+  FOREIGN KEY (drug_id) REFERENCES drugs(id)
+);
+
+-- 점검 세션 (약사 1인 점검)
+CREATE TABLE inspection_sessions (
+  id              INTEGER PRIMARY KEY,
+  uuid            TEXT UNIQUE NOT NULL,  -- 오프라인 생성용 UUID
+  department_id   INTEGER NOT NULL,
+  pharmacist_id   INTEGER NOT NULL,      -- 점검 약사
+  category        TEXT NOT NULL,         -- 'STOCK' | 'ECART' | 'SPECIAL'
+  started_at      TEXT NOT NULL,
+  completed_at    TEXT,
+  status          TEXT NOT NULL,         -- 'DRAFT' | 'COMPLETED' | 'SYNCED'
+  pharmacist_sign TEXT,                  -- Base64 (약사 서명)
+  pdf_local_path  TEXT
+);
+
+-- 점검 라인 항목 (약품별)
+CREATE TABLE inspection_items (
+  id              INTEGER PRIMARY KEY,
+  session_id      INTEGER NOT NULL,
+  drug_id         INTEGER NOT NULL,
+  counted_qty     INTEGER,
+  required_qty    INTEGER,
+  expiry_date     TEXT,                  -- OCR 또는 수동 입력 (YYYY-MM-DD)
+  expiry_source   TEXT,                  -- 'OCR' | 'MANUAL'
+  opened_date     TEXT,                  -- 다회용 바이알 개봉일
+  discard_due     TEXT,                  -- 자동 산출 폐기 예정일
+  label_checked   INTEGER DEFAULT 0,     -- 고위험/LASA 라벨 확인
+  is_expired      INTEGER DEFAULT 0,
+  exception_note  TEXT,                  -- 불일치 시 필수
+  FOREIGN KEY (session_id) REFERENCES inspection_sessions(id)
+);
+
+-- 냉장고 온도 기록
+CREATE TABLE fridge_temperature_logs (
+  id            INTEGER PRIMARY KEY,
+  session_id    INTEGER,
+  department_id INTEGER NOT NULL,
+  temperature   REAL NOT NULL,
+  in_range      INTEGER NOT NULL,        -- 2~8℃ 여부
+  recorded_at   TEXT NOT NULL,
+  action_note   TEXT                     -- 이탈 시 후속조치
+);
+
+-- E-cart 봉인 점검
+CREATE TABLE ecart_seal_checks (
+  id            INTEGER PRIMARY KEY,
+  session_id    INTEGER NOT NULL,
+  seal_serial   TEXT,                    -- OCR 판독 또는 수동
+  seal_date     TEXT,
+  is_intact     INTEGER NOT NULL,        -- 봉인 무결성
+  is_locked     INTEGER NOT NULL,
+  note          TEXT
+);
+
+-- 동기화 큐
+CREATE TABLE sync_queue (
+  id            INTEGER PRIMARY KEY,
+  entity_type   TEXT NOT NULL,
+  entity_uuid   TEXT NOT NULL,
+  payload       TEXT NOT NULL,           -- JSON
+  created_at    TEXT NOT NULL,
+  synced        INTEGER DEFAULT 0
+);
+```
+
+---
+
+## 4. 화면 구조 (Screen Flow)
+
+### 4.1 화면 목록
+
+1. **로그인 화면** — 약사 사번/비밀번호 입력 → JWT 발급.
+2. **병동 선택 화면** — 약사가 순회할 병동을 검색/선택. (약사는 특정 부서에 종속되지 않고 전 병동 점검 가능)
+3. **홈 (대시보드)** — 선택 병동명, 진행 중 점검, 유효기간 임박 약품 알림, 신규 점검 시작 버튼.
+4. **점검 메인 화면 (탭 컨테이너)** — 선택 병동의 `ward_type`에 따라 동적 탭 렌더링
+   - 탭 A: 비품약 (STOCK)
+   - 탭 B: E-cart (ECART)
+   - 탭 C: 특수약/냉장약 (SPECIAL)
+5. **OCR 스캔 모달** — 카메라로 유효기간/봉인 시리얼 인식.
+6. **PDF 미리보기 화면**.
+7. **서명 화면** — 점검 약사 서명(단일).
+8. **점검 이력 화면** — 과거 PDF 열람/재전송, 병동별 필터.
+
+> 간호사 화면은 모두 제거됨. 점검은 약사가 병동을 선택하여 시작한다.
+
+### 4.2 병동 선택 → 탭 동적 구성 로직
+
+```typescript
+function getActiveTabs(wardType: WardType): TabKey[] {
+  switch (wardType) {
+    case 'BOTH':       return ['STOCK', 'ECART', 'SPECIAL'];
+    case 'STOCK_ONLY': return ['STOCK', 'SPECIAL'];
+    case 'ECART_ONLY': return ['ECART'];
+  }
+}
+```
+
+### 4.3 병동 → ward_type 초기 매핑 (시드 데이터)
+
+| ward_type | 부서 코드 |
+|-----------|-----------|
+| BOTH | 42W, 61W, 62W, 71W, 72W, 81W, 82W, 92W, 101W, 102W, 111W, 112W, 121W, ADR, AER, AN, DRL, MICU, NICU, SICU, 소화기병검사실, 영상의학과, 외래주사실, 재활의학과 |
+| STOCK_ONLY | 91W, DSR, HBEF, 심혈관조영실, OR, PED, 난임클리닉, 비뇨기과, 산부인과, 신경과, 신속대응팀, 안과, 이비인후과, 정형외과, 피부과 |
+| ECART_ONLY | 51W, 52W, 건강증진센터, 심장혈관검사실, 심혈관센터외래, 핵의학과 |
+
+---
+
+## 5. 약품 식별 방식 (바코드 제거)
+
+> GS1-128 바코드 스캔 및 AI 파싱 로직은 전면 삭제. 약품은 아래 두 흐름으로 식별·점검한다.
+
+### 5.1 약품 선택 흐름
+
+1. 점검 화면은 선택 병동·카테고리의 인가 약품 목록(`department_drug_allocation`)을 자동 로드해 리스트로 표시한다.
+2. 약사는 약품을 탭하여 점검 입력(수량, 유효기간, 라벨 확인 등)을 수행한다.
+3. 목록에 없는 잉여(승인 외) 약품 발견 시 "잉여 약품 추가" 버튼으로 약품명 자동완성 검색하여 추가하고, `exception_note`에 사유를 기록한다.
+
+### 5.2 유효기간 입력 흐름 (OCR 중심)
+
+```
+[약품 항목 선택]
+      │
+      ├─▶ [OCR 스캔 버튼] ──▶ 카메라 → ML Kit 텍스트 인식
+      │                          │
+      │                          ├─ Regex로 날짜 패턴 필터링
+      │                          ├─ 인식 영역 Bounding Box 표시
+      │                          └─ 약사 확인 → expiry_date 자동 입력 (source='OCR')
+      │
+      └─▶ [수동 입력] ──▶ DatePicker → expiry_date 입력 (source='MANUAL')
+```
+
+#### OCR 날짜 인식 사양
+
+- **엔진**: Google ML Kit Text Recognition, **반드시 on-device** (이미지 외부 전송 금지).
+- **인식 후 Regex 패턴 (우선순위 순)**:
+  ```
+  /\bEXP[:\s]*?(\d{2})[.\-/](\d{2})[.\-/](\d{2,4})\b/i   // EXP: YY/MM/DD 또는 EXP: DD/MM/YYYY
+  /\b(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})\b/            // YYYY-MM-DD
+  /\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})\b/            // DD/MM/YYYY
+  /\b(\d{2})(\d{2})(\d{2})\b/                            // YYMMDD (연속)
+  ```
+- **모호성 처리**: 월/일 구분이 모호한 경우 약사에게 확인 다이얼로그 표시.
+- **연도 보정**: 2자리 연도는 `2000 + YY`. 결과가 과거면 약사 확인 요청.
+- **결과 검증**: OCR 결과는 항상 약사가 최종 confirm 후 저장한다(자동 확정 금지).
+
+#### 유효기간 판정 로직
+
+```typescript
+function evaluateExpiry(expiry: Date, today = new Date()) {
+  const days = diffInDays(expiry, today);
+  if (days < 0)   return { level: 'EXPIRED',  color: 'red',    block: true };
+  if (days <= 30) return { level: 'IMMINENT', color: 'orange', block: false };
+  if (days <= 90) return { level: 'WATCH',    color: 'yellow', block: false };
+  return { level: 'OK', color: 'green', block: false };
+}
+```
+- `EXPIRED` 항목은 점검 완료 불가 → 폐기/반납 처리 플로우로 강제 이동.
+
+---
+
+## 6. 탭별 기능 명세
+
+### 6.1 비품약 탭 (STOCK)
+
+- 병동 인가 약품 리스트 표시 (실수량 vs 표준수량 대조).
+- 수량 불일치 시 `exception_note` 입력 강제.
+- 고위험약품(`is_high_alert`)·LASA(`is_lasa`) 약품 선택 시:
+  - "고위험/혼돈주의 라벨 부착 여부 확인" 팝업 + `label_checked` 체크박스 필수.
+- 승인 외 잉여 약품 보관 여부 점검(과다 재고 방지).
+
+### 6.2 E-cart 탭 (ECART)
+
+세 영역으로 구성:
+
+1. **봉인 무결성 검사** (`ecart_seal_checks`)
+   - 봉인지 시리얼: OCR 판독 또는 수동 입력.
+   - 봉인 일자, 파손 여부(`is_intact`), 잠금 여부(`is_locked`) 기록.
+2. **응급약품 수량 대조**
+   - 표준 보유 수량을 마스터에서 로드 (예: 2% Lidocaine 2, Epinephrine 20, Atropine 10, Amiodarone 2, Sodium Bicarbonate 10).
+   - 실수량 입력 → 부족분 자동 계산 및 강조.
+3. **유효기간 전수 점검 (월 1회)**
+   - 서랍 순서대로 점검 대상 리스트 제공.
+   - **Progress Bar UI**로 진행률 표시, 미점검 항목 누락 방지.
+
+### 6.3 특수약/냉장약 탭 (SPECIAL)
+
+1. **냉장고 온도 관리** (`fridge_temperature_logs`)
+   - 점검 시 온도 수동 입력 → 2~8℃ 범위 판정.
+   - 이탈 시 경고 + `action_note`(후속조치) 입력 강제.
+   - 냉장고 내 미허가 물품 육안 점검 항목.
+2. **다회용 바이알(인슐린) 추적**
+   - 개봉일(`opened_date`) DatePicker 입력.
+   - `discard_due = opened_date + drugs.opened_shelf_life_days` 자동 산출.
+   - 폐기 예정일 경과 시 점검 통과 차단.
+
+### 6.4 선입선출(FIFO) 검증 (공통)
+
+- 동일 약품군 내 유효기간 짧은 재고가 전면 비치되었는지 확인하는 질의 항목.
+- 적정 청구 수량 유지 여부, 식별 라벨링 적절성 점검.
+
+---
+
+## 7. PDF 보고서 생성
+
+### 7.1 요구사항
+
+- 라이브러리: `expo-print` (HTML → PDF) 우선.
+- HTML/CSS 템플릿에 동적 변수(병동명, 점검 약사 사번/이름, 약품 리스트, 통과 여부, 예외 사유, 약사 서명 이미지) 주입.
+- **스타일**: 모든 CSS 인라인 또는 `<style>` 내장(오프라인 렌더 실패 방지). 단위 px/in 고정.
+- **다중 페이지**: `page-break-inside: avoid`, `<thead>` 반복 헤더.
+- **서명**: 점검 약사 서명을 Base64 `<img>`로 삽입(단일 서명).
+
+### 7.2 파일 명명 규칙
+
+```
+{병동코드}_{카테고리}_{YYYYMMDD}.pdf
+예) 71W_STOCK_20260618.pdf
+```
+
+### 7.3 저장/전송 흐름
+
+1. '점검 완료 및 전송' 터치 → 백그라운드 PDF 생성.
+2. 로컬 `DocumentDirectory`에 저장 → `pdf_local_path` 기록.
+3. Share 모듈로 이메일/원내 메신저 전송 가능.
+4. 온라인 시 HTTPS POST(암호화)로 OCS/EMR `병동 안전관리 레포트` DB 업로드.
+
+---
+
+## 8. 오프라인 우선 & 동기화
+
+```
+[점검 작성] ──▶ [SQLite 로컬 저장 (status=DRAFT)]
+                      │
+                  네트워크 단절 시: OCR/체크리스트/PDF 모두 로컬에서 동작
+                      │
+[완료] ──▶ [status=COMPLETED, sync_queue에 적재]
+                      │
+       NetInfo가 연결 감지 ──▶ [큐 순차 전송 → 성공 시 status=SYNCED]
+```
+
+- 모든 엔티티는 오프라인 생성 가능하도록 클라이언트 `uuid` 발급.
+- 동기화 실패 시 지수 백오프 재시도.
+- 충돌 해결: 마스터 데이터는 서버 우선, 점검 데이터는 클라이언트 생성분 보존.
+
+---
+
+## 9. API 엔드포인트 (백엔드 계약)
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/auth/login` | 약사 사번 로그인, JWT 발급 |
+| GET | `/me` | 약사 정보/권한 |
+| GET | `/departments` | 점검 가능한 전체 병동 목록 |
+| GET | `/departments/{code}/drugs?category=STOCK` | 병동 인가 약품 + 표준수량 |
+| GET | `/drugs/master?updated_since=...` | 약품 마스터 동기화 (배치) |
+| POST | `/inspections` | 점검 세션 업로드 (items 포함) |
+| POST | `/inspections/{uuid}/pdf` | PDF 업로드 (multipart) |
+| GET | `/alerts/expiring?dept={code}` | 유효기간 임박 약품 조회 |
+
+---
+
+## 10. 권한(Role) 매트릭스
+
+| 기능 | pharmacist | admin |
+|------|:----------:|:-----:|
+| 병동 점검 작성 | ✅ | ✅ |
+| 약사 서명 | ✅ | ✅ |
+| PDF 생성/전송 | ✅ | ✅ |
+| 약품 마스터 수정 | — | ✅ |
+| 병동 매핑/권한 설정 | — | ✅ |
+
+> 간호사·수간호사 역할 및 이중 서명(점검자/관리자) 구조는 모두 제거. 점검·서명은 약사 단독으로 완결된다.
+
+---
+
+## 11. 구현 단계 (Codex 작업 순서 제안)
+
+1. 프로젝트 초기화 (Expo + TypeScript), 네비게이션/상태관리 셋업.
+2. SQLite 스키마 생성 + 시드 데이터(병동, ward_type 매핑).
+3. 약사 로그인 → 병동 선택 → ward_type 기반 동적 탭 렌더링.
+4. 비품약 탭 (수량 대조 + 검증 강제).
+5. OCR 모듈 (ML Kit on-device + Regex 날짜 파서 + 약사 확인).
+6. 특수약 탭 (온도 로그 + 인슐린 개봉일/폐기예정 산출).
+7. E-cart 탭 (봉인 + 수량 대조 + 전수점검 Progress Bar).
+8. 약사 서명 캡처 + PDF 생성/저장.
+9. 오프라인 동기화 큐 + API 연동.
+10. 유효기간 임박 알림 + 점검 이력 화면.
+
+---
+
+## 12. 비기능 요구사항
+
+- **보안**: OCR 이미지 외부 전송 금지(on-device), 전송 데이터 HTTPS/TLS, 로컬 DB 암호화(SQLCipher 권장).
+- **성능**: OCR 인식 응답 1초 이내 목표, 탭 전환 즉시.
+- **접근성**: 큰 터치 타깃, 경고는 색상+아이콘+텍스트 병행(색각 이상 대응).
+- **감사 추적**: 모든 점검 항목에 약사/시각 기록, PDF는 사후 수정 불가.
+
+---
+
+주요 변경 요약: 사용자를 **약사 단독**으로 한정했고, 간호사 관련 요소(nurse 권한, 점검자/관리자 이중 서명, 간호 스테이션 복귀 동기화 묘사, 부서 종속 로그인)를 모두 제거했습니다. 약사가 **전 병동을 선택하여 순회 점검**하는 흐름으로 화면 구조와 권한 매트릭스, 데이터 모델(`pharmacists`, `pharmacist_sign` 등)을 재구성했습니다.
+
+이대로 Codex에 입력할 영문 프롬프트로 변환해 드릴까요, 아니면 특정 모듈(예: OCR 또는 PDF 생성)의 실제 코드 스캐폴딩부터 작성해 드릴까요?
