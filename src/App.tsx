@@ -7,6 +7,7 @@ import {
   PackagePlus,
   Plus,
   Printer,
+  RefreshCw,
   Search,
   Siren,
   Trash2,
@@ -575,6 +576,7 @@ export function App() {
     warning: "",
   });
   const [newRoomName, setNewRoomName] = useState("");
+  const [renameDrugForm, setRenameDrugForm] = useState({ oldCode: "", newCode: "" });
   const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
   const [pdfDownload, setPdfDownload] = useState<PdfDownloadResult | null>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
@@ -904,6 +906,92 @@ export function App() {
     );
     setNewAssignment((prev) => ({ ...prev, drugCode: code }));
     setNewDrug({ code: "", genericName: "", productName: "", spec: "", storage: "실온보관", warning: "" });
+  }
+
+  function changeDrugCode(event: FormEvent) {
+    event.preventDefault();
+    const oldCode = renameDrugForm.oldCode.trim();
+    const newCode = normalizeStockCode(renameDrugForm.newCode.trim());
+    if (!oldCode || !newCode) {
+      alert("기존 코드와 신규 코드를 모두 입력해 주세요.");
+      return;
+    }
+    if (oldCode === newCode) {
+      alert("기존 코드와 신규 코드가 동일합니다.");
+      return;
+    }
+    const drugExists = stockDrugs.some((item) => item.code === oldCode);
+    if (!drugExists) {
+      alert("존재하지 않는 기존 약품 코드입니다.");
+      return;
+    }
+    const newDrugExists = stockDrugs.some((item) => item.code === newCode);
+    if (newDrugExists) {
+      alert("이미 존재하는 신규 약품 코드입니다.");
+      return;
+    }
+
+    // 1. Update stockDrugs
+    setStockDrugs((prev) => {
+      const updated = prev.map((item) => {
+        if (item.code === oldCode) {
+          return { ...item, code: newCode };
+        }
+        return item;
+      });
+      return sortStockDrugsByName(updated);
+    });
+
+    // 2. Update stockAllocations
+    setStockAllocations((prev) => {
+      return prev.map((allocation) => {
+        if (allocation.drugCode === oldCode) {
+          return { ...allocation, drugCode: newCode };
+        }
+        return allocation;
+      });
+    });
+
+    // 3. Update checkedStock keys
+    setCheckedStock((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(prev)) {
+        const parts = key.split("::");
+        if (parts.length === 2 && parts[1] === oldCode) {
+          const roomId = parts[0];
+          const newKey = stockKey(roomId, newCode);
+          next[newKey] = prev[key];
+          delete next[key];
+        }
+      }
+      return next;
+    });
+
+    // 4. Update stockExpiry keys
+    setStockExpiry((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(prev)) {
+        const parts = key.split("::");
+        if (parts.length === 2 && parts[1] === oldCode) {
+          const roomId = parts[0];
+          const newKey = stockKey(roomId, newCode);
+          next[newKey] = prev[key];
+          delete next[key];
+        }
+      }
+      return next;
+    });
+
+    // Reset new assignment choice if it was selecting the old code
+    setNewAssignment((prev) => {
+      if (prev.drugCode === oldCode) {
+        return { ...prev, drugCode: newCode };
+      }
+      return prev;
+    });
+
+    alert(`약품 코드가 ${oldCode}에서 ${newCode}로 변경되었습니다.`);
+    setRenameDrugForm({ oldCode: "", newCode: "" });
   }
 
   function addNewRoom(event: FormEvent) {
@@ -1390,54 +1478,91 @@ export function App() {
               </form>
 
               <div className="master-add-grid">
-                <form className="add-panel" onSubmit={addNewDrug}>
-                  <div>
-                    <h3>신규코드 의약품 추가</h3>
-                    <p>추가 후 바로 위 보유실 배정에서 선택할 수 있습니다.</p>
-                  </div>
-                  <div className="add-form-grid">
-                    <label>
-                      약품코드
-                      <input value={newDrug.code} onChange={(event) => setNewDrug((prev) => ({ ...prev, code: event.target.value }))} />
-                    </label>
-                    <label>
-                      상품명
-                      <input
-                        value={newDrug.productName}
-                        onChange={(event) => setNewDrug((prev) => ({ ...prev, productName: event.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      일반명
-                      <input
-                        value={newDrug.genericName}
-                        onChange={(event) => setNewDrug((prev) => ({ ...prev, genericName: event.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      규격
-                      <input value={newDrug.spec} onChange={(event) => setNewDrug((prev) => ({ ...prev, spec: event.target.value }))} />
-                    </label>
-                    <label>
-                      보관조건
-                      <input
-                        value={newDrug.storage}
-                        onChange={(event) => setNewDrug((prev) => ({ ...prev, storage: event.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      주의사항
-                      <input
-                        value={newDrug.warning}
-                        onChange={(event) => setNewDrug((prev) => ({ ...prev, warning: event.target.value }))}
-                      />
-                    </label>
-                  </div>
-                  <button className="secondary-button" type="submit">
-                    <Plus size={16} />
-                    신규 약품 등록
-                  </button>
-                </form>
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <form className="add-panel" onSubmit={addNewDrug}>
+                    <div>
+                      <h3>신규코드 의약품 추가</h3>
+                      <p>추가 후 바로 위 보유실 배정에서 선택할 수 있습니다.</p>
+                    </div>
+                    <div className="add-form-grid">
+                      <label>
+                        약품코드
+                        <input value={newDrug.code} onChange={(event) => setNewDrug((prev) => ({ ...prev, code: event.target.value }))} />
+                      </label>
+                      <label>
+                        상품명
+                        <input
+                          value={newDrug.productName}
+                          onChange={(event) => setNewDrug((prev) => ({ ...prev, productName: event.target.value }))}
+                        />
+                      </label>
+                      <label>
+                        일반명
+                        <input
+                          value={newDrug.genericName}
+                          onChange={(event) => setNewDrug((prev) => ({ ...prev, genericName: event.target.value }))}
+                        />
+                      </label>
+                      <label>
+                        규격
+                        <input value={newDrug.spec} onChange={(event) => setNewDrug((prev) => ({ ...prev, spec: event.target.value }))} />
+                      </label>
+                      <label>
+                        보관조건
+                        <input
+                          value={newDrug.storage}
+                          onChange={(event) => setNewDrug((prev) => ({ ...prev, storage: event.target.value }))}
+                        />
+                      </label>
+                      <label>
+                        주의사항
+                        <input
+                          value={newDrug.warning}
+                          onChange={(event) => setNewDrug((prev) => ({ ...prev, warning: event.target.value }))}
+                        />
+                      </label>
+                    </div>
+                    <button className="secondary-button" type="submit">
+                      <Plus size={16} />
+                      신규 약품 등록
+                    </button>
+                  </form>
+
+                  <form className="add-panel" onSubmit={changeDrugCode}>
+                    <div>
+                      <h3>의약품 코드 변경</h3>
+                      <p>기존 약품의 모든 정보(명칭, 규격, 보유실 배정 등)를 유지하고 코드만 변경합니다.</p>
+                    </div>
+                    <div className="add-form-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+                      <label>
+                        기존 의약품 선택
+                        <select
+                          value={renameDrugForm.oldCode}
+                          onChange={(event) => setRenameDrugForm((prev) => ({ ...prev, oldCode: event.target.value }))}
+                        >
+                          <option value="">-- 약품 선택 --</option>
+                          {stockDrugs.map((drug) => (
+                            <option key={drug.code} value={drug.code}>
+                              [{drug.code}] {drug.productName} {drug.spec ? `(${drug.spec})` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        신규 약품코드
+                        <input
+                          value={renameDrugForm.newCode}
+                          onChange={(event) => setRenameDrugForm((prev) => ({ ...prev, newCode: event.target.value }))}
+                          placeholder="변경할 신규 코드 입력"
+                        />
+                      </label>
+                    </div>
+                    <button className="secondary-button" type="submit" style={{ backgroundColor: "#0284c7", borderColor: "#0284c7" }}>
+                      <RefreshCw size={16} />
+                      코드 변경 실행
+                    </button>
+                  </form>
+                </div>
 
                 <form className="add-panel compact" onSubmit={addNewRoom}>
                   <div>
