@@ -1931,7 +1931,7 @@ function StockReportTable({
   onDelete: (roomId: string, drugCode: string) => void;
 }) {
   return (
-    <div className="table-wrap bordered">
+    <div className="table-wrap bordered inspection-table-wrap">
       <table className="data-table inspection-table">
         <thead>
           <tr>
@@ -2082,7 +2082,7 @@ function EcartReportTable({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="table-wrap bordered">
+    <div className="table-wrap bordered inspection-table-wrap">
       <table className="data-table inspection-table">
         <thead>
           <tr>
