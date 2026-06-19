@@ -173,8 +173,20 @@ export type PdfDownloadResult = {
 };
 
 export async function downloadElementAsPdf(element: HTMLElement, fileName: string): Promise<PdfDownloadResult> {
-  const canvas = await renderElementToCanvas(element);
-  const pages = canvasToPdfPages(canvas);
+  let pages: PdfImagePage[] = [];
+
+  const childPages = Array.from(element.querySelectorAll(".bulk-report-page")) as HTMLElement[];
+  if (childPages.length > 0) {
+    for (const child of childPages) {
+      const canvas = await renderElementToCanvas(child);
+      const canvasPages = canvasToPdfPages(canvas);
+      pages.push(...canvasPages);
+    }
+  } else {
+    const canvas = await renderElementToCanvas(element);
+    pages = canvasToPdfPages(canvas);
+  }
+
   const pdf = buildPdf(pages);
   const url = URL.createObjectURL(pdf);
   const link = document.createElement("a");
