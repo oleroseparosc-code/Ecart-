@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T08:32:02.303Z",
+  "updatedAt": "2026-06-23T08:32:21.900Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6419,7 +6419,7 @@
           "text": "수량 일치",
           "status": "good",
           "id": "stock-정형외과-4",
-          "note": ""
+          "note": "사용 후 수량 맞지 않는 품목 잘 맞춰 놓으시도록 안내"
         },
         {
           "section": "비품약",
@@ -6445,7 +6445,7 @@
         {
           "section": "비품약",
           "text": "4. 비품이외의 잉여약을 보관하고 있지 않다.",
-          "status": "good",
+          "status": "bad",
           "id": "stock-정형외과-8",
           "note": "보노렉스 잉여 4바이알 보관 중 반납 하시도록 안내"
         },
