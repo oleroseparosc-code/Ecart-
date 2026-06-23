@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T08:33:16.046Z",
+  "updatedAt": "2026-06-23T08:33:24.853Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6963,7 +6963,7 @@
             "text": "2. E-cart가 규정에 맞게 잘 봉인되어 있으며 봉인일이 표시 되어 있다.",
             "status": "good",
             "id": "ecart-general:AER-2-2",
-            "note": "하단 서랍 "
+            "note": "하단 서랍 씰링 되어 있지 않음"
           },
           {
             "section": "E-cart",
