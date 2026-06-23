@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T08:31:02.086Z",
+  "updatedAt": "2026-06-23T08:31:07.870Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6366,7 +6366,7 @@
         {
           "section": "청구약",
           "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
-          "status": "good",
+          "status": "bad",
           "id": "stock-이비인후과-20",
           "note": "개봉된 bosmin 유효기간 6월 9일 까지인 약품 보관"
         },
