@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T07:58:33.161Z",
+  "updatedAt": "2026-06-23T07:58:55.172Z",
   "clientId": "e310ac7e-b47a-4b87-bdc8-3d1c73c05ac3",
   "state": {
     "stockDrugs": [
@@ -6049,6 +6049,11 @@
         "roomId": "외래주사실",
         "drugCode": "XGOSE",
         "requiredQty": 1
+      },
+      {
+        "roomId": "AER",
+        "drugCode": "XACYST6",
+        "requiredQty": 4
       }
     ],
     "checkedStock": {},
