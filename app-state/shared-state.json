@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T08:27:59.653Z",
+  "updatedAt": "2026-06-23T08:28:05.162Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6093,7 +6093,7 @@
           "text": "수량 일치",
           "status": "good",
           "id": "stock-AER-4",
-          "note": "Triaxon mapset 수량 불일치"
+          "note": "Triaxon mapset 수량 불일치/ 사용 라벨"
         },
         {
           "section": "비품약",
@@ -6432,7 +6432,7 @@
             "text": "이상 시 사유:",
             "status": "",
             "id": "ecart-general:AER-1-4",
-            "note": "Triaxon mapset 수량 불일치"
+            "note": "Triaxon mapset 수량 불일치/ 사용 라벨"
           },
           {
             "section": "E-cart",
