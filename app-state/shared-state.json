@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T23:06:26.844Z",
+  "updatedAt": "2026-06-23T23:06:29.441Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -7343,7 +7343,7 @@
           {
             "section": "E-cart",
             "text": "3. E-cart 약품의 유효기간을 날짜로 월 1회 점검한 점검 기록이 있다,",
-            "status": "good",
+            "status": "bad",
             "id": "ecart-general:CT실-4",
             "note": "Nitroglycerin 유효기간 당일까지 정리 안 되어 있음"
           }
