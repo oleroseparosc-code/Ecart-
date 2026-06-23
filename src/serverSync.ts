@@ -3,9 +3,12 @@ import type { RemoteSaveResult, RemoteStateEnvelope, RemoteStateResult } from ".
 type ServerSyncOptions = {
   baseUrl?: string;
   timeoutMs?: number;
+  retryDelayMs?: number;
 };
 
 const DEFAULT_SERVER_TIMEOUT_MS = 12000;
+const SAVE_RETRY_ATTEMPTS = 3;
+const SAVE_RETRY_DELAY_MS = 1200;
 
 export function buildAppStateApiUrl(baseUrl = import.meta.env.BASE_URL) {
   const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
@@ -28,6 +31,14 @@ async function fetchServerState(url: string, init: RequestInit, timeoutMs = DEFA
   }
 }
 
+function waitForRetry(delayMs: number) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, delayMs));
+}
+
+function isTransientSaveStatus(status: number) {
+  return status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
 export async function loadServerState<T>(options: ServerSyncOptions = {}): Promise<RemoteStateResult<T> | null> {
   const response = await fetchServerState(
     buildAppStateApiUrl(options.baseUrl),
@@ -46,7 +57,7 @@ export async function loadServerState<T>(options: ServerSyncOptions = {}): Promi
   return (await response.json()) as RemoteStateResult<T>;
 }
 
-export async function saveServerState<T>(
+async function saveServerStateOnce<T>(
   envelope: RemoteStateEnvelope<T>,
   options: ServerSyncOptions = {},
 ): Promise<RemoteSaveResult> {
@@ -67,4 +78,31 @@ export async function saveServerState<T>(
   }
 
   return (await response.json()) as RemoteSaveResult;
+}
+
+function isTransientSaveError(error: unknown) {
+  if (!(error instanceof Error)) return true;
+  const status = error.message.match(/\((\d{3})\)/)?.[1];
+  return status ? isTransientSaveStatus(Number(status)) : true;
+}
+
+export async function saveServerState<T>(
+  envelope: RemoteStateEnvelope<T>,
+  options: ServerSyncOptions = {},
+): Promise<RemoteSaveResult> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= SAVE_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      return await saveServerStateOnce(envelope, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt === SAVE_RETRY_ATTEMPTS || !isTransientSaveError(error)) {
+        throw error;
+      }
+      await waitForRetry(options.retryDelayMs ?? SAVE_RETRY_DELAY_MS);
+    }
+  }
+
+  throw lastError;
 }
