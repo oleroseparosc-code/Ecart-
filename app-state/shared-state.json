@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T07:36:19.534Z",
-  "clientId": "3848c1e4-7c1c-477b-a2a4-11b9f37d25e1",
+  "updatedAt": "2026-06-23T07:38:17.906Z",
+  "clientId": "7341c5fb-579d-4be9-9dcc-346b2080d78b",
   "state": {
     "stockDrugs": [
       {
@@ -3116,6 +3116,11 @@
         "requiredQty": 2
       },
       {
+        "roomId": "91W",
+        "drugCode": "XAPH1",
+        "requiredQty": 3
+      },
+      {
         "roomId": "92W",
         "drugCode": "XAPH1",
         "requiredQty": 2
@@ -3209,6 +3214,11 @@
         "roomId": "62W",
         "drugCode": "XPALON75",
         "requiredQty": 1
+      },
+      {
+        "roomId": "91W",
+        "drugCode": "XPALON75",
+        "requiredQty": 2
       },
       {
         "roomId": "AN",
@@ -4636,6 +4646,11 @@
         "requiredQty": 5
       },
       {
+        "roomId": "PED",
+        "drugCode": "XLEUPD3",
+        "requiredQty": 2
+      },
+      {
         "roomId": "외래주사실",
         "drugCode": "XLEUPD3",
         "requiredQty": 6
@@ -6029,404 +6044,12 @@
         "roomId": "외래주사실",
         "drugCode": "XGOSE",
         "requiredQty": 1
-      },
-      {
-        "roomId": "PED",
-        "drugCode": "XMEXO",
-        "requiredQty": 3
       }
     ],
-    "checkedStock": {
-      "42W::XXARIPIP3": true,
-      "PED::XLEUPD3": true
-    },
+    "checkedStock": {},
     "stockExpiry": {},
-    "stockChecklistByRoom": {
-      "42W": [
-        {
-          "section": "비품약",
-          "text": "1. 병동 자체에서 관리 하는 비품약 관리대장이 있다.",
-          "id": "stock-42W-1",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "1-1 약품 라벨링이 되어 있는 보관 장소에 분리해서 보관되어 있다..",
-          "id": "stock-42W-2",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "2. 병동 자체 관리 대장과 약제팀에서 제공한 관리 대장의 목록이 일치 한다.",
-          "id": "stock-42W-3",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "비품약 종류 일치",
-          "id": "stock-42W-4",
-          "status": "bad",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "수량 일치",
-          "id": "stock-42W-5",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "2-1 약제팀 리스트와 불일치 시 불일치 내용 사유를 작성해 주세요.(투약, 망실 등등)",
-          "id": "stock-42W-6-2-1",
-          "status": "",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "2-2 약제팀 제공 비품 리스트에 약품 목록, 보관상태, 수량을 확인 후 확인자 서명 확인",
-          "id": "stock-42W-6-2-2",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "3.병동 비품약 보관시 보관함 라벨에 혼돈되기 쉬운 의약품, 고위험 의약품의 별도의 주의표기가 되어 있다. (예 : 유사모양, 유사발음, 용량 주의 등)",
-          "id": "stock-42W-7",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "4. 비품이외의 잉여약을 보관하고 있지 않다.",
-          "id": "stock-42W-8",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "비품약",
-          "text": "* 비품이외에 발생한 잉여약 내용",
-          "id": "stock-42W-9",
-          "status": "",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "1. 냉장고 온도관리 기록부가 있다.",
-          "id": "stock-42W-10",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "2. 냉장고 온도 관리기록부에 매일 1회 이상 온도를 관리 기록하고 점검 하고 있다. **미래의 날짜에 미리 체크 되어 있는 기록이 없는지 확인",
-          "id": "stock-42W-11",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "3. 냉장고 온도 관리 기록부에 기록된 온도가 적절한 범위에 있다.(2-8℃ )",
-          "id": "stock-42W-12",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "4. 인슐린이 다른 약품과 분리 보관되어 있으며 보관함에 고위험 의약품 표기가 되어 있다.",
-          "id": "stock-42W-13",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "4-1.미개봉 인슐린의 유효기간을 점검한다.",
-          "id": "stock-42W-14",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "4-2 개봉된 인슐린의 개봉일과 폐기일이 표기되어 있다.",
-          "id": "stock-42W-15",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "4-3 유효기간이 경과한 개봉 인슐린이 보관되어 있지 않다.",
-          "id": "stock-42W-16",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "5. 약품 냉장고에 약품이외의 것이 들어 있지 않다.(예 : 음식물)",
-          "id": "stock-42W-17",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "냉장약",
-          "text": "6. 연 1회 냉장고 온도계 검증 여부",
-          "id": "stock-42W-17-thermometer",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
-          "id": "stock-42W-18",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
-          "id": "stock-42W-19",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "청구약",
-          "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
-          "id": "stock-42W-20",
-          "status": "good",
-          "note": ""
-        },
-        {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
-          "id": "stock-42W-21",
-          "status": "good",
-          "note": ""
-        }
-      ]
-    },
-    "ecartByTarget": {
-      "general:42": {
-        "items": [
-          {
-            "id": "XLID2W",
-            "code": "XLID2W",
-            "name": "2% Lidocaine 400mg",
-            "dosage": "2% 20mL/Vial",
-            "quantity": 2,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XNS20",
-            "code": "XNS20",
-            "name": "N/S 20cc",
-            "dosage": "20mL/Amp",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "NITR",
-            "code": "NITR",
-            "name": "Nitroglycerin(SL)",
-            "dosage": "0.6mg/Tab",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XCPENIR",
-            "code": "XCPENIR",
-            "name": "Peniramin",
-            "dosage": "4mg/2ml/Amp",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XNITR10F",
-            "code": "XNITR10F",
-            "name": "Nitrolingual 0.1%",
-            "dosage": "10mg/10ml",
-            "quantity": 5,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XFURO",
-            "code": "XFURO",
-            "name": "Lasix",
-            "dosage": "20mg/Amp",
-            "quantity": 5,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XNALO.4",
-            "code": "XNALO.4",
-            "name": "Naloxone",
-            "dosage": "0.4mg/Amp",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XADENO6",
-            "code": "XADENO6",
-            "name": "Adenocor( Adenosin )",
-            "dosage": "6mg/Vial",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XNORE10",
-            "code": "XNORE10",
-            "name": "Norpin",
-            "dosage": "10mg/Amp",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XAMIOD",
-            "code": "XAMIOD",
-            "name": "Cordarone",
-            "dosage": "150mg/Amp",
-            "quantity": 2,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XATRO",
-            "code": "XATRO",
-            "name": "Atropine",
-            "dosage": "0.5mg/Amp",
-            "quantity": 10,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XEPIN",
-            "code": "XEPIN",
-            "name": "Epinephrine",
-            "dosage": "1mg/ml/Amp",
-            "quantity": 20,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XNB84",
-            "code": "XNB84",
-            "name": "Sodium Bicabonate",
-            "dosage": "20mEq/20mL/Amp",
-            "quantity": 10,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XCAGL",
-            "code": "XCAGL",
-            "name": "Ca Gluconate",
-            "dosage": "2g/20ml/ Amp",
-            "quantity": 3,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XNS1L",
-            "code": "XNS1L",
-            "name": "N/S 1L",
-            "dosage": "1L / Bag",
-            "quantity": 2,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XD5W100",
-            "code": "XD5W100",
-            "name": "5% D/W",
-            "dosage": "100ml / Bag",
-            "quantity": 2,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XD50W1",
-            "code": "XD50W1",
-            "name": "50% D/W",
-            "dosage": "100ml / Bottle",
-            "quantity": 2,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XDOB5D2",
-            "code": "XDOB5D2",
-            "name": "Dobutamine premix",
-            "dosage": "Dobu 500mg + 5% D/W 250ml",
-            "quantity": 1,
-            "checked": false,
-            "expiryDate": ""
-          },
-          {
-            "id": "XDOPA4D2",
-            "code": "XDOPA4D2",
-            "name": "Dopamine premix",
-            "dosage": "Dopa 400mg + 5% D/W 200ml",
-            "quantity": 2,
-            "checked": false,
-            "expiryDate": ""
-          }
-        ],
-        "checklist": [
-          {
-            "section": "E-cart",
-            "text": "1. E-cart 약품의 종류와 수량을 주 1회 점검한 E-cart 관리대장 점검 기록이 있다.",
-            "id": "ecart-general:42-0",
-            "status": "good",
-            "note": ""
-          },
-          {
-            "section": "E-cart",
-            "text": "1. E-cart 약품의 종류와 수량을 주 2회 점검한 E-cart 관리대장 점검 기록이 있다.",
-            "id": "ecart-general:42-1",
-            "status": "bad",
-            "note": ""
-          },
-          {
-            "section": "E-cart",
-            "text": "2. E-cart가 규정에 맞게 잘 봉인되어 있으며 봉인일이 표시 되어 있다.",
-            "id": "ecart-general:42-2",
-            "status": "good",
-            "note": ""
-          },
-          {
-            "section": "E-cart",
-            "text": "2-1 E-cart 봉인지 시리얼 넘버가 기재되어 있다.",
-            "id": "ecart-general:42-3",
-            "status": "good",
-            "note": ""
-          },
-          {
-            "section": "E-cart",
-            "text": "이상 시 사유:",
-            "id": "ecart-general:42-4",
-            "status": "",
-            "note": ""
-          },
-          {
-            "section": "E-cart",
-            "text": "3. E-cart 약품의 유효기간을 날짜로 월 1회 점검한 점검 기록이 있다,",
-            "id": "ecart-general:42-5",
-            "status": "good",
-            "note": ""
-          }
-        ]
-      }
-    },
+    "stockChecklistByRoom": {},
+    "ecartByTarget": {},
     "roundSummaryDraft": null,
     "stockRoomUpdatedAt": {},
     "uninspectedRoomIds": []
