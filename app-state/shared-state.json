@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T08:32:21.900Z",
+  "updatedAt": "2026-06-23T08:32:25.404Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6417,7 +6417,7 @@
         {
           "section": "비품약",
           "text": "수량 일치",
-          "status": "good",
+          "status": "bad",
           "id": "stock-정형외과-4",
           "note": "사용 후 수량 맞지 않는 품목 잘 맞춰 놓으시도록 안내"
         },
