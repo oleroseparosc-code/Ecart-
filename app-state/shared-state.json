@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T07:55:49.160Z",
-  "clientId": "3848c1e4-7c1c-477b-a2a4-11b9f37d25e1",
+  "updatedAt": "2026-06-23T07:57:19.204Z",
+  "clientId": "e310ac7e-b47a-4b87-bdc8-3d1c73c05ac3",
   "state": {
     "stockDrugs": [
       {
@@ -1643,16 +1643,6 @@
         "note": "",
         "warning": "",
         "storageType": "LIGHT_PROTECTED"
-      },
-      {
-        "code": "XACYST6",
-        "genericName": "acetylcysteine 100mg/ml",
-        "productName": "MUTERAN 600MG/6ml inj",
-        "spec": "600mg/6ml/Amp",
-        "storage": "차광밀봉용기, 실온보관",
-        "note": "",
-        "warning": "",
-        "storageType": "ROOM"
       },
       {
         "code": "XMVH",
@@ -4931,6 +4921,11 @@
         "requiredQty": 1
       },
       {
+        "roomId": "AER",
+        "drugCode": "XACYST3",
+        "requiredQty": 4
+      },
+      {
         "roomId": "외래주사실",
         "drugCode": "XMVH",
         "requiredQty": 10
@@ -6049,11 +6044,6 @@
         "roomId": "외래주사실",
         "drugCode": "XGOSE",
         "requiredQty": 1
-      },
-      {
-        "roomId": "AER",
-        "drugCode": "XACYST6",
-        "requiredQty": 4
       }
     ],
     "checkedStock": {},
@@ -6061,9 +6051,7 @@
     "stockChecklistByRoom": {},
     "ecartByTarget": {},
     "roundSummaryDraft": null,
-    "stockRoomUpdatedAt": {
-      "AER": "26.06.23"
-    },
+    "stockRoomUpdatedAt": {},
     "uninspectedRoomIds": []
   }
 }
