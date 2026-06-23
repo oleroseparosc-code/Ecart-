@@ -40,6 +40,8 @@ This app previews a pharmacist ward inventory workflow with real Excel data. The
    - The server commits and pushes that file to GitHub with the local repository's existing Git credentials.
    - The app polls for newer server updates and automatically saves every local edit after changes settle.
    - Master drug, room, and allocation edits are queued for automatic save even while initial server checking is still in progress.
+   - `npm run dev:public` opens a Cloudflare quick tunnel for mobile access outside the PC's Wi-Fi network.
+   - The dev server allows `*.trycloudflare.com` hosts so the tunneled app and `/api/app-state` share the same server state.
 8. Build the round-summary report from bad checklist statuses and manual note text, then print/PDF it through the shared preview flow.
 
 ## Update Rule

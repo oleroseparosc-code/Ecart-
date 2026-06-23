@@ -103,4 +103,7 @@ function appStateSyncPlugin(): Plugin {
 export default defineConfig({
   plugins: [react(), appStateSyncPlugin()],
   base: "/Ecart-/",
+  server: {
+    allowedHosts: [".trycloudflare.com"],
+  },
 });
