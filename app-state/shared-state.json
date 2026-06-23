@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T07:58:55.172Z",
-  "clientId": "e310ac7e-b47a-4b87-bdc8-3d1c73c05ac3",
+  "updatedAt": "2026-06-23T08:03:52.356Z",
+  "clientId": "adc04157-2d4e-46c8-a829-9f98dcdf41d6",
   "state": {
     "stockDrugs": [
       {
@@ -1643,16 +1643,6 @@
         "note": "",
         "warning": "",
         "storageType": "LIGHT_PROTECTED"
-      },
-      {
-        "code": "XACYST6",
-        "genericName": "",
-        "productName": "MUTERAN 600MG/6ml inj",
-        "spec": "",
-        "storage": "실온보관",
-        "note": "",
-        "warning": "",
-        "storageType": "ROOM"
       },
       {
         "code": "XMVH",
@@ -6049,11 +6039,6 @@
         "roomId": "외래주사실",
         "drugCode": "XGOSE",
         "requiredQty": 1
-      },
-      {
-        "roomId": "AER",
-        "drugCode": "XACYST6",
-        "requiredQty": 4
       }
     ],
     "checkedStock": {},
