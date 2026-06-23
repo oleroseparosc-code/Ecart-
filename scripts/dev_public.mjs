@@ -5,8 +5,13 @@ const npmCommand = isWindows ? "npm.cmd" : "npm";
 const npxCommand = isWindows ? "npx.cmd" : "npx";
 const children = [];
 
+function commandForPlatform(command, args) {
+  return isWindows ? ["cmd.exe", ["/d", "/s", "/c", command, ...args]] : [command, args];
+}
+
 function spawnLogged(label, command, args) {
-  const child = spawn(command, args, {
+  const [platformCommand, platformArgs] = commandForPlatform(command, args);
+  const child = spawn(platformCommand, platformArgs, {
     cwd: process.cwd(),
     shell: false,
     windowsHide: true,
