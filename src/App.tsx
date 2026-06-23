@@ -37,6 +37,7 @@ import {
 import { downloadElementAsPdf, type PdfDownloadResult } from "./reportPdf";
 import { effectiveRoomUpdatedAt, formatRoomUpdatedAt, markRoomsUpdated } from "./roomUpdateDate";
 import { buildRoundSummaryDraft, type RoundSummaryDraft, type RoundSummaryRow } from "./roundSummary";
+import { getSyncActionAvailability, getSyncDeviceMode } from "./syncUi";
 import type { ChecklistItem, EcartItem, InventoryData, StockAllocation, StockDrug, StockRoom } from "./types";
 
 const inventory = rawInventory as InventoryData;
@@ -719,6 +720,7 @@ export function App() {
   const [newRoomName, setNewRoomName] = useState("");
   const [renameDrugForm, setRenameDrugForm] = useState({ oldCode: "", newCode: "" });
   const [isMobileMode, setIsMobileMode] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 1024 : window.innerWidth));
   const [syncConfig, setSyncConfig] = useState<StoredSyncConfig>(() => loadSyncConfig());
   const [syncTokenDraft, setSyncTokenDraft] = useState(() => loadSyncConfig().token);
   const [showSyncSettings, setShowSyncSettings] = useState(false);
@@ -771,6 +773,14 @@ export function App() {
     if (!syncConfig.enabled || !token) return null;
     return { ...GITHUB_SYNC_TARGET, token };
   }, [syncConfig.enabled, syncConfig.token]);
+  const syncDeviceMode = useMemo(
+    () => getSyncDeviceMode({ isMobileMode, viewportWidth }),
+    [isMobileMode, viewportWidth],
+  );
+  const syncActions = useMemo(
+    () => getSyncActionAvailability({ mode: syncDeviceMode, hasConfig: Boolean(githubSyncConfig) }),
+    [githubSyncConfig, syncDeviceMode],
+  );
 
   function applyPersistedAppState(nextState: Partial<PersistedAppState>) {
     const normalized = normalizePersistedState(nextState);
@@ -917,6 +927,13 @@ export function App() {
     return () => {
       if (pushTimerRef.current) window.clearTimeout(pushTimerRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+    updateViewportWidth();
+    window.addEventListener("resize", updateViewportWidth);
+    return () => window.removeEventListener("resize", updateViewportWidth);
   }, []);
 
   const syncStatusText = useMemo(() => {
@@ -1920,12 +1937,16 @@ export function App() {
               <button className="submit-button" type="submit">
                 저장 후 동기화 시작
               </button>
-              <button className="secondary-button" type="button" onClick={forcePullRemote} disabled={!githubSyncConfig}>
-                원격 내용 가져오기
-              </button>
-              <button className="secondary-button" type="button" onClick={forcePushRemote} disabled={!githubSyncConfig}>
-                현재 내용 올리기
-              </button>
+              {syncActions.showPull && (
+                <button className="secondary-button" type="button" onClick={forcePullRemote} disabled={!syncActions.canPull}>
+                  원격 내용 가져오기
+                </button>
+              )}
+              {syncActions.showPush && (
+                <button className="secondary-button" type="button" onClick={forcePushRemote} disabled={!syncActions.canPush}>
+                  현재 내용 올리기
+                </button>
+              )}
               <button className="secondary-button danger-light" type="button" onClick={disableSync}>
                 동기화 끄기
               </button>
