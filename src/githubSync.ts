@@ -22,6 +22,12 @@ export type RemoteSaveResult = {
   sha: string;
 };
 
+type GithubRequestOptions = {
+  timeoutMs?: number;
+};
+
+const DEFAULT_GITHUB_TIMEOUT_MS = 12000;
+
 export function buildGithubContentsUrl(config: Pick<GithubSyncConfig, "owner" | "repo" | "branch" | "path">) {
   return `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(config.path)}?ref=${encodeURIComponent(
     config.branch,
@@ -69,10 +75,34 @@ function githubHeaders(config: GithubSyncConfig) {
   };
 }
 
-export async function loadRemoteState<T>(config: GithubSyncConfig): Promise<RemoteStateResult<T> | null> {
-  const response = await fetch(buildGithubContentsUrl(config), {
-    headers: githubHeaders(config),
-  });
+async function fetchGithub(url: string, init: RequestInit, options: GithubRequestOptions = {}) {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_GITHUB_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("GitHub 요청 시간이 초과되었습니다. 네트워크 상태와 토큰 권한을 확인해 주세요.");
+    }
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timer);
+  }
+}
+
+export async function loadRemoteState<T>(
+  config: GithubSyncConfig,
+  options: GithubRequestOptions = {},
+): Promise<RemoteStateResult<T> | null> {
+  const response = await fetchGithub(
+    buildGithubContentsUrl(config),
+    {
+      headers: githubHeaders(config),
+    },
+    options,
+  );
 
   if (response.status === 404) return null;
   if (!response.ok) {
@@ -90,20 +120,25 @@ export async function saveRemoteState<T>(
   config: GithubSyncConfig,
   envelope: RemoteStateEnvelope<T>,
   sha?: string,
+  options: GithubRequestOptions = {},
 ): Promise<RemoteSaveResult> {
-  const response = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(config.path)}`, {
-    method: "PUT",
-    headers: {
-      ...githubHeaders(config),
-      "Content-Type": "application/json",
+  const response = await fetchGithub(
+    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(config.path)}`,
+    {
+      method: "PUT",
+      headers: {
+        ...githubHeaders(config),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: "Sync inventory app state",
+        branch: config.branch,
+        content: encodeBase64Utf8(JSON.stringify(envelope, null, 2)),
+        ...(sha ? { sha } : {}),
+      }),
     },
-    body: JSON.stringify({
-      message: "Sync inventory app state",
-      branch: config.branch,
-      content: encodeBase64Utf8(JSON.stringify(envelope, null, 2)),
-      ...(sha ? { sha } : {}),
-    }),
-  });
+    options,
+  );
 
   if (!response.ok) {
     throw new Error(`GitHub state save failed (${response.status})`);

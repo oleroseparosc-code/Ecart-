@@ -141,6 +141,10 @@ type SyncStatus = {
   lastSyncedAt?: string;
 };
 
+type PullRemoteOptions = {
+  silent?: boolean;
+};
+
 type StockGuideEntry = {
   label: string;
   stockRoomId?: string;
@@ -728,6 +732,7 @@ export function App() {
   const syncClientId = useMemo(getSyncClientId, []);
   const remoteShaRef = useRef<string | undefined>(undefined);
   const syncInitializedRef = useRef(false);
+  const pullInFlightRef = useRef(false);
   const applyingRemoteRef = useRef(false);
   const didHydrateRef = useRef(false);
   const pushTimerRef = useRef<number | undefined>(undefined);
@@ -784,39 +789,50 @@ export function App() {
     if (normalized.uninspectedRoomIds) setUninspectedRoomIds(normalized.uninspectedRoomIds);
   }
 
-  async function pullRemoteState(config = githubSyncConfig, forceApply = false) {
+  async function pullRemoteState(config = githubSyncConfig, forceApply = false, options: PullRemoteOptions = {}) {
     if (!config) return false;
-    setSyncStatus({ mode: "syncing", message: "원격 상태 확인 중..." });
-    const remote = await loadRemoteState<PersistedAppState>(config);
-    syncInitializedRef.current = true;
-    if (!remote) {
-      setSyncStatus({ mode: "idle", message: "원격 상태 없음. 다음 수정 시 생성됩니다." });
-      scheduleRemotePush();
+    if (pullInFlightRef.current) {
+      if (!options.silent) setSyncStatus({ mode: "idle", message: "이미 원격 확인 중입니다. 잠시 뒤 다시 눌러 주세요." });
       return false;
     }
-    remoteShaRef.current = remote.sha;
-    const shouldApply =
-      forceApply ||
-      shouldApplyRemoteState({
-        remoteUpdatedAt: remote.envelope.updatedAt,
-        localUpdatedAt: localUpdatedAtRef.current,
-        remoteClientId: remote.envelope.clientId,
-        clientId: syncClientId,
-      });
-    if (shouldApply) {
-      localUpdatedAtRef.current = remote.envelope.updatedAt;
-      window.localStorage.setItem(LOCAL_UPDATED_AT_KEY, remote.envelope.updatedAt);
-      applyPersistedAppState(remote.envelope.state);
-      setSyncStatus({ mode: "synced", message: "원격 변경 반영됨", lastSyncedAt: new Date().toISOString() });
-      return true;
-    }
-    if (Date.parse(localUpdatedAtRef.current || "1970-01-01T00:00:00.000Z") > Date.parse(remote.envelope.updatedAt)) {
-      setSyncStatus({ mode: "idle", message: "로컬 변경 원격 저장 대기" });
-      scheduleRemotePush();
+    pullInFlightRef.current = true;
+    if (!options.silent) setSyncStatus({ mode: "syncing", message: "원격 상태 확인 중..." });
+    try {
+      const remote = await loadRemoteState<PersistedAppState>(config);
+      syncInitializedRef.current = true;
+      if (!remote) {
+        setSyncStatus({ mode: "idle", message: "원격 상태 없음. 다음 수정 시 생성됩니다." });
+        scheduleRemotePush();
+        return false;
+      }
+      remoteShaRef.current = remote.sha;
+      const shouldApply =
+        forceApply ||
+        shouldApplyRemoteState({
+          remoteUpdatedAt: remote.envelope.updatedAt,
+          localUpdatedAt: localUpdatedAtRef.current,
+          remoteClientId: remote.envelope.clientId,
+          clientId: syncClientId,
+        });
+      if (shouldApply) {
+        localUpdatedAtRef.current = remote.envelope.updatedAt;
+        window.localStorage.setItem(LOCAL_UPDATED_AT_KEY, remote.envelope.updatedAt);
+        applyPersistedAppState(remote.envelope.state);
+        setSyncStatus({ mode: "synced", message: "원격 변경 반영됨", lastSyncedAt: new Date().toISOString() });
+        return true;
+      }
+      if (Date.parse(localUpdatedAtRef.current || "1970-01-01T00:00:00.000Z") > Date.parse(remote.envelope.updatedAt)) {
+        setSyncStatus({ mode: "idle", message: "로컬 변경 원격 저장 대기" });
+        scheduleRemotePush();
+        return false;
+      }
+      if (!options.silent) {
+        setSyncStatus({ mode: "synced", message: "최신 상태", lastSyncedAt: new Date().toISOString() });
+      }
       return false;
+    } finally {
+      pullInFlightRef.current = false;
     }
-    setSyncStatus({ mode: "synced", message: "최신 상태", lastSyncedAt: new Date().toISOString() });
-    return false;
   }
 
   async function pushRemoteState(config = githubSyncConfig) {
@@ -887,7 +903,7 @@ export function App() {
       syncInitializedRef.current = true;
     });
     const poller = window.setInterval(() => {
-      void pullRemoteState(githubSyncConfig).catch((error) => {
+      void pullRemoteState(githubSyncConfig, false, { silent: true }).catch((error) => {
         setSyncStatus({ mode: "error", message: error instanceof Error ? error.message : "원격 동기화 실패" });
       });
     }, 3500);

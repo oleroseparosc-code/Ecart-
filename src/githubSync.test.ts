@@ -1,5 +1,12 @@
-import { describe, expect, it } from "vitest";
-import { buildGithubContentsUrl, decodeBase64Utf8, encodeBase64Utf8, shouldApplyRemoteState } from "./githubSync";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { buildGithubContentsUrl, decodeBase64Utf8, encodeBase64Utf8, loadRemoteState, shouldApplyRemoteState } from "./githubSync";
+
+const originalFetch = globalThis.fetch;
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+  vi.restoreAllMocks();
+});
 
 describe("github sync helpers", () => {
   it("builds the GitHub contents API URL for the shared state file", () => {
@@ -46,5 +53,27 @@ describe("github sync helpers", () => {
         clientId: "pc",
       }),
     ).toBe(false);
+  });
+
+  it("times out stalled GitHub load requests", async () => {
+    globalThis.fetch = vi.fn((_url, init) => {
+      const signal = (init as RequestInit | undefined)?.signal;
+      return new Promise<Response>((_resolve, reject) => {
+        signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    });
+
+    await expect(
+      loadRemoteState(
+        {
+          owner: "oleroseparosc-code",
+          repo: "Ecart-",
+          branch: "main",
+          path: "app-state/shared-state.json",
+          token: "secret",
+        },
+        { timeoutMs: 1 },
+      ),
+    ).rejects.toThrow("GitHub 요청 시간이 초과");
   });
 });
