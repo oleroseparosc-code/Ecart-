@@ -41,6 +41,7 @@ This app previews a pharmacist ward inventory workflow with real Excel data. The
    - The app polls for newer server updates and automatically saves every local edit after changes settle.
    - Master drug, room, and allocation edits are queued for automatic save even while initial server checking is still in progress.
    - Saves include the last-read server state hash; the server rejects stale writes so old browser tabs cannot overwrite newer shared state.
+   - The sync panel can force-upload the current device state to recover edits that only exist in that browser's local storage.
    - `npm run dev:public` opens a Cloudflare quick tunnel for mobile access outside the PC's Wi-Fi network.
    - The dev server allows `*.trycloudflare.com` hosts so the tunneled app and `/api/app-state` share the same server state.
 8. Build the round-summary report from bad checklist statuses and manual note text, then print/PDF it through the shared preview flow.

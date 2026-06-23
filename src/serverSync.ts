@@ -5,6 +5,7 @@ type ServerSyncOptions = {
   timeoutMs?: number;
   retryDelayMs?: number;
   baseSha?: string;
+  force?: boolean;
 };
 
 const DEFAULT_SERVER_TIMEOUT_MS = 12000;
@@ -62,7 +63,7 @@ async function saveServerStateOnce<T>(
   envelope: RemoteStateEnvelope<T>,
   options: ServerSyncOptions = {},
 ): Promise<RemoteSaveResult> {
-  const body = options.baseSha ? { envelope, baseSha: options.baseSha } : envelope;
+  const body = options.baseSha || options.force ? { envelope, baseSha: options.baseSha, force: options.force } : envelope;
   const response = await fetchServerState(
     buildAppStateApiUrl(options.baseUrl),
     {

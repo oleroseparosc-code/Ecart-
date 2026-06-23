@@ -150,10 +150,27 @@ button {
   border-radius: 6px;
 }
 
-.sync-actions {
+.sync-actions,
+.sync-panel-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.sync-panel-actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  color: #1d4ed8;
+  background: #fff;
+  font-weight: 900;
+}
+
+.sync-panel-actions button.danger {
+  border-color: #b91c1c;
+  color: #fff;
+  background: #dc2626;
 }
 
 .sync-status {
@@ -179,7 +196,8 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .sync-actions {
+  .sync-actions,
+  .sync-panel-actions {
     align-items: stretch;
   }
 

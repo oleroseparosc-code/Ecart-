@@ -56,4 +56,27 @@ describe("server sync client", () => {
       },
     });
   });
+
+  it("can force a device state upload for manual recovery", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ sha: "forced-sha" }), { status: 200 }));
+
+    await saveServerState(
+      {
+        version: 1,
+        updatedAt: "2026-06-23T07:00:00.000Z",
+        clientId: "phone",
+        state: { roundSummaryDraft: { rows: [] } },
+      },
+      { force: true, retryDelayMs: 0 },
+    );
+
+    const request = vi.mocked(globalThis.fetch).mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      force: true,
+      envelope: {
+        clientId: "phone",
+        state: { roundSummaryDraft: { rows: [] } },
+      },
+    });
+  });
 });

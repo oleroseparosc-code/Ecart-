@@ -41,18 +41,22 @@ function stateSha(content: string) {
 function parseSavePayload(body: string) {
   const parsed = JSON.parse(body);
   if (parsed && typeof parsed === "object" && "envelope" in parsed) {
-    return { envelope: parsed.envelope, baseSha: typeof parsed.baseSha === "string" ? parsed.baseSha : undefined };
+    return {
+      envelope: parsed.envelope,
+      baseSha: typeof parsed.baseSha === "string" ? parsed.baseSha : undefined,
+      force: parsed.force === true,
+    };
   }
-  return { envelope: parsed, baseSha: undefined };
+  return { envelope: parsed, baseSha: undefined, force: false };
 }
 
 async function saveStateAndPush(body: string) {
-  const { envelope, baseSha } = parseSavePayload(body);
+  const { envelope, baseSha, force } = parseSavePayload(body);
   await fs.mkdir(path.dirname(appStatePath), { recursive: true });
   try {
     const current = await fs.readFile(appStatePath, "utf8");
     const currentSha = stateSha(current);
-    if (!baseSha || baseSha !== currentSha) {
+    if (!force && (!baseSha || baseSha !== currentSha)) {
       throw new StateConflictError("App state changed on the server. Reload the latest state before saving.");
     }
   } catch (error) {

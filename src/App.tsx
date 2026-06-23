@@ -838,6 +838,36 @@ export function App() {
     }
   }
 
+  async function forceUploadCurrentDeviceState() {
+    if (!latestStateRef.current) return;
+    const confirmed = window.confirm(
+      "이 기기에 남아 있는 현재 입력 내용을 PC/모바일 공유 상태로 덮어씁니다. 모바일에서 점검한 내용과 병동 순회점검표 내용을 PC로 옮길 때만 사용하세요.",
+    );
+    if (!confirmed) return;
+
+    const updatedAt = new Date().toISOString();
+    const envelope: RemoteStateEnvelope<PersistedAppState> = {
+      version: 1,
+      updatedAt,
+      clientId: syncClientId,
+      state: latestStateRef.current,
+    };
+
+    setSyncStatus({ mode: "syncing", message: "이 기기 내용으로 서버 반영 중..." });
+    try {
+      const result = await saveServerState(envelope, { force: true });
+      remoteShaRef.current = result.sha;
+      localUpdatedAtRef.current = updatedAt;
+      hasUnsavedLocalChangesRef.current = false;
+      pendingPushRef.current = false;
+      window.localStorage.setItem(LOCAL_UPDATED_AT_KEY, updatedAt);
+      setSyncStatus({ mode: "synced", message: "이 기기 내용으로 서버 반영 완료", lastSyncedAt: new Date().toISOString() });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "이 기기 내용 반영 실패";
+      setSyncStatus({ mode: "error", message });
+    }
+  }
+
   function scheduleRemotePush() {
     if (!syncInitializedRef.current) {
       pendingPushRef.current = true;
@@ -1849,6 +1879,14 @@ export function App() {
                 PC에서 실행 중인 앱 서버가 <code>app-state/shared-state.json</code>을 자동 저장하고 GitHub로 push합니다.
                 PC와 핸드폰은 같은 PC 서버 주소로 접속하면 같은 내용을 봅니다.
               </p>
+            </div>
+            <div className="sync-panel-actions">
+              <button type="button" onClick={() => void pullRemoteState(true)}>
+                서버 내용 다시 받기
+              </button>
+              <button type="button" className="danger" onClick={() => void forceUploadCurrentDeviceState()}>
+                이 기기 내용으로 PC 반영
+              </button>
             </div>
           </div>
           <div className={`sync-status ${syncStatus.mode}`}>{syncStatusText}</div>
