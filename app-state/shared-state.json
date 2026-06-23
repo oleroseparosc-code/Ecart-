@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T08:27:24.727Z",
+  "updatedAt": "2026-06-23T08:27:31.508Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6184,7 +6184,7 @@
           "text": "5. 약품 냉장고에 약품이외의 것이 들어 있지 않다.(예 : 음식물)",
           "status": "good",
           "id": "stock-AER-17",
-          "note": "냉장고에 도시락"
+          "note": "약품 냉장고에 도시락 보관"
         },
         {
           "section": "냉장약",
