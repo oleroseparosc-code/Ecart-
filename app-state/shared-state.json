@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:14:10.089Z",
+  "updatedAt": "2026-06-24T07:14:51.400Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -9399,7 +9399,7 @@
           "text": "* 비품이외에 발생한 잉여약 내용",
           "status": "",
           "id": "stock-DSR-9",
-          "note": "레켐비 100mg 2vial/ Hirax 1500IU 약제팀으로 내리도록 안내"
+          "note": "레켐비 200mg 2vial/ Hirax 1500IU 약제팀으로 내리도록 안내"
         },
         {
           "section": "비품약",
@@ -14876,7 +14876,7 @@
           "id": "stock:DSR",
           "roomName": "DSR",
           "result": "확인 필요",
-          "details": "비품약: 레켐비 100mg 2vial/ Hirax 1500IU 약제팀으로 내리도록 안내\n비품약: 커피 보관\n비품약: 50% DW 라벨링 하여 보관하시도록 안내"
+          "details": "비품약: 레켐비 200mg 2vial/ Hirax 1500IU 약제팀으로 내리도록 안내\n비품약: 커피 보관\n비품약: 50% DW 라벨링 하여 보관하시도록 안내"
         },
         {
           "id": "stock:PED",
