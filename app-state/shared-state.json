@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:30:29.199Z",
+  "updatedAt": "2026-06-24T07:30:33.528Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6310,7 +6310,7 @@
       "AER::XAPH1": true,
       "AER::XNICAR5": true,
       "신속대응팀::XROCU50": true,
-      "영상의학과::XTRAM50": false,
+      "영상의학과::XTRAM50": true,
       "SICU::XHES6MPS5": true,
       "SICU::XDOB5D2": true,
       "SICU::XDOPA4D2": true,
@@ -6549,7 +6549,10 @@
       "AER::XCRO2NS": true,
       "AER::SALB-NB": true,
       "영상의학과::XFLUMA3": true,
-      "영상의학과::XNIMO": true
+      "영상의학과::XNIMO": true,
+      "영상의학과::XPROT": true,
+      "영상의학과::XIDARU5W": true,
+      "영상의학과::THROM-W": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
