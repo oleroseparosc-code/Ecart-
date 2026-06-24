@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:30:20.318Z",
+  "updatedAt": "2026-06-24T07:30:29.199Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6547,7 +6547,9 @@
       "AER::CLOPID": true,
       "AER::BUD2-RP": true,
       "AER::XCRO2NS": true,
-      "AER::SALB-NB": true
+      "AER::SALB-NB": true,
+      "영상의학과::XFLUMA3": true,
+      "영상의학과::XNIMO": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
