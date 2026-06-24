@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T08:33:35.743Z",
+  "updatedAt": "2026-06-24T08:33:39.207Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6229,7 +6229,7 @@
       "HBEF심혈관조영실::XNICORA": true,
       "HBEF심혈관조영실::XMEXO": true,
       "HBEF심혈관조영실::XLID2W": true,
-      "HBEF심혈관조영실::XVERAW": false,
+      "HBEF심혈관조영실::XVERAW": true,
       "HBEF심혈관조영실::XPHEPH1": true,
       "HBEF심혈관조영실::XAMIOD": true,
       "HBEF심혈관조영실::XFLUMA3": true,
@@ -6631,7 +6631,9 @@
       "외래주사실::XTRAM100": true,
       "외래주사실::XIRONSU": true,
       "외래주사실::XD3": true,
-      "외래주사실::XGOSE": true
+      "외래주사실::XGOSE": true,
+      "HBEF심혈관조영실::XVERAW::split-0": true,
+      "HBEF심혈관조영실::XVERAW::split-1": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
