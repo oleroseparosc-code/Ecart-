@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T01:13:10.252Z",
+  "updatedAt": "2026-06-24T01:13:13.685Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6723,7 +6723,7 @@
           "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "bad",
           "id": "stock-피부과-22",
-          "note": "청구약 수납장에 DPCP 보관 중 MSDS 보rhks 기준으로 보관 하시도록 안내"
+          "note": "청구약 수납장에 DPCP 보관 중 MSDS 보관 기준으로 보관 하시도록 안내"
         }
       ],
       "영상의학과": [
@@ -8158,7 +8158,7 @@
           "id": "stock:피부과",
           "roomName": "피부과",
           "result": "확인 필요",
-          "details": "비품약: 청구약 수납장에 DPCP 보관 중 MSDS 보rhks 기준으로 보관 하시도록 안내"
+          "details": "비품약: 청구약 수납장에 DPCP 보관 중 MSDS 보관 기준으로 보관 하시도록 안내"
         },
         {
           "id": "stock:소화기병검사실",
