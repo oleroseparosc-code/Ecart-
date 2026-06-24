@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:17:26.435Z",
+  "updatedAt": "2026-06-24T07:17:30.058Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -14924,7 +14924,7 @@
           "id": "stock:이비인후과",
           "roomName": "이비인후과",
           "result": "확인 필요",
-          "details": "비품약: 개봉된 bosmin 유효기간 6월 9일 까지인 약품 보관\n            "
+          "details": "비품약: 개봉된 bosmin 유효기간 6월 9일 까지인 약품 보관\n            페기 하시도록 안내"
         },
         {
           "id": "stock:피부과",
