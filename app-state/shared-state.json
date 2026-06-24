@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:09:02.082Z",
+  "updatedAt": "2026-06-24T05:09:10.825Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -9086,7 +9086,7 @@
           "text": "5. 약품 냉장고에 약품이외의 것이 들어 있지 않다.(예 : 음식물)",
           "status": "good",
           "id": "stock-HBEF심혈관조영실-18",
-          "note": "사용후 남은 "
+          "note": "사용후 남은 Heparin syringe"
         },
         {
           "section": "냉장약",
@@ -13435,7 +13435,7 @@
           "id": "stock:HBEF심혈관조영실",
           "roomName": "HBEF심혈관조영실",
           "result": "확인 필요",
-          "details": "비품약: 사용후 남은"
+          "details": "비품약: 사용후 남은 Heparin syringe"
         },
         {
           "id": "stock:ADR",
