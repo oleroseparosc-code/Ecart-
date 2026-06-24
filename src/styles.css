@@ -1095,6 +1095,20 @@ button {
   border-color: #86efac;
 }
 
+.guide-chip.uninspected,
+.guide-chip.ecart-only.uninspected {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.guide-chip.uninspected.active,
+.guide-chip.ecart-only.uninspected.active {
+  color: #fff;
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
 .master-stack {
   max-width: 1380px;
 }
@@ -1285,7 +1299,8 @@ button {
   gap: 6px;
 }
 
-.room-detail-list button {
+.room-detail-list button,
+.room-detail-pill {
   min-height: 26px;
   padding: 0 8px;
   border: 1px solid #c7d2fe;
@@ -1294,6 +1309,11 @@ button {
   background: #eef2ff;
   font-size: 12px;
   font-weight: 900;
+}
+
+.room-detail-pill {
+  display: inline-flex;
+  align-items: center;
 }
 
 .qty-total {

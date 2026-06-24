@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import rawInventory from "./data/inventory.generated.json";
 import type { InventoryData } from "./types";
-import { getStockChecklistDefaultState, makeChecklistState } from "./App";
+import { getInitialAppMode, getStockChecklistDefaultState, makeChecklistState } from "./App";
 
 const inventory = rawInventory as InventoryData;
 
@@ -94,5 +94,11 @@ describe("generated inventory data corrections", () => {
 
     expect(generatedTexts.some((text) => text.includes("주 2회 점검한 E-cart 관리대장"))).toBe(false);
     expect(defaultTexts.some((text) => text.includes("주 2회 점검한 E-cart 관리대장"))).toBe(false);
+  });
+
+  it("keeps the current route as admin and exposes a master viewer route", () => {
+    expect(getInitialAppMode("/Ecart-/", "")).toBe("admin");
+    expect(getInitialAppMode("/Ecart-/viewer", "")).toBe("master-viewer");
+    expect(getInitialAppMode("/Ecart-/", "?view=master")).toBe("master-viewer");
   });
 });

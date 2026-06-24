@@ -65,6 +65,7 @@ type MainCategory = "stock" | "ecart";
 type EcartTab = "general" | "nicu";
 type CheckStatus = "" | "good" | "bad";
 type PrintPreviewMode = "single" | "all-stock" | "round-summary";
+type AppMode = "admin" | "master-viewer";
 
 type EditableStockItem = StockAllocation & {
   drug: StockDrug;
@@ -651,10 +652,26 @@ function defaultRoundInspectionPeriod() {
   return `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
 }
 
+export function getInitialAppMode(pathname = window.location.pathname, search = window.location.search): AppMode {
+  const params = new URLSearchParams(search);
+  if (params.get("view") === "master" || pathname.replace(/\/+$/, "").endsWith("/viewer")) {
+    return "master-viewer";
+  }
+  return "admin";
+}
+
+function getStockGuideInspectionKey(item: StockGuideEntry) {
+  if (item.stockRoomId) return item.stockRoomId;
+  if (item.ecartTargetId) return `ecart:${item.ecartTab ?? "general"}:${item.ecartTargetId}`;
+  return item.label;
+}
+
 export function App() {
+  const appMode = useMemo(() => getInitialAppMode(), []);
+  const isMasterViewer = appMode === "master-viewer";
   const persistedState = useMemo(loadPersistedState, []);
   const [mainCategory, setMainCategory] = useState<MainCategory>("stock");
-  const [showMaster, setShowMaster] = useState(false);
+  const [showMaster, setShowMaster] = useState(isMasterViewer);
   const [showRoundSummary, setShowRoundSummary] = useState(false);
   const [activeRoom, setActiveRoom] = useState(firstStockRoom);
   const [activeEcartTab, setActiveEcartTab] = useState<EcartTab>("general");
@@ -1211,6 +1228,7 @@ export function App() {
   }
 
   function toggleMasterView() {
+    if (isMasterViewer) return;
     setShowMaster((prev) => {
       const next = !prev;
       if (next) setShowRoundSummary(false);
@@ -1219,6 +1237,7 @@ export function App() {
   }
 
   function toggleRoundSummaryView() {
+    if (isMasterViewer) return;
     setShowRoundSummary((prev) => {
       const next = !prev;
       if (next) setShowMaster(false);
@@ -1849,33 +1868,35 @@ export function App() {
   }
 
   return (
-    <div className={`app-page ${isMobileMode ? "mobile-mode" : ""}`}>
+    <div className={`app-page ${isMobileMode ? "mobile-mode" : ""} ${isMasterViewer ? "viewer-mode" : ""}`}>
       <header className="app-header">
         <div>
-          <p>병동 비품약 & E-cart 점검</p>
-          <h1>비품관리 현황판</h1>
+          <p>{isMasterViewer ? "뷰어 전용" : "병동 비품약 & E-cart 점검"}</p>
+          <h1>{isMasterViewer ? "전체 약품 마스터" : "비품관리 현황판"}</h1>
         </div>
-        <div className="header-actions">
-          <button className={`admin-toggle ${showRoundSummary ? "danger" : ""}`} onClick={toggleRoundSummaryView}>
-            <FileText size={18} />
-            {showRoundSummary ? "점검 현황판으로 돌아가기" : "병동 순회 점검표"}
-          </button>
-          <button className={`admin-toggle ${isMobileMode ? "active" : ""}`} onClick={() => setIsMobileMode(!isMobileMode)}>
-            {isMobileMode ? <Monitor size={18} /> : <Smartphone size={18} />}
-            {isMobileMode ? "PC 화면 보기" : "모바일 화면 보기"}
-          </button>
-          <button className={`admin-toggle sync ${syncStatus.mode}`} onClick={() => setShowSyncSettings((prev) => !prev)}>
-            <RefreshCw size={18} />
-            자동 저장 상태
-          </button>
-          <button className={`admin-toggle ${showMaster ? "danger" : ""}`} onClick={toggleMasterView}>
-            <Database size={18} />
-            {showMaster ? "점검 현황판으로 돌아가기" : "전체 약품 마스터 관리"}
-          </button>
-        </div>
+        {!isMasterViewer && (
+          <div className="header-actions">
+            <button className={`admin-toggle ${showRoundSummary ? "danger" : ""}`} onClick={toggleRoundSummaryView}>
+              <FileText size={18} />
+              {showRoundSummary ? "점검 현황판으로 돌아가기" : "병동 순회 점검표"}
+            </button>
+            <button className={`admin-toggle ${isMobileMode ? "active" : ""}`} onClick={() => setIsMobileMode(!isMobileMode)}>
+              {isMobileMode ? <Monitor size={18} /> : <Smartphone size={18} />}
+              {isMobileMode ? "PC 화면 보기" : "모바일 화면 보기"}
+            </button>
+            <button className={`admin-toggle sync ${syncStatus.mode}`} onClick={() => setShowSyncSettings((prev) => !prev)}>
+              <RefreshCw size={18} />
+              자동 저장 상태
+            </button>
+            <button className={`admin-toggle ${showMaster ? "danger" : ""}`} onClick={toggleMasterView}>
+              <Database size={18} />
+              {showMaster ? "점검 현황판으로 돌아가기" : "전체 약품 마스터 관리"}
+            </button>
+          </div>
+        )}
       </header>
 
-      {showSyncSettings && (
+      {!isMasterViewer && showSyncSettings && (
         <section className="sync-panel">
           <div className="sync-panel-content">
             <div>
@@ -1898,7 +1919,7 @@ export function App() {
         </section>
       )}
 
-      {!showMaster && !showRoundSummary && (
+      {!isMasterViewer && !showMaster && !showRoundSummary && (
         <div className="primary-tabs">
           <button className={mainCategory === "stock" ? "active stock" : ""} onClick={() => setMainCategory("stock")}>
             비품약 관리
@@ -1914,6 +1935,7 @@ export function App() {
           renderRoundSummaryEditor()
         ) : showMaster ? (
           <section className="master-stack">
+            {!isMasterViewer && (
             <section className="card">
               <div className="card-head">
                 <div>
@@ -2103,6 +2125,7 @@ export function App() {
                 </form>
               </div>
             </section>
+            )}
 
             <section className="card">
               <div className="card-head">
@@ -2139,14 +2162,20 @@ export function App() {
                               {row.roomDetails.length === 0 ? (
                                 <span className="empty">보유실 배정 없음</span>
                               ) : (
-                                row.roomDetails.map((detail) => (
-                                  <button
-                                    key={`${row.code}-${detail.roomId}`}
-                                    onClick={() => goToStockRoom(detail.roomId)}
-                                  >
-                                    {detail.roomId} {detail.requiredQty}
-                                  </button>
-                                ))
+                                row.roomDetails.map((detail) =>
+                                  isMasterViewer ? (
+                                    <span className="room-detail-pill" key={`${row.code}-${detail.roomId}`}>
+                                      {detail.roomId} {detail.requiredQty}
+                                    </span>
+                                  ) : (
+                                    <button
+                                      key={`${row.code}-${detail.roomId}`}
+                                      onClick={() => goToStockRoom(detail.roomId)}
+                                    >
+                                      {detail.roomId} {detail.requiredQty}
+                                    </button>
+                                  ),
+                                )
                               )}
                             </div>
                           </td>
@@ -2186,7 +2215,13 @@ export function App() {
         ) : (
           <section className="inspection-stack">
             {mainCategory === "stock" && (
-              <StockRoomGuide sections={stockGuideSections} activeRoom={activeRoom} onSelect={openGuideEntry} />
+              <StockRoomGuide
+                sections={stockGuideSections}
+                activeRoom={activeRoom}
+                uninspectedIds={uninspectedRoomIds}
+                onSelect={openGuideEntry}
+                onToggleUninspected={(item) => toggleUninspectedRoom(getStockGuideInspectionKey(item))}
+              />
             )}
 
             {mainCategory === "stock" ? (
@@ -2362,12 +2397,31 @@ function MetricCard({
 function StockRoomGuide({
   sections,
   activeRoom,
+  uninspectedIds = [],
   onSelect,
+  onToggleUninspected,
 }: {
   sections: StockGuideSection[];
   activeRoom: string;
+  uninspectedIds?: string[];
   onSelect: (item: StockGuideEntry) => void;
+  onToggleUninspected?: (item: StockGuideEntry) => void;
 }) {
+  const lastTapRef = useRef<{ key: string; time: number } | null>(null);
+
+  function handleGuideChipClick(item: StockGuideEntry) {
+    const key = getStockGuideInspectionKey(item);
+    const now = Date.now();
+    const lastTap = lastTapRef.current;
+    if (lastTap?.key === key && now - lastTap.time <= 500) {
+      lastTapRef.current = null;
+      onToggleUninspected?.(item);
+      return;
+    }
+    lastTapRef.current = { key, time: now };
+    onSelect(item);
+  }
+
   return (
     <section className="card stock-guide">
       <div className="card-head">
@@ -2387,8 +2441,15 @@ function StockRoomGuide({
                   {row.map((item) => (
                     <button
                       key={`${section.floor}-${item.label}`}
-                      className={`guide-chip ${item.ecartOnly ? "ecart-only" : ""} ${item.stockRoomId === activeRoom ? "active" : ""}`}
-                      onClick={() => onSelect(item)}
+                      className={[
+                        "guide-chip",
+                        item.ecartOnly ? "ecart-only" : "",
+                        item.stockRoomId === activeRoom ? "active" : "",
+                        uninspectedIds.includes(getStockGuideInspectionKey(item)) ? "uninspected" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => handleGuideChipClick(item)}
                     >
                       {item.label}
                       {item.ecartOnly && <span>(E-cart만 보유)</span>}
