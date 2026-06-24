@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:32:42.233Z",
+  "updatedAt": "2026-06-24T07:32:45.907Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6627,7 +6627,9 @@
       "외래주사실::XTESTO2W": true,
       "외래주사실::XB1": true,
       "외래주사실::XTRANEX5": true,
-      "외래주사실::XCRO2NS": true
+      "외래주사실::XCRO2NS": true,
+      "외래주사실::XTRAM100": true,
+      "외래주사실::XIRONSU": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
