@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T03:18:49.934Z",
+  "updatedAt": "2026-06-24T03:18:58.405Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6211,7 +6211,9 @@
       "61W::XAPH1": true,
       "42W::XLABETA20": false
     },
-    "stockExpiry": {},
+    "stockExpiry": {
+      "42W::XLABETA20": "2026-09-24"
+    },
     "stockChecklistByRoom": {
       "AER": [
         {
