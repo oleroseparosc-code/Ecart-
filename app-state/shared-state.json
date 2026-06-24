@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T00:41:58.821Z",
+  "updatedAt": "2026-06-24T00:42:08.882Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -4043,7 +4043,7 @@
       {
         "roomId": "ADR",
         "drugCode": "XXEPOA6K",
-        "requiredQty": 12
+        "requiredQty": 6
       },
       {
         "roomId": "ADR",
