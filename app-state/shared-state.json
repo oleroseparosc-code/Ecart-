@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:42:06.901Z",
+  "updatedAt": "2026-06-24T02:42:12.774Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6150,7 +6150,8 @@
       "72W::XNICAR5": true,
       "72W::XNORE10": true,
       "72W::XFURO": true,
-      "72W::XNITR10F": true
+      "72W::XNITR10F": true,
+      "72W::XTRAM50": true
     },
     "stockExpiry": {},
     "stockChecklistByRoom": {
