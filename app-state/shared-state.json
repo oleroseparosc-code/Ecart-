@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:15:26.212Z",
+  "updatedAt": "2026-06-24T07:15:29.738Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -14750,7 +14750,7 @@
           "id": "stock:71W",
           "roomName": "71W",
           "result": "확인 필요",
-          "details": "\n비품약: 보스민 잉여 10개 반납\nE-cart: 하단 5%DW 100ml 수량 4개 들어 있음"
+          "details": "비품약: 보스민 잉여 10개 반납\nE-cart: 하단 5%DW 100ml 수량 4개 들어 있음"
         },
         {
           "id": "stock:72W",
