@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:04:17.575Z",
+  "updatedAt": "2026-06-24T05:04:31.227Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -8815,7 +8815,7 @@
           "text": "2-2 약제팀 제공 비품 리스트에 약품 목록, 보관상태, 수량을 확인 후 확인자 서명 확인",
           "status": "bad",
           "id": "stock-MICU-6",
-          "note": ""
+          "note": "라식스 사용 후 수량 다름"
         },
         {
           "section": "비품약",
@@ -12987,7 +12987,7 @@
           "id": "stock:MICU",
           "roomName": "MICU",
           "result": "확인 필요",
-          "details": "비품약: 2-2 약제팀 제공 비품 리스트에 약품 목록, 보관상태, 수량을 확인 후 확인자 서명 확인 확인 필요"
+          "details": "비품약: 라식스 사용 후 수량 다름"
         },
         {
           "id": "stock:AN",
