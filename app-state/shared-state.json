@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T01:16:49.178Z",
-  "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
+  "updatedAt": "2026-06-24T01:37:37.617Z",
+  "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
       {
@@ -6071,7 +6071,9 @@
         "requiredQty": 3
       }
     ],
-    "checkedStock": {},
+    "checkedStock": {
+      "121W::XHPD": true
+    },
     "stockExpiry": {},
     "stockChecklistByRoom": {
       "AER": [
