@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:29:15.760Z",
+  "updatedAt": "2026-06-24T07:29:19.242Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6519,7 +6519,8 @@
       "PED::XLEUPD3": true,
       "PED::ACYST-A": true,
       "PED::BUD2-RP": true,
-      "PED::XHGRH": true
+      "PED::XHGRH": true,
+      "PED::SALB-NB": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
