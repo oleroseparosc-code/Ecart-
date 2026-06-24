@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:38:39.858Z",
+  "updatedAt": "2026-06-24T05:38:43.187Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6335,7 +6335,9 @@
       "AN::XPALON75": true,
       "AN::XATRO": true,
       "AN::IPRAT-RS": true,
-      "AN::XEMOL1": true
+      "AN::XEMOL1": true,
+      "AN::XPCMOL": false,
+      "AN::XDXM": false
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
