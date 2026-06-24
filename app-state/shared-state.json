@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T01:53:29.627Z",
+  "updatedAt": "2026-06-24T01:53:34.336Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6090,7 +6090,8 @@
       "111W::XFURO": true,
       "111W::XKROL": true,
       "111W::XCPENIR": true,
-      "111W::XPCMOL": true
+      "111W::XPCMOL": true,
+      "111W::XDICLOF": true
     },
     "stockExpiry": {},
     "stockChecklistByRoom": {
