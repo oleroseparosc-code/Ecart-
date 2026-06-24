@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:15:23.799Z",
+  "updatedAt": "2026-06-24T05:15:34.074Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -3554,11 +3554,6 @@
         "roomId": "92W",
         "drugCode": "XCZEDO",
         "requiredQty": 2
-      },
-      {
-        "roomId": "DSR",
-        "drugCode": "XCZEDO",
-        "requiredQty": 1
       },
       {
         "roomId": "외래주사실",
