@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:13:14.279Z",
+  "updatedAt": "2026-06-24T07:14:10.089Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6054,6 +6054,11 @@
         "roomId": "DSR",
         "drugCode": "XCZEDO",
         "requiredQty": 4
+      },
+      {
+        "roomId": "DSR",
+        "drugCode": "XCZOL1W",
+        "requiredQty": 1
       }
     ],
     "checkedStock": {
