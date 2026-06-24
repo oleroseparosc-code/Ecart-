@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:18:01.026Z",
+  "updatedAt": "2026-06-24T07:18:08.648Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -14966,7 +14966,7 @@
           "id": "ecart:AER-2",
           "roomName": "AER2",
           "result": "확인 필요",
-          "details": "E-cart: 하단 서랍 씰링 되어 있지 않음/ 겔을 못 채워 열어둔 상태라고 함"
+          "details": ""
         },
         {
           "id": "ecart:영상의학과-2",
