@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:06:56.077Z",
+  "updatedAt": "2026-06-24T05:06:59.881Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6288,7 +6288,8 @@
       "MICU::XDOPA4": true,
       "MICU::XDILT": true,
       "MICU::XAMIOD": true,
-      "MICU::XHEPAR5": true
+      "MICU::XHEPAR5": true,
+      "MICU::XNA40": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
