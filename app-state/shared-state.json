@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T03:06:08.856Z",
+  "updatedAt": "2026-06-24T03:06:10.715Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -8304,7 +8304,7 @@
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-61W-21",
-          "note": "NS 20"
+          "note": "NS 20ml "
         },
         {
           "section": "청구약",
@@ -11511,7 +11511,7 @@
           "id": "stock:61W",
           "roomName": "61W",
           "result": "확인 필요",
-          "details": "비품약: NS 20"
+          "details": "비품약: NS 20ml"
         },
         {
           "id": "stock:62W",
