@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:19:19.282Z",
+  "updatedAt": "2026-06-24T07:19:27.707Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -14982,7 +14982,7 @@
         },
         {
           "id": "ecart:심혈관센터외래",
-          "roomName": "심혈관센터외래",
+          "roomName": "",
           "result": "적합",
           "details": "적합"
         },
