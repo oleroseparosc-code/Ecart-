@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:10:43.439Z",
+  "updatedAt": "2026-06-24T07:13:02.700Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6044,6 +6044,11 @@
         "roomId": "영상의학과",
         "drugCode": "XIDARU5W",
         "requiredQty": 3
+      },
+      {
+        "roomId": "DSR",
+        "drugCode": "XCMTAZ",
+        "requiredQty": 2
       }
     ],
     "checkedStock": {
