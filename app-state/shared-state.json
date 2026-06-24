@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T06:43:59.868Z",
+  "updatedAt": "2026-06-24T06:45:58.969Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6461,7 +6461,8 @@
       "DRL::XEPIN": true,
       "NICU::XCFACT120": true,
       "NICU::TOB-T": true,
-      "NICU::XK1": true
+      "NICU::XK1": true,
+      "101W::XNORE10": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
@@ -15001,8 +15002,7 @@
       "91W": "26.06.24"
     },
     "uninspectedRoomIds": [
-      "신경과",
-      "101W"
+      "신경과"
     ]
   }
 }
