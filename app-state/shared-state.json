@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T00:11:44.682Z",
+  "updatedAt": "2026-06-24T00:11:47.092Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -7571,7 +7571,7 @@
             "name": "Nitrolingual 0.1%",
             "dosage": "10mg/10ml",
             "quantity": 5,
-            "checked": true,
+            "checked": false,
             "expiryDate": "2026-08-19"
           },
           {
