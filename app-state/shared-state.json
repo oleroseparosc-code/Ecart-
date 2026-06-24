@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:28:26.691Z",
+  "updatedAt": "2026-06-24T07:28:37.206Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6492,7 +6492,9 @@
       "난임클리닉::XFMXEF": true,
       "HBEF심혈관조영실::XADENO6": true,
       "이비인후과::XTAMC40": true,
-      "산부인과::LNORG52": true
+      "산부인과::LNORG52": true,
+      "PED::XXTDAP5W": true,
+      "PED::BCG-H": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
