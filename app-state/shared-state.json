@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T06:28:45.359Z",
+  "updatedAt": "2026-06-24T06:28:55.956Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6455,7 +6455,8 @@
       "DRL::XBMETHA4W": true,
       "DRL::MISOP2": true,
       "DRL::XCTOC100R": true,
-      "DRL::LNORG52": true
+      "DRL::LNORG52": true,
+      "DRL::XHES6MPS5": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
