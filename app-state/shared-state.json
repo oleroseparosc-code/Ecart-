@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:39:11.998Z",
+  "updatedAt": "2026-06-24T05:39:14.690Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6345,7 +6345,8 @@
       "AN::XCPENIR": false,
       "AN::XSUGAM2W": true,
       "AN::XSUGAM1W": true,
-      "AN::XCAGL": true
+      "AN::XCAGL": true,
+      "AN::XICARM": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
