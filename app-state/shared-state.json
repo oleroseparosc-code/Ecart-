@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T04:05:42.329Z",
-  "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
+  "updatedAt": "2026-06-24T04:16:08.205Z",
+  "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
       {
@@ -6223,7 +6223,8 @@
       "42W::XAPH1": true,
       "42W::XKROL": true,
       "42W::XFURO": true,
-      "42W::XNICAR5": true
+      "42W::XNICAR5": true,
+      "안과::XXBROLU": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24"
