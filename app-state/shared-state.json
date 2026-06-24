@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:40:54.031Z",
+  "updatedAt": "2026-06-24T05:40:59.672Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6367,7 +6367,8 @@
       "AN::XRPCA7": true,
       "AN::XRAMOSET": true,
       "AN::XNITR10F": true,
-      "AN::XNTPRUS": true
+      "AN::XNTPRUS": true,
+      "AN::XNORE10": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
