@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:28:59.250Z",
+  "updatedAt": "2026-06-24T07:29:02.492Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6507,7 +6507,9 @@
       "PED::XXDTPHBP": true,
       "PED::XPNEUM20P": true,
       "PED::ROTARIX-S": true,
-      "PED::ROVAV2-S": true
+      "PED::ROVAV2-S": true,
+      "PED::XVARICVS": true,
+      "PED::XPPD": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
