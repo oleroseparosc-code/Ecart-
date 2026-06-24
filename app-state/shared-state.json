@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:19:25.324Z",
+  "updatedAt": "2026-06-24T02:19:37.641Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6121,7 +6121,8 @@
       "92W::XHPD": true,
       "92W::XLEVET500W": true,
       "92W::XKROL": true,
-      "92W::XFURO": true
+      "92W::XFURO": true,
+      "92W::XCZEDO": true
     },
     "stockExpiry": {},
     "stockChecklistByRoom": {
