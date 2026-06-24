@@ -553,6 +553,25 @@ button {
   margin: 0 auto;
 }
 
+.print-preview-report .stock-inventory-title {
+  position: static;
+  margin: 18px 0 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.print-preview-report .stock-inventory-wrap {
+  max-height: none;
+  overflow: visible;
+  border-radius: 7px;
+}
+
+.print-preview-report .stock-inventory-wrap .inspection-table thead th {
+  position: static;
+}
+
 .bulk-report-stack {
   display: grid;
   gap: 22px;
@@ -759,6 +778,19 @@ button {
   font-weight: 900;
 }
 
+.stock-inventory-title {
+  position: sticky;
+  top: 8px;
+  z-index: 8;
+  margin-bottom: 0;
+  padding: 9px 10px;
+  border: 1px solid #bfdbfe;
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: #f8fbff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
 .table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -841,6 +873,20 @@ button {
 .inspection-table th:nth-child(6),
 .inspection-table td:nth-child(6) {
   width: 148px;
+}
+
+.stock-inventory-wrap {
+  max-height: min(62vh, 620px);
+  overflow: auto;
+  border-radius: 0 0 7px 7px;
+}
+
+.stock-inventory-wrap .inspection-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: #f3f6fa;
+  box-shadow: inset 0 -1px 0 var(--line-soft);
 }
 
 .group-row td {
@@ -1583,6 +1629,25 @@ button {
     border: 0;
     box-shadow: none;
     padding: 0;
+  }
+
+  .stock-inventory-title {
+    position: static;
+    margin: 18px 0 8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .stock-inventory-wrap {
+    max-height: none;
+    overflow: visible;
+    border-radius: 7px;
+  }
+
+  .stock-inventory-wrap .inspection-table thead th {
+    position: static;
   }
 
   .round-summary-report {

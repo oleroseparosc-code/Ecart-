@@ -96,6 +96,41 @@ describe("generated inventory data corrections", () => {
     expect(defaultTexts.some((text) => text.includes("주 2회 점검한 E-cart 관리대장"))).toBe(false);
   });
 
+  it("adds monthly expiry checklist rows for stock drugs and claim drugs/fluids", () => {
+    const checklist = makeChecklistState("stock-test", ["비품약", "냉장약", "청구약/ 수액"]);
+    const texts = checklist.map((item) => item.text);
+    const sections = checklist.map((item) => item.section);
+
+    expect(texts).toContain("5. 비품약 유효기간 1달에 1번 날짜로 관리한다.");
+    expect(texts).toContain("5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.");
+    expect(sections).toContain("청구약/ 수액");
+    expect(sections).not.toContain("청구약");
+    expect(texts.some((text) => /청구약(?!\/\s*수액)/.test(text))).toBe(false);
+  });
+
+  it("normalizes previously saved claim drug checklist rows without rewriting server state", () => {
+    const checklist = getStockChecklistDefaultState(
+      {
+        "42W": [
+          {
+            id: "legacy-claim-0",
+            section: "청구약",
+            text: "1. 청구약 보관상태를 확인한다.",
+            status: "good",
+            note: "",
+          },
+        ],
+      },
+      "42W",
+    );
+
+    expect(checklist.map((item) => item.section)).toEqual(["청구약/ 수액", "청구약/ 수액"]);
+    expect(checklist.map((item) => item.text)).toEqual([
+      "1. 청구약/ 수액 보관상태를 확인한다.",
+      "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+    ]);
+  });
+
   it("keeps the current route as admin and exposes a master viewer route", () => {
     expect(getInitialAppMode("/Ecart-/", "")).toBe("admin");
     expect(getInitialAppMode("/Ecart-/viewer", "")).toBe("master-viewer");

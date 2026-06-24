@@ -19,7 +19,7 @@ describe("round summary draft", () => {
         {
           id: "42W",
           label: "42병동",
-          stockChecklist: [{ section: "비품약", text: "비품약 수량 일치", status: "good", note: "" }],
+          stockChecklist: [{ section: "비품약", text: "비품약 수량 일치", status: "bad", note: "수량 재확인 안내" }],
           ecartChecklist: [{ section: "E-cart", text: "하단 서랍 확인", status: "bad", note: "하단 서랍 물품 위치 재확인 안내" }],
         },
       ],
@@ -39,7 +39,7 @@ describe("round summary draft", () => {
         id: "stock:42W",
         roomName: "42병동",
         result: "확인 필요",
-        details: "E-cart: 하단 서랍 물품 위치 재확인 안내",
+        details: "비품약: 수량 재확인 안내\nE-cart: 하단 서랍 물품 위치 재확인 안내",
       },
       {
         id: "ecart:CT실",

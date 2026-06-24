@@ -146,7 +146,8 @@ const hiddenStockRooms = new Set(["체외순환실"]);
 const initialStockRooms = inventory.stock.rooms.filter((room) => !hiddenStockRooms.has(room.id));
 const initialStockAllocations = inventory.stock.allocations.filter((allocation) => !hiddenStockRooms.has(allocation.roomId));
 const firstStockRoom = initialStockRooms[0]?.id ?? "";
-const stockChecklistSections = ["비품약", "냉장약", "청구약"];
+const CLAIM_FLUID_SECTION = "청구약/ 수액";
+const stockChecklistSections = ["비품약", "냉장약", CLAIM_FLUID_SECTION];
 const ecartChecklistSections = ["E-cart"];
 const ecartTargets = buildEcartTargets(inventory.ecart.departments);
 const firstEcartTargetId = ecartTargets[0]?.id ?? "ecart-general";
@@ -574,6 +575,14 @@ function isRetiredChecklistRow(text: string) {
   return text.includes("E-cart") && text.includes("주 2회") && text.includes("관리대장");
 }
 
+function normalizeChecklistSection(section: string) {
+  return section === "청구약" ? CLAIM_FLUID_SECTION : section;
+}
+
+function normalizeChecklistText(text: string) {
+  return text.replace(/청구약(?!\/\s*수액)/g, CLAIM_FLUID_SECTION);
+}
+
 function makeChecklistSibling<T extends { id?: string; note?: string; section: string; status?: CheckStatus; text: string }>(
   item: T,
   suffix: string,
@@ -588,12 +597,30 @@ function makeChecklistSibling<T extends { id?: string; note?: string; section: s
   } as T;
 }
 
+function ensureChecklistRow<T extends { id?: string; note?: string; section: string; status?: CheckStatus; text: string }>(
+  rows: T[],
+  section: string,
+  text: string,
+  suffix: string,
+) {
+  const compactText = text.replace(/\s+/g, "");
+  if (rows.some((item) => item.section === section && item.text.replace(/\s+/g, "") === compactText)) return;
+
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
+    if (rows[index].section === section) {
+      rows.splice(index + 1, 0, makeChecklistSibling(rows[index], suffix, text));
+      return;
+    }
+  }
+}
+
 function normalizeChecklistRows<T extends { id?: string; note?: string; section: string; status?: CheckStatus; text: string }>(items: T[]) {
   const rows: T[] = [];
   for (const item of items) {
     if (isChecklistLabelOnly(item.text)) continue;
     if (isRetiredChecklistRow(item.text)) continue;
-    let text = item.text;
+    const section = normalizeChecklistSection(item.section);
+    let text = normalizeChecklistText(item.text);
     if (text.includes("비품이외의 잉여약을 보관하고 있다.")) {
       text = text.replace("비품이외의 잉여약을 보관하고 있다.", "비품이외의 잉여약을 보관하고 있지 않다.");
     }
@@ -603,7 +630,7 @@ function normalizeChecklistRows<T extends { id?: string; note?: string; section:
     if (shouldDefaultGood && (status === undefined || status === "")) {
       status = "good" as CheckStatus;
     }
-    const normalizedItem = { ...item, text, status };
+    const normalizedItem = { ...item, section, text, status };
     if (text.startsWith("2-1 ") && text.includes(" 2-2 ")) {
       const [first, second] = text.split(" 2-2 ", 2);
       rows.push(makeChecklistSibling(normalizedItem, "2-1", first));
@@ -630,6 +657,9 @@ function normalizeChecklistRows<T extends { id?: string; note?: string; section:
   if (lastColdIndex >= 0 && !hasThermometerCheck) {
     rows.splice(lastColdIndex + 1, 0, makeChecklistSibling(rows[lastColdIndex], "thermometer", "6. 연 1회 냉장고 온도계 검증 여부"));
   }
+
+  ensureChecklistRow(rows, "비품약", "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.", "monthly-stock-expiry");
+  ensureChecklistRow(rows, CLAIM_FLUID_SECTION, "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.", "monthly-claim-fluid-expiry");
 
   return rows;
 }
@@ -1660,7 +1690,7 @@ export function App() {
           <span>점검 일자: {new Date().toLocaleDateString("ko-KR")}</span>
         </div>
 
-        <div className="report-section-title with-meta">
+        <div className="report-section-title with-meta stock-inventory-title">
           <span>
             <Database size={18} />
             약품 보유 현황
@@ -2519,7 +2549,7 @@ function StockReportTable({
   onDelete: (roomId: string, drugCode: string) => void;
 }) {
   return (
-    <div className="table-wrap bordered inspection-table-wrap">
+    <div className="table-wrap bordered inspection-table-wrap stock-inventory-wrap">
       <table className="data-table inspection-table">
         <thead>
           <tr>
