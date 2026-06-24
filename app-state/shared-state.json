@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T01:38:35.955Z",
+  "updatedAt": "2026-06-24T01:44:22.050Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -8324,6 +8324,218 @@
             "text": "3. E-cart 약품의 유효기간을 날짜로 월 1회 점검한 점검 기록이 있다,",
             "status": "good",
             "id": "ecart-general:42-4",
+            "note": ""
+          }
+        ]
+      },
+      "general:112": {
+        "items": [
+          {
+            "id": "XLID2W",
+            "code": "XLID2W",
+            "name": "2% Lidocaine 400mg",
+            "dosage": "2% 20mL/Vial",
+            "quantity": 2,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XNS20",
+            "code": "XNS20",
+            "name": "N/S 20cc",
+            "dosage": "20mL/Amp",
+            "quantity": 3,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "NITR",
+            "code": "NITR",
+            "name": "Nitroglycerin(SL)",
+            "dosage": "0.6mg/Tab",
+            "quantity": 3,
+            "checked": true,
+            "expiryDate": ""
+          },
+          {
+            "id": "XCPENIR",
+            "code": "XCPENIR",
+            "name": "Peniramin",
+            "dosage": "4mg/2ml/Amp",
+            "quantity": 3,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XNITR10F",
+            "code": "XNITR10F",
+            "name": "Nitrolingual 0.1%",
+            "dosage": "10mg/10ml",
+            "quantity": 5,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XFURO",
+            "code": "XFURO",
+            "name": "Lasix",
+            "dosage": "20mg/Amp",
+            "quantity": 5,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XNALO.4",
+            "code": "XNALO.4",
+            "name": "Naloxone",
+            "dosage": "0.4mg/Amp",
+            "quantity": 3,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XADENO6",
+            "code": "XADENO6",
+            "name": "Adenocor( Adenosin )",
+            "dosage": "6mg/Vial",
+            "quantity": 3,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XNORE10",
+            "code": "XNORE10",
+            "name": "Norpin",
+            "dosage": "10mg/Amp",
+            "quantity": 3,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XAMIOD",
+            "code": "XAMIOD",
+            "name": "Cordarone",
+            "dosage": "150mg/Amp",
+            "quantity": 2,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XATRO",
+            "code": "XATRO",
+            "name": "Atropine",
+            "dosage": "0.5mg/Amp",
+            "quantity": 10,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XEPIN",
+            "code": "XEPIN",
+            "name": "Epinephrine",
+            "dosage": "1mg/ml/Amp",
+            "quantity": 20,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XNB84",
+            "code": "XNB84",
+            "name": "Sodium Bicabonate",
+            "dosage": "20mEq/20mL/Amp",
+            "quantity": 10,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XCAGL",
+            "code": "XCAGL",
+            "name": "Ca Gluconate",
+            "dosage": "2g/20ml/ Amp",
+            "quantity": 3,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XNS1L",
+            "code": "XNS1L",
+            "name": "N/S 1L",
+            "dosage": "1L / Bag",
+            "quantity": 2,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XD5W100",
+            "code": "XD5W100",
+            "name": "5% D/W",
+            "dosage": "100ml / Bag",
+            "quantity": 2,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XD50W1",
+            "code": "XD50W1",
+            "name": "50% D/W",
+            "dosage": "100ml / Bottle",
+            "quantity": 2,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XDOB5D2",
+            "code": "XDOB5D2",
+            "name": "Dobutamine premix",
+            "dosage": "Dobu 500mg + 5% D/W 250ml",
+            "quantity": 1,
+            "checked": false,
+            "expiryDate": ""
+          },
+          {
+            "id": "XDOPA4D2",
+            "code": "XDOPA4D2",
+            "name": "Dopamine premix",
+            "dosage": "Dopa 400mg + 5% D/W 200ml",
+            "quantity": 2,
+            "checked": false,
+            "expiryDate": ""
+          }
+        ],
+        "checklist": [
+          {
+            "section": "E-cart",
+            "text": "1. E-cart 약품의 종류와 수량을 주 1회 점검한 E-cart 관리대장 점검 기록이 있다.",
+            "status": "good",
+            "id": "ecart-general:112-0",
+            "note": ""
+          },
+          {
+            "section": "E-cart",
+            "text": "2. E-cart가 규정에 맞게 잘 봉인되어 있으며 봉인일이 표시 되어 있다.",
+            "status": "good",
+            "id": "ecart-general:112-1",
+            "note": ""
+          },
+          {
+            "section": "E-cart",
+            "text": "2-1 E-cart 봉인지 시리얼 넘버가 기재되어 있다.",
+            "status": "good",
+            "id": "ecart-general:112-2",
+            "note": ""
+          },
+          {
+            "section": "E-cart",
+            "text": "이상 시 사유:",
+            "status": "",
+            "id": "ecart-general:112-3",
+            "note": ""
+          },
+          {
+            "section": "E-cart",
+            "text": "3. E-cart 약품의 유효기간을 날짜로 월 1회 점검한 점검 기록이 있다,",
+            "status": "good",
+            "id": "ecart-general:112-4",
             "note": ""
           }
         ]
