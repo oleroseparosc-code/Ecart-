@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:01:41.100Z",
+  "updatedAt": "2026-06-24T05:01:45.545Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6270,7 +6270,8 @@
       "MICU::XCPENIR": false,
       "MICU::XPANTO4": true,
       "MICU::XTRAM50": false,
-      "MICU::XMGSF10": true
+      "MICU::XMGSF10": true,
+      "MICU::XNITR10F": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
