@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:04:38.138Z",
+  "updatedAt": "2026-06-24T02:04:42.404Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6100,7 +6100,8 @@
       "102W::XCPENIR": true,
       "102W::XMEXO": true,
       "102W::XFURO": true,
-      "102W::XMPD1W": true
+      "102W::XMPD1W": true,
+      "102W::XTRAM50": true
     },
     "stockExpiry": {},
     "stockChecklistByRoom": {
