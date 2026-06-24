@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T03:08:15.578Z",
+  "updatedAt": "2026-06-24T03:08:21.414Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6205,7 +6205,8 @@
       "61W::XESOME40": true,
       "61W::XNICAR5": true,
       "61W::XCPENIR": true,
-      "61W::CLOPID": true
+      "61W::CLOPID": true,
+      "61W::NITR": true
     },
     "stockExpiry": {},
     "stockChecklistByRoom": {
