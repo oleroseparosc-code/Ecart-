@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:32:49.925Z",
+  "updatedAt": "2026-06-24T02:32:55.957Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6135,7 +6135,8 @@
       "82W::XNICAR5": true,
       "82W::XDXM": true,
       "82W::XAPH1": true,
-      "81W::PANCR457": true
+      "81W::PANCR457": true,
+      "81W::APH6ER1Y": true
     },
     "stockExpiry": {},
     "stockChecklistByRoom": {
