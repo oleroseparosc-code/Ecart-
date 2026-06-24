@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T06:12:04.399Z",
+  "updatedAt": "2026-06-24T06:12:21.808Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6421,7 +6421,7 @@
       "ADR::XXDABE120": true,
       "ADR::XAPH1": true,
       "ADR::XNICAR5": false,
-      "ADR::XPCMOL": false,
+      "ADR::XPCMOL": true,
       "ADR::XKROL": true,
       "ADR::XMEXO": true,
       "ADR::XTRAM50": true,
