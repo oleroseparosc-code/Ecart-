@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:49:08.966Z",
+  "updatedAt": "2026-06-24T02:49:15.435Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -10813,7 +10813,7 @@
             "dosage": "0.5mg/Amp",
             "quantity": 10,
             "checked": true,
-            "expiryDate": ""
+            "expiryDate": "2026-09-24"
           },
           {
             "id": "XEPIN",
