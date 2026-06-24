@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T03:57:57.595Z",
+  "updatedAt": "2026-06-24T04:05:42.329Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -8922,7 +8922,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:AER-1-5-drug-count-match",
             "note": ""
           }
@@ -9141,7 +9141,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:AER-2-5-drug-count-match",
             "note": ""
           }
@@ -9360,7 +9360,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:CT실-4-drug-count-match",
             "note": ""
           }
@@ -9579,7 +9579,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:영상의학과-2-4-drug-count-match",
             "note": ""
           }
@@ -9798,7 +9798,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:영상의학과-1-4-drug-count-match",
             "note": ""
           }
@@ -10017,7 +10017,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:42-4-drug-count-match",
             "note": ""
           }
@@ -10236,7 +10236,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:112-4-drug-count-match",
             "note": ""
           }
@@ -10455,7 +10455,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:102-4-drug-count-match",
             "note": ""
           }
@@ -10674,7 +10674,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:101-4-drug-count-match",
             "note": ""
           }
@@ -10893,7 +10893,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:92-4-drug-count-match",
             "note": ""
           }
@@ -11112,7 +11112,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:82-4-drug-count-match",
             "note": ""
           }
@@ -11331,7 +11331,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:81-4-drug-count-match",
             "note": ""
           }
@@ -11550,7 +11550,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:72-4-drug-count-match",
             "note": ""
           }
@@ -11988,7 +11988,7 @@
           {
             "section": "E-cart",
             "text": "4. E-cart 약물의 종류와 갯수가 규정과 동일 하다.",
-            "status": "",
+            "status": "good",
             "id": "ecart-general:61-4-drug-count-match",
             "note": ""
           }
