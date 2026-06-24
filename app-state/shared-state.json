@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T04:47:18.956Z",
+  "updatedAt": "2026-06-24T04:47:26.363Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6254,7 +6254,8 @@
       "HBEF심혈관조영실::XTRAM100": true,
       "HBEF심혈관조영실::XPROT": true,
       "HBEF심혈관조영실::XNTPRUS": true,
-      "HBEF심혈관조영실::NITR14-SP": true
+      "HBEF심혈관조영실::NITR14-SP": true,
+      "HBEF심혈관조영실::XDEXMED2B": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24"
