@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:46:03.389Z",
+  "updatedAt": "2026-06-24T02:46:06.686Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -7818,9 +7818,9 @@
         {
           "section": "비품약",
           "text": "비품약 종류 일치",
-          "status": "good",
+          "status": "bad",
           "id": "stock-71W-3",
-          "note": "하단 5%DW 100ml 수량 4개 들어 이"
+          "note": "하단 5%DW 100ml 수량 4개 들어 있음"
         },
         {
           "section": "비품약",
@@ -10913,9 +10913,9 @@
           {
             "section": "E-cart",
             "text": "이상 시 사유:",
-            "status": "",
+            "status": "bad",
             "id": "ecart-general:71-3",
-            "note": "하단 5%DW 100ml 수량 4개 들어 이"
+            "note": "하단 5%DW 100ml 수량 4개 들어 있음"
           },
           {
             "section": "E-cart",
@@ -10953,7 +10953,7 @@
           "id": "stock:71W",
           "roomName": "71W",
           "result": "확인 필요",
-          "details": "비품약: 하단 5%DW 100ml 수량 4개 들어 이\nE-cart: 하단 5%DW 100ml 수량 4개 들어 이"
+          "details": "비품약: 하단 5%DW 100ml 수량 4개 들어 있음\nE-cart: 하단 5%DW 100ml 수량 4개 들어 있음"
         },
         {
           "id": "stock:72W",
