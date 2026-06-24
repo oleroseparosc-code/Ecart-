@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T00:11:59.056Z",
+  "updatedAt": "2026-06-24T00:12:01.424Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -7554,7 +7554,7 @@
             "dosage": "0.6mg/Tab",
             "quantity": 3,
             "checked": true,
-            "expiryDate": "2026-08-24"
+            "expiryDate": "2026-08-19"
           },
           {
             "id": "XCPENIR",
