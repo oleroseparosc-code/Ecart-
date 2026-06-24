@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T04:42:26.218Z",
+  "updatedAt": "2026-06-24T04:42:48.794Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6238,7 +6238,8 @@
       "HBEF심혈관조영실::XMERGO": true,
       "HBEF심혈관조영실::XNICORA": true,
       "HBEF심혈관조영실::XMEXO": false,
-      "HBEF심혈관조영실::XLID2W": true
+      "HBEF심혈관조영실::XLID2W": true,
+      "HBEF심혈관조영실::XVERAW": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24"
