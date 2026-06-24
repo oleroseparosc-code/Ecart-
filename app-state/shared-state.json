@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-23T23:58:05.844Z",
+  "updatedAt": "2026-06-24T00:11:44.682Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -7553,7 +7553,7 @@
             "name": "Nitroglycerin(SL)",
             "dosage": "0.6mg/Tab",
             "quantity": 3,
-            "checked": false,
+            "checked": true,
             "expiryDate": ""
           },
           {
