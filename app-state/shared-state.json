@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:13:02.700Z",
+  "updatedAt": "2026-06-24T07:13:14.279Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6049,6 +6049,11 @@
         "roomId": "DSR",
         "drugCode": "XCMTAZ",
         "requiredQty": 2
+      },
+      {
+        "roomId": "DSR",
+        "drugCode": "XCZEDO",
+        "requiredQty": 4
       }
     ],
     "checkedStock": {
