@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T03:23:02.058Z",
+  "updatedAt": "2026-06-24T03:48:45.159Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6301,6 +6301,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-AER-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -6364,31 +6371,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-AER-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-AER-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-AER-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-AER-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-AER-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -6464,6 +6478,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-이비인후과-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -6527,31 +6548,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-이비인후과-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "bad",
           "id": "stock-이비인후과-20",
           "note": "개봉된 bosmin 유효기간 6월 9일 까지인 약품 보관"
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-이비인후과-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-이비인후과-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-이비인후과-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -6627,6 +6655,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-정형외과-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -6690,31 +6725,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-정형외과-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-정형외과-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-정형외과-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-정형외과-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-정형외과-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -6790,6 +6832,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-피부과-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -6853,32 +6902,39 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-피부과-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-피부과-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-피부과-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "bad",
           "id": "stock-피부과-22",
           "note": "청구약 수납장에 DPCP 보관 중 MSDS 보관 기준으로 보관 하시도록 안내"
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-피부과-22-monthly-claim-fluid-expiry",
+          "note": ""
         }
       ],
       "영상의학과": [
@@ -6953,6 +7009,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-영상의학과-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7016,31 +7079,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-영상의학과-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-영상의학과-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-영상의학과-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-영상의학과-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-영상의학과-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -7116,6 +7186,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-121W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7179,31 +7256,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-121W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-121W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-121W-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-121W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-121W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -7279,6 +7363,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-101W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7342,31 +7433,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-101W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-101W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-101W-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-101W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-101W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -7442,6 +7540,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-92W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7505,31 +7610,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-92W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-92W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-92W-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-92W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-92W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -7605,6 +7717,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-82W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7668,31 +7787,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-82W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-82W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "bad",
           "id": "stock-82W-21",
           "note": "란투스 /휴마로그 바이알 적정 수량만 청구 하시도록 안내"
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-82W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-82W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -7768,6 +7894,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-72W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7831,31 +7964,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-72W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-72W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-72W-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-72W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-72W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -7931,6 +8071,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-71W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -7994,31 +8141,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-71W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-71W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "bad",
           "id": "stock-71W-21",
           "note": "보스민 잉여 10개 반납"
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-71W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-71W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -8094,6 +8248,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-62W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -8157,31 +8318,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-62W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-62W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "good",
           "id": "stock-62W-21",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-62W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-62W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ],
@@ -8257,6 +8425,13 @@
           "note": ""
         },
         {
+          "section": "비품약",
+          "text": "5. 비품약 유효기간 1달에 1번 날짜로 관리한다.",
+          "status": "good",
+          "id": "stock-61W-9-monthly-stock-expiry",
+          "note": ""
+        },
+        {
           "section": "냉장약",
           "text": "1. 냉장고 온도관리 기록부가 있다.",
           "status": "good",
@@ -8320,31 +8495,38 @@
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "1. 청구약 선입 선출이 이루어 지고 있다.",
+          "section": "청구약/ 수액",
+          "text": "1. 청구약/ 수액 선입 선출이 이루어 지고 있다.",
           "status": "good",
           "id": "stock-61W-19",
           "note": ""
         },
         {
-          "section": "청구약",
-          "text": "2. 청구약 유효기간 조사를 월 1회 점검 하고 있다.",
+          "section": "청구약/ 수액",
+          "text": "2. 청구약/ 수액 유효기간 조사를 월 1회 점검 하고 있다.",
           "status": "good",
           "id": "stock-61W-20",
           "note": ""
         },
         {
-          "section": "청구약",
+          "section": "청구약/ 수액",
           "text": "3. 적정한 품목과 수량을 청구하고 있다.(재고 과다 보유/ 미사용 수량 계속 보유등 이상 유무)",
           "status": "bad",
           "id": "stock-61W-21",
-          "note": "NS 20ml 적정량만 라벨링되어ㅠ있는 구역에 보관 하며 사용하시도록 안내"
+          "note": "NS 20ml 적정량만 라벨링되어있는 구역에 보관 하며 사용하시도록 안내"
         },
         {
-          "section": "청구약",
-          "text": "4. 청구약품 보관 장소에 약품명 라벨링이 되어 있다.",
+          "section": "청구약/ 수액",
+          "text": "4. 청구약/ 수액품 보관 장소에 약품명 라벨링이 되어 있다.",
           "status": "good",
           "id": "stock-61W-22",
+          "note": ""
+        },
+        {
+          "section": "청구약/ 수액",
+          "text": "5. 청구약/ 수액 유효기간을 1달에 1번 관리 한다.",
+          "status": "good",
+          "id": "stock-61W-22-monthly-claim-fluid-expiry",
           "note": ""
         }
       ]
@@ -11545,7 +11727,7 @@
           "id": "stock:61W",
           "roomName": "61W",
           "result": "확인 필요",
-          "details": "비품약: NS 20ml 적정량만 라벨링되어ㅠ있는 구역에 보관 하며 사용하시도록 안내"
+          "details": "비품약: NS 20ml 적정량만 라벨링되어있는 구역에 보관 하며 사용하시도록 안내"
         },
         {
           "id": "stock:62W",
