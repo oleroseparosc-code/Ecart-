@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T02:21:50.404Z",
+  "updatedAt": "2026-06-24T02:22:41.899Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -9623,7 +9623,7 @@
             "name": "Adenocor( Adenosin )",
             "dosage": "6mg/Vial",
             "quantity": 3,
-            "checked": false,
+            "checked": true,
             "expiryDate": ""
           },
           {
