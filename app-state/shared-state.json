@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T06:30:26.925Z",
+  "updatedAt": "2026-06-24T06:34:52.843Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6458,7 +6458,8 @@
       "DRL::LNORG52": true,
       "DRL::XHES6MPS5": true,
       "DRL::XNALO.4": true,
-      "DRL::XEPIN": true
+      "DRL::XEPIN": true,
+      "NICU::XCFACT120": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
