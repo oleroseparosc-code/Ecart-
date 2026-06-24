@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:29:03.617Z",
+  "updatedAt": "2026-06-24T05:29:14.111Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6321,7 +6321,8 @@
       "SICU::XNICAR2": true,
       "SICU::XHEP100PM": true,
       "SICU::XHEPAR15": true,
-      "SICU::XHEPAR1": true
+      "SICU::XHEPAR1": true,
+      "SICU::XVECUR10Y": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
