@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T04:44:43.039Z",
+  "updatedAt": "2026-06-24T04:44:47.840Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6251,7 +6251,8 @@
       "HBEF심혈관조영실::CLOPID": true,
       "HBEF심혈관조영실::TICAG90": true,
       "HBEF심혈관조영실::XADENO90": true,
-      "HBEF심혈관조영실::XTRAM100": true
+      "HBEF심혈관조영실::XTRAM100": true,
+      "HBEF심혈관조영실::XPROT": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24"
