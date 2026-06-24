@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:15:48.715Z",
+  "updatedAt": "2026-06-24T07:15:57.707Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -14768,7 +14768,7 @@
           "id": "stock:82W",
           "roomName": "82W",
           "result": "확인 필요",
-          "details": "비품약: 란투스 /휴마로그 바이알 수량 많아 적정 수량만 청구 하시도록 안내"
+          "details": "비품약: 란투스 /휴마로그 바이알 수량 많아 칸에 다 못 넣는 상태\n            적정 수량만 청구 하시도록 안내"
         },
         {
           "id": "stock:91W",
