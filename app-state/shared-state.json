@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:18:08.648Z",
+  "updatedAt": "2026-06-24T07:18:13.268Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -14858,7 +14858,7 @@
           "id": "stock:신속대응팀",
           "roomName": "",
           "result": "",
-          "details": ""
+          "details": "E-cart: 하단 서랍 씰링 되어 있지 않음/ 겔을 못 채워 열어둔 상태라고 함"
         },
         {
           "id": "stock:HBEF심혈관조영실",
