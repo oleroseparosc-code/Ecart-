@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T07:30:47.076Z",
+  "updatedAt": "2026-06-24T07:30:50.286Z",
   "clientId": "0e20e4ad-cc33-493d-83fd-55b68a4dd063",
   "state": {
     "stockDrugs": [
@@ -6555,7 +6555,9 @@
       "영상의학과::THROM-W": true,
       "영상의학과::XPGE110": true,
       "비뇨기과::LID11-GL": true,
-      "정형외과::XBHYALU": true
+      "정형외과::XBHYALU": true,
+      "정형외과::XXHYAL20Y": true,
+      "정형외과::XIHEX3530": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
