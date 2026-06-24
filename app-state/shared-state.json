@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:40:07.315Z",
+  "updatedAt": "2026-06-24T05:40:10.181Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -6338,7 +6338,7 @@
       "AN::XEMOL1": true,
       "AN::XPCMOL": true,
       "AN::XDXM": true,
-      "AN::XKROL": false,
+      "AN::XKROL": true,
       "AN::XLABETA20": false,
       "AN::XFURO": false,
       "AN::XMEXO": false,
