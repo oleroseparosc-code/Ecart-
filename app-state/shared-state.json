@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-24T05:15:04.897Z",
+  "updatedAt": "2026-06-24T05:15:17.248Z",
   "clientId": "27b103e8-74b5-4f17-8ba7-bee6a156a0fa",
   "state": {
     "stockDrugs": [
@@ -3599,11 +3599,6 @@
         "roomId": "DRL",
         "drugCode": "XCMTAZ",
         "requiredQty": 4
-      },
-      {
-        "roomId": "DSR",
-        "drugCode": "XCMTAZ",
-        "requiredQty": 1
       },
       {
         "roomId": "외래주사실",
@@ -13777,7 +13772,8 @@
     "stockRoomUpdatedAt": {
       "AER": "26.06.23",
       "영상의학과": "26.06.24",
-      "ADR": "26.06.24"
+      "ADR": "26.06.24",
+      "DSR": "26.06.24"
     },
     "uninspectedRoomIds": [
       "신경과",
