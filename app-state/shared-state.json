@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-25T04:37:19.713Z",
+  "updatedAt": "2026-06-25T04:37:24.255Z",
   "clientId": "0c5c5bfd-4585-44fb-b0f6-75cc750a3064",
   "state": {
     "stockDrugs": [
@@ -6630,10 +6630,7 @@
       "외래주사실::XIRONSU": true,
       "외래주사실::XD3": true,
       "외래주사실::XGOSE": true,
-      "DRL::XEPIN": true,
-      "HBEF심혈관조영실::XABCIX::split-0": true,
-      "HBEF심혈관조영실::XABCIX::split-1": true,
-      "HBEF심혈관조영실::XABCIX": true
+      "DRL::XEPIN": true
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
