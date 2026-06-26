@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-26T00:16:37.696Z",
+  "updatedAt": "2026-06-26T00:16:48.407Z",
   "clientId": "8b950ea8-2089-4407-af40-becd3102dd03",
   "state": {
     "stockDrugs": [
@@ -6632,7 +6632,7 @@
       "외래주사실::XGOSE": true,
       "DRL::XEPIN": true,
       "HBEF심혈관조영실::XABCIX": true,
-      "재활의학과::XXHYAL60": true
+      "재활의학과::XXHYAL60": false
     },
     "stockExpiry": {
       "42W::XLABETA20": "2026-09-24",
