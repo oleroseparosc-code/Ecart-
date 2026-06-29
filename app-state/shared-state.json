@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-29T06:53:19.588Z",
+  "updatedAt": "2026-06-29T06:53:21.388Z",
   "clientId": "9d1f3ec9-9520-488d-8590-e42c54135d9e",
   "state": {
     "stockDrugs": [
@@ -4311,11 +4311,6 @@
         "requiredQty": 3
       },
       {
-        "roomId": "OR",
-        "drugCode": "XHYALU15W",
-        "requiredQty": 50
-      },
-      {
         "roomId": "61W",
         "drugCode": "XHYOS2Y",
         "requiredQty": 1
@@ -6368,7 +6363,8 @@
       "HBEF심혈관조영실": "26.06.24",
       "AN": "26.06.24",
       "안과": "26.06.25",
-      "42W": "26.06.29"
+      "42W": "26.06.29",
+      "OR": "26.06.29"
     },
     "uninspectedRoomIds": []
   }
