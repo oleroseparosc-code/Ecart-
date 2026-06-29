@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-29T06:53:21.388Z",
+  "updatedAt": "2026-06-29T06:53:50.229Z",
   "clientId": "9d1f3ec9-9520-488d-8590-e42c54135d9e",
   "state": {
     "stockDrugs": [
@@ -6049,6 +6049,11 @@
         "roomId": "DSR",
         "drugCode": "XCZOL1W",
         "requiredQty": 1
+      },
+      {
+        "roomId": "OR",
+        "drugCode": "XBHYALU",
+        "requiredQty": 50
       }
     ],
     "checkedStock": {
