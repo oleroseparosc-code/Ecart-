@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-29T02:30:20.175Z",
+  "updatedAt": "2026-06-29T02:30:24.482Z",
   "clientId": "9d1f3ec9-9520-488d-8590-e42c54135d9e",
   "state": {
     "stockDrugs": [
@@ -4491,11 +4491,6 @@
         "requiredQty": 5
       },
       {
-        "roomId": "42W",
-        "drugCode": "XLABETA20",
-        "requiredQty": 3
-      },
-      {
         "roomId": "SICU",
         "drugCode": "XLABETA20",
         "requiredQty": 5
@@ -6371,7 +6366,8 @@
       "91W": "26.06.24",
       "HBEF심혈관조영실": "26.06.24",
       "AN": "26.06.24",
-      "안과": "26.06.25"
+      "안과": "26.06.25",
+      "42W": "26.06.29"
     },
     "uninspectedRoomIds": []
   }
