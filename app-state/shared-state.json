@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-02T05:39:04.240Z",
-  "clientId": "client-1782969536334-3f4ac1fc728cd",
+  "updatedAt": "2026-07-02T06:32:46.223Z",
+  "clientId": "b90f8d25-ca80-4ee6-a3f4-c4b2a308e937",
   "state": {
     "stockDrugs": [
       {
@@ -1490,6 +1490,16 @@
         "productName": "Marcaine heavy 20mg/4ml inj",
         "spec": "5amp/box",
         "storage": "밀봉용기.실온보관",
+        "note": "",
+        "warning": "",
+        "storageType": "ROOM"
+      },
+      {
+        "code": "XMCARBA5Y",
+        "genericName": "",
+        "productName": "Matok 500mg/5ml inj",
+        "spec": "",
+        "storage": "실온보관",
         "note": "",
         "warning": "",
         "storageType": "ROOM"
