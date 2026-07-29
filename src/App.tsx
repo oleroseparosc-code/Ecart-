@@ -269,6 +269,38 @@ function labelSizeCssVars(sizeKey: DrugLabelSizeKey) {
   } as CSSProperties;
 }
 
+const DRUG_LABEL_PAPER = { widthMm: 210, heightMm: 297 };
+
+function planDrugLabelsForA4(labels: PrintableDrugLabel[]) {
+  const pages: PrintableDrugLabel[][] = [];
+  let page: PrintableDrugLabel[] = [];
+  let x = 0;
+  let y = 0;
+  let rowHeight = 0;
+
+  for (const label of labels) {
+    const size = getDrugLabelSize(label.sizeKey);
+    if (x > 0 && x + size.widthMm > DRUG_LABEL_PAPER.widthMm) {
+      x = 0;
+      y += rowHeight;
+      rowHeight = 0;
+    }
+    if (page.length > 0 && y + size.heightMm > DRUG_LABEL_PAPER.heightMm) {
+      pages.push(page);
+      page = [];
+      x = 0;
+      y = 0;
+      rowHeight = 0;
+    }
+    page.push(label);
+    x += size.widthMm;
+    rowHeight = Math.max(rowHeight, size.heightMm);
+  }
+
+  if (page.length > 0) pages.push(page);
+  return pages;
+}
+
 type EditableStockItem = StockAllocation & {
   drug: StockDrug;
   checked: boolean;
@@ -2762,7 +2794,11 @@ export function App() {
       const result = await downloadElementAsPdf(
         reportElement,
         fileName,
-        pharmacyPrintLayout ? { paper: pharmacyPrintPaper, orientation: pharmacyPrintLayout.orientation } : undefined,
+        pharmacyPrintLayout
+          ? { paper: pharmacyPrintPaper, orientation: pharmacyPrintLayout.orientation, fullBleed: true }
+          : printPreviewMode === "drug-labels"
+            ? { paper: "A4", orientation: "portrait", fullBleed: true }
+            : undefined,
       );
       setPdfDownload(result);
       setPdfStatus("ready");
@@ -3508,18 +3544,17 @@ export function App() {
         </section>
       );
     }
+    const printableLabels = previewLimit ? labelPrintRows.slice(0, previewLimit) : labelPrintRows;
+    const pages = planDrugLabelsForA4(printableLabels);
     return (
-      <section ref={targetRef} className={`${className} mixed-label-sheet`}>
-        <div className="drug-label-sheet-head">
-          <div>
-            <h2>약품 라벨 출력</h2>
-            <p>선택한 라벨 크기별로 자동 배치된 출력 목록입니다.</p>
+      <section ref={targetRef} className={`${className} mixed-label-sheet drug-label-print-pages`}>
+        {pages.map((page, pageIndex) => (
+          <div className="bulk-report-page drug-label-print-page" key={`drug-label-page-${pageIndex}`}>
+            <div className="drug-label-print-grid mixed-label-grid drug-label-page-grid">
+              {page.map((entry, index) => renderDrugLabelArticle(entry, `${entry.id}-${entry.sizeKey}-${entry.copyIndex}-${index}`))}
+            </div>
           </div>
-          <span>출력 일자: {new Date().toLocaleDateString("ko-KR")}</span>
-        </div>
-        <div className="drug-label-print-grid mixed-label-grid">
-          {labelPrintRows.map((entry, index) => renderDrugLabelArticle(entry, `${entry.id}-${entry.sizeKey}-${entry.copyIndex}-${index}`))}
-        </div>
+        ))}
       </section>
     );
   }

@@ -51,8 +51,9 @@ function dataUrlToBytes(dataUrl: string) {
   return bytes;
 }
 
-async function renderElementToCanvas(element: HTMLElement) {
-  const width = Math.ceil(Math.max(element.scrollWidth, element.getBoundingClientRect().width, 960));
+async function renderElementToCanvas(element: HTMLElement, exactElementWidth = false) {
+  const measuredWidth = Math.max(element.scrollWidth, element.getBoundingClientRect().width);
+  const width = Math.ceil(exactElementWidth ? measuredWidth : Math.max(measuredWidth, 960));
   return html2canvas(element, {
     backgroundColor: "#ffffff",
     scale: Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
@@ -69,6 +70,17 @@ async function renderElementToCanvas(element: HTMLElement) {
       normalizeFormControls(root);
     },
   });
+}
+
+function canvasToFullBleedPdfPage(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): PdfImagePage {
+  const { width, height } = paperSize(paper, orientation);
+  return {
+    bytes: dataUrlToBytes(canvas.toDataURL("image/jpeg", 0.92)),
+    width: canvas.width,
+    height: canvas.height,
+    drawWidth: width,
+    drawHeight: height,
+  };
 }
 
 function canvasToPdfPages(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): PdfImagePage[] {
@@ -102,7 +114,7 @@ function canvasToPdfPages(canvas: HTMLCanvasElement, paper: PdfPaper, orientatio
   return pages;
 }
 
-function buildPdf(pages: PdfImagePage[], paper: PdfPaper, orientation: PdfOrientation) {
+function buildPdf(pages: PdfImagePage[], paper: PdfPaper, orientation: PdfOrientation, pageMargin = PAGE_MARGIN) {
   const { width: paperWidth, height: paperHeight } = paperSize(paper, orientation);
   const chunks: Uint8Array[] = [];
   const offsets: number[] = [0];
@@ -151,8 +163,8 @@ function buildPdf(pages: PdfImagePage[], paper: PdfPaper, orientation: PdfOrient
     addBytes(page.bytes);
     addText("\nendstream\nendobj\n");
 
-    const x = PAGE_MARGIN;
-    const y = paperHeight - PAGE_MARGIN - page.drawHeight;
+    const x = pageMargin;
+    const y = paperHeight - pageMargin - page.drawHeight;
     const commands = `q\n${page.drawWidth.toFixed(2)} 0 0 ${page.drawHeight.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/${page.name} Do\nQ\n`;
 
     beginObject(page.contentObjectId);
@@ -184,24 +196,34 @@ export type PdfDownloadResult = {
   url: string;
 };
 
-export async function downloadElementAsPdf(element: HTMLElement, fileName: string, options: { paper?: PdfPaper; orientation?: PdfOrientation } = {}): Promise<PdfDownloadResult> {
+export async function downloadElementAsPdf(
+  element: HTMLElement,
+  fileName: string,
+  options: { paper?: PdfPaper; orientation?: PdfOrientation; fullBleed?: boolean } = {},
+): Promise<PdfDownloadResult> {
   const paper = options.paper ?? "A4";
   const orientation = options.orientation ?? "portrait";
+  const fullBleed = options.fullBleed ?? false;
   let pages: PdfImagePage[] = [];
 
   const childPages = Array.from(element.querySelectorAll(".bulk-report-page")) as HTMLElement[];
   if (childPages.length > 0) {
     for (const child of childPages) {
-      const canvas = await renderElementToCanvas(child);
-      const canvasPages = canvasToPdfPages(canvas, paper, orientation);
-      pages.push(...canvasPages);
+      const canvas = await renderElementToCanvas(child, fullBleed);
+      if (fullBleed) {
+        pages.push(canvasToFullBleedPdfPage(canvas, paper, orientation));
+      } else {
+        pages.push(...canvasToPdfPages(canvas, paper, orientation));
+      }
     }
   } else {
-    const canvas = await renderElementToCanvas(element);
-    pages = canvasToPdfPages(canvas, paper, orientation);
+    const canvas = await renderElementToCanvas(element, fullBleed);
+    pages = fullBleed
+      ? [canvasToFullBleedPdfPage(canvas, paper, orientation)]
+      : canvasToPdfPages(canvas, paper, orientation);
   }
 
-  const pdf = buildPdf(pages, paper, orientation);
+  const pdf = buildPdf(pages, paper, orientation, fullBleed ? 0 : PAGE_MARGIN);
   const url = URL.createObjectURL(pdf);
   const link = document.createElement("a");
   link.href = url;

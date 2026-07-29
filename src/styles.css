@@ -2919,6 +2919,33 @@ button {
   align-content: flex-start;
 }
 
+.drug-label-print-page {
+  box-sizing: border-box;
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #fff;
+  break-after: page;
+  page-break-after: always;
+  page: drug-label-paper;
+}
+
+.drug-label-print-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.drug-label-page-grid {
+  gap: 0;
+  align-content: flex-start;
+}
+
+@page drug-label-paper {
+  size: A4 portrait;
+  margin: 0;
+}
+
 .drug-label-item.label-size-10x70.label-kind-stock .drug-label-code-stack .label-code-storage.cold {
   color: #0b5c88;
   background: #dff3ff;
@@ -4768,11 +4795,21 @@ button {
   }
 
   body.printing-preview .drug-label-print-grid {
-    grid-template-columns: repeat(auto-fill, calc(var(--label-width-mm, 100) * 1mm));
-    gap: 5mm;
+    gap: 0;
   }
 
   body.printing-preview .drug-label-item {
+    flex: 0 0 auto;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  body.printing-preview .drug-label-print-page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    overflow: hidden;
+    break-inside: avoid-page;
     page-break-inside: avoid;
   }
 }
