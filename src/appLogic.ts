@@ -236,6 +236,10 @@ export function getLabelModeOptions(appMode: AppMode): LabelModeOption[] {
   return [...BASE_LABEL_MODE_OPTIONS, { mode: "pharmacy", label: "약제팀 라벨" }];
 }
 
+export function canEditMasterAssignments(appMode: AppMode) {
+  return appMode === "admin" || appMode === "pharmacy-viewer" || appMode === "narcotic-viewer";
+}
+
 export function getEcartLabelItemsForMode(mode: DrugLabelMode, ecart: InventoryData["ecart"]) {
   if (mode === "ecart-nicu") return ecart.nicuItems;
   if (mode === "ecart") return ecart.generalItems;

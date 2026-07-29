@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildNarcoticMasterLabelData,
   buildStockLabelData,
+  canEditMasterAssignments,
   displayRoomName,
   getDoseHighlightTextParts,
   getDrugLabelFlagLabels,
@@ -42,6 +43,12 @@ const baseRow: MasterRow = {
 };
 
 describe("app label logic", () => {
+  it("keeps ward master viewer read-only while pharmacy master management can edit assignments", () => {
+    expect(canEditMasterAssignments("master-viewer")).toBe(false);
+    expect(canEditMasterAssignments("pharmacy-viewer")).toBe(true);
+    expect(canEditMasterAssignments("admin")).toBe(true);
+  });
+
   it("recognizes the narcotic viewer route and defaults its master filter to narcotic kinds", () => {
     expect(getInitialAppMode("/Ecart-/narcotic-viewer", "")).toBe("narcotic-viewer");
     expect(getInitialAppMode("/Ecart-/", "?view=narcotic")).toBe("narcotic-viewer");

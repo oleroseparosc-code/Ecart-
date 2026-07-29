@@ -58,40 +58,55 @@ function isTransientSaveStatus(status: number) {
 }
 
 export async function loadServerState<T>(options: ServerSyncOptions = {}): Promise<RemoteStateResult<T> | null> {
-  const response = await fetchServerState(
-    buildAppStateApiUrl(options.baseUrl),
-    {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    },
-    options.timeoutMs,
-  );
-
-  if (response.status === 404) {
-    const staticResponse = await fetchServerState(
-      buildStaticAppStateUrl(options.baseUrl),
+  const requestedBaseUrl = options.baseUrl ?? configuredBaseUrl;
+  let response: Response;
+  try {
+    response = await fetchServerState(
+      buildAppStateApiUrl(requestedBaseUrl),
       {
         method: "GET",
         headers: { Accept: "application/json" },
+        cache: "no-store",
       },
       options.timeoutMs,
     );
+  } catch (error) {
+    if (options.baseUrl || requestedBaseUrl === import.meta.env.BASE_URL) throw error;
+    return loadStaticServerState<T>(import.meta.env.BASE_URL, options.timeoutMs);
+  }
 
-    if (staticResponse.status === 404) return null;
-    if (!staticResponse.ok) {
-      throw new Error(`?먮룞 ????곹깭瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??(${staticResponse.status}).`);
-    }
-
-    return {
-      envelope: (await staticResponse.json()) as RemoteStateEnvelope<T>,
-      sha: "",
-    };
+  if (response.status === 404) {
+    const remoteStaticState = await loadStaticServerState<T>(requestedBaseUrl, options.timeoutMs);
+    if (remoteStaticState || options.baseUrl || requestedBaseUrl === import.meta.env.BASE_URL) return remoteStaticState;
+    return loadStaticServerState<T>(import.meta.env.BASE_URL, options.timeoutMs);
   }
   if (!response.ok) {
     throw new Error(`자동 저장 상태를 불러오지 못했습니다 (${response.status}).`);
   }
 
   return (await response.json()) as RemoteStateResult<T>;
+}
+
+async function loadStaticServerState<T>(baseUrl: string, timeoutMs?: number): Promise<RemoteStateResult<T> | null> {
+  const staticResponse = await fetchServerState(
+    buildStaticAppStateUrl(baseUrl),
+    {
+      method: "GET",
+      headers: { Accept: "application/json", "Cache-Control": "no-cache" },
+      cache: "no-store",
+    },
+    timeoutMs,
+  );
+
+  if (staticResponse.status === 404) return null;
+  if (!staticResponse.ok) {
+    throw new Error(`자동 저장 상태를 불러오지 못했습니다 (${staticResponse.status}).`);
+  }
+
+  return {
+    envelope: (await staticResponse.json()) as RemoteStateEnvelope<T>,
+    sha: "",
+  };
 }
 
 async function saveServerStateOnce<T>(

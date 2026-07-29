@@ -56,6 +56,7 @@ import {
   getGeneralDrugLabelNameLines,
   getInitialAppMode,
   getInitialMasterKindFilter,
+  canEditMasterAssignments,
   getInspectedRoomIdsFromCheckedItems,
   getDoseHighlightTextParts,
   getNarcoticDoseCautionCodes,
@@ -998,7 +999,7 @@ export function App() {
   const isPharmacyViewer = appMode === "pharmacy-viewer";
   const isPharmacyEditor = appMode === "pharmacy-editor";
   const isNarcoticViewer = appMode === "narcotic-viewer";
-  const canEditMaster = appMode === "admin" || appMode === "master-viewer" || isNarcoticViewer;
+  const canEditMaster = canEditMasterAssignments(appMode);
   const defaultNewDrugCategory: NewDrugForm["category"] = isNarcoticViewer ? "향정" : "stock";
   const persistedState = useMemo(loadPersistedState, []);
   const [mainCategory, setMainCategory] = useState<MainCategory>(isNarcoticViewer ? "narcotic" : "stock");

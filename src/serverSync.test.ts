@@ -54,7 +54,34 @@ describe("server sync client", () => {
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       2,
       "/Ecart-/app-state/shared-state.json",
-      expect.objectContaining({ method: "GET" }),
+      expect.objectContaining({ method: "GET", cache: "no-store" }),
+    );
+  });
+
+  it("falls back to the deployed state when a saved temporary sync server has expired", async () => {
+    configureServerSyncBaseUrl("https://expired-tunnel.example.com/Ecart-/");
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            version: 1,
+            updatedAt: "2026-07-29T01:00:00.000Z",
+            clientId: "admin-pc",
+            state: { stockAllocations: [] },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await expect(loadServerState<{ stockAllocations: unknown[] }>()).resolves.toMatchObject({
+      envelope: { clientId: "admin-pc", state: { stockAllocations: [] } },
+    });
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      2,
+      "/app-state/shared-state.json",
+      expect.objectContaining({ cache: "no-store" }),
     );
   });
 
