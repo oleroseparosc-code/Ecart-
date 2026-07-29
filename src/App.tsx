@@ -57,6 +57,7 @@ import {
   getInitialAppMode,
   getInitialMasterKindFilter,
   canEditMasterAssignments,
+  shouldOpenPharmacyWorkspaceInitially,
   getInspectedRoomIdsFromCheckedItems,
   getDoseHighlightTextParts,
   getNarcoticDoseCautionCodes,
@@ -1059,7 +1060,9 @@ export function App() {
   const [labelMode, setLabelMode] = useState<DrugLabelMode>("stock");
   const [labelSize, setLabelSize] = useState<DrugLabelSizeKey>("10x70");
   const [isDrugLabelPanelOpen, setIsDrugLabelPanelOpen] = useState(false);
-  const [isPharmacyLabelWorkspaceOpen, setIsPharmacyLabelWorkspaceOpen] = useState(appMode === "pharmacy-viewer" || appMode === "pharmacy-editor");
+  const [isPharmacyLabelWorkspaceOpen, setIsPharmacyLabelWorkspaceOpen] = useState(
+    shouldOpenPharmacyWorkspaceInitially(appMode),
+  );
   const [hospitalDrugLabelRows, setHospitalDrugLabelRows] = useState<HospitalDrugLabelRow[]>([]);
   const [isHospitalDrugLabelsLoading, setIsHospitalDrugLabelsLoading] = useState(false);
   const [pharmacyHospitalDrugLabelRows, setPharmacyHospitalDrugLabelRows] = useState<HospitalDrugLabelRow[]>([]);

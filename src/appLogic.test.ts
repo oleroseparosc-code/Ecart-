@@ -20,6 +20,7 @@ import {
   resolveMasterLabelRoomId,
   resolveMasterLabelRoomIds,
   resolveDrugLabelPrintRow,
+  shouldOpenPharmacyWorkspaceInitially,
   getStockChecklistDefaultState,
   stripControlledDrugLabelPrefix,
   EMPTY_NARCOTIC_STOCK_CODE,
@@ -47,6 +48,8 @@ describe("app label logic", () => {
     expect(canEditMasterAssignments("master-viewer")).toBe(false);
     expect(canEditMasterAssignments("pharmacy-viewer")).toBe(true);
     expect(canEditMasterAssignments("admin")).toBe(true);
+    expect(shouldOpenPharmacyWorkspaceInitially("pharmacy-viewer")).toBe(false);
+    expect(shouldOpenPharmacyWorkspaceInitially("pharmacy-editor")).toBe(true);
   });
 
   it("recognizes the narcotic viewer route and defaults its master filter to narcotic kinds", () => {

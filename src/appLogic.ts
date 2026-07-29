@@ -240,6 +240,10 @@ export function canEditMasterAssignments(appMode: AppMode) {
   return appMode === "admin" || appMode === "pharmacy-viewer" || appMode === "narcotic-viewer";
 }
 
+export function shouldOpenPharmacyWorkspaceInitially(appMode: AppMode) {
+  return appMode === "pharmacy-editor";
+}
+
 export function getEcartLabelItemsForMode(mode: DrugLabelMode, ecart: InventoryData["ecart"]) {
   if (mode === "ecart-nicu") return ecart.nicuItems;
   if (mode === "ecart") return ecart.generalItems;
