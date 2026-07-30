@@ -29,6 +29,9 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain('"1T 3단장 뺑뺑이 PTP 측면라벨"');
     expect(appSource).toContain("savePharmacyDrugMaster");
     expect(appSource).toContain("applySharedPharmacyMasterFields");
+    expect(appSource).toContain("applySharedMasterToStockDrug");
+    expect(appSource).toContain("effectiveStockDrugs");
+    expect(appSource).toContain("effectiveNarcoticDrugs");
     expect(appSource).toContain("onSaveMaster={savePharmacyDrugMaster}");
   });
 });

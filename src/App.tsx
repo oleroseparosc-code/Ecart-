@@ -908,6 +908,35 @@ function applySharedPharmacyMasterFields(base: HospitalDrugLabelRow, master: Hos
   };
 }
 
+function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabelRow | undefined): StockDrug {
+  if (!master) return drug;
+  const warning = [
+    master.highRisk ? "고위험의약품" : "",
+    master.similarLook ? "유사모양" : "",
+    master.similarSound ? "유사발음" : "",
+    master.doseCaution ? "용량주의" : "",
+    master.doseCheck ? "용량확인" : "",
+    master.nameCaution ? "이름주의" : "",
+    master.highCost ? "고가약" : "",
+    master.narcotic ? "마약" : "",
+    master.psychotropic ? "향정" : "",
+    master.anticancer ? "항암제" : "",
+    master.eCart ? "E-cart" : "",
+    master.eCartNicu ? "E-cart(NICU)" : "",
+  ].filter(Boolean).join(", ");
+  const storage = master.storage || (master.lightProtected ? "차광" : "실온");
+  return {
+    ...drug,
+    genericName: master.koreanName || drug.genericName,
+    productName: master.name || drug.productName,
+    spec: master.strength || drug.spec,
+    storage,
+    warning,
+    note: warning,
+    storageType: master.lightProtected ? "LIGHT_PROTECTED" : inferStorageType(storage),
+  };
+}
+
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
   for (const row of additional) byCode.set(row.code, { ...(byCode.get(row.code) ?? {}), ...row });
@@ -1750,17 +1779,29 @@ export function App() {
 
   const inspectedNarcoticRoomIds = useMemo(() => getInspectedRoomIdsFromCheckedItems(narcoticCheckedItems), [narcoticCheckedItems]);
 
-  const drugByCode = useMemo(() => new Map(stockDrugs.map((drug) => [drug.code, drug])), [stockDrugs]);
-  const narcoticDrugByCode = useMemo(() => new Map(narcoticDrugs.map((drug) => [drug.code, drug])), [narcoticDrugs]);
+  const pharmacyHospitalDrugRowsByCode = useMemo(
+    () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
+    [pharmacyHospitalDrugLabelRows],
+  );
+  const effectiveStockDrugs = useMemo(
+    () => stockDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
+    [pharmacyHospitalDrugRowsByCode, stockDrugs],
+  );
+  const effectiveNarcoticDrugs = useMemo(
+    () => narcoticDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
+    [narcoticDrugs, pharmacyHospitalDrugRowsByCode],
+  );
+  const drugByCode = useMemo(() => new Map(effectiveStockDrugs.map((drug) => [drug.code, drug])), [effectiveStockDrugs]);
+  const narcoticDrugByCode = useMemo(() => new Map(effectiveNarcoticDrugs.map((drug) => [drug.code, drug])), [effectiveNarcoticDrugs]);
   const narcoticMasterKindByCode = useMemo(
     () =>
       new Map(
-        narcoticDrugs.map((drug) => [
+        effectiveNarcoticDrugs.map((drug) => [
           drug.code,
           (narcoticDrugCategories[drug.code] ?? narcoticCategoryOf(drug.code)) === "마약" ? "narcotic" : "psychotropic",
         ] as const),
       ),
-    [narcoticDrugCategories, narcoticDrugs],
+    [effectiveNarcoticDrugs, narcoticDrugCategories],
   );
   const roomById = useMemo(() => new Map(currentStockRooms.map((room) => [room.id, room])), [currentStockRooms]);
   const narcoticRoomById = useMemo(() => new Map(currentNarcoticRooms.map((room) => [room.id, room])), [currentNarcoticRooms]);
@@ -1778,12 +1819,12 @@ export function App() {
     () => {
       const kindOrder: Record<MasterRowKind, number> = { stock: 0, psychotropic: 1, narcotic: 2 };
       const rows = [
-        ...buildMasterRows(stockDrugs, stockAllocations, () => "stock"),
-        ...buildMasterRows(narcoticDrugs, narcoticAllocations, (drug) => narcoticMasterKindByCode.get(drug.code) ?? "psychotropic"),
+        ...buildMasterRows(effectiveStockDrugs, stockAllocations, () => "stock"),
+        ...buildMasterRows(effectiveNarcoticDrugs, narcoticAllocations, (drug) => narcoticMasterKindByCode.get(drug.code) ?? "psychotropic"),
       ];
       return rows.sort((a, b) => kindOrder[a.masterKind] - kindOrder[b.masterKind] || compareStockDrugsByName(a, b));
     },
-    [narcoticAllocations, narcoticDrugs, narcoticMasterKindByCode, stockAllocations, stockDrugs],
+    [effectiveNarcoticDrugs, effectiveStockDrugs, narcoticAllocations, narcoticMasterKindByCode, stockAllocations],
   );
   const stockedMasterRows = useMemo(() => filterMasterRowsWithStock(masterRows), [masterRows]);
   const visibleMasterRows = useMemo(
@@ -1802,8 +1843,8 @@ export function App() {
     [activeMasterLabelRoomIds, visibleMasterRows, masterQuery],
   );
   const assignmentDrugs = useMemo(
-    () => sortStockDrugsByName(isNarcoticViewer ? narcoticDrugs : [...stockDrugs, ...narcoticDrugs]),
-    [isNarcoticViewer, narcoticDrugs, stockDrugs],
+    () => sortStockDrugsByName(isNarcoticViewer ? effectiveNarcoticDrugs : [...effectiveStockDrugs, ...effectiveNarcoticDrugs]),
+    [effectiveNarcoticDrugs, effectiveStockDrugs, isNarcoticViewer],
   );
   const selectedAssignmentDrug = useMemo(
     () => assignmentDrugs.find((drug) => drug.code === newAssignment.drugCode),
@@ -1900,10 +1941,6 @@ export function App() {
   const selectedLabelRows = useMemo(
     () => filteredMasterRows.filter((row) => labelSelectedCodes.includes(row.code)),
     [filteredMasterRows, labelSelectedCodes],
-  );
-  const pharmacyHospitalDrugRowsByCode = useMemo(
-    () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
-    [pharmacyHospitalDrugLabelRows],
   );
   const hospitalDrugSelectableRows = useMemo(
     () => hospitalDrugLabelRows
