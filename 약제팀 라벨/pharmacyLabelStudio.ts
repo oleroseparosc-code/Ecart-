@@ -137,11 +137,11 @@ export function rowMatchesCategory(
     const isInjection = ["앰플", "바이알", "냉장주사", "주사", "영양수액", "일반수액", "항암제"].some((value) => type.includes(value));
     return highCostRoute === "주사" ? isInjection : !isInjection;
   }
-  if (category === "항암제") return type === "항암제" || (row.highRiskCategory ?? "").includes("주사용항암제");
-  if (category === "마약/향정") return type === "마약" || type === "향정";
+  if (category === "항암제") return Boolean(row.anticancer) || type === "항암제" || (row.highRiskCategory ?? "").includes("주사용항암제");
+  if (category === "마약/향정") return Boolean(row.narcotic || row.psychotropic) || type === "마약" || type === "향정";
   if (category === "냉장주사") return isHospitalDrugRefrigerated(row) && ["앰플", "바이알", "주사"].some((value) => type.includes(value));
-  if (category === "입원산제") return Boolean(row.inpatientPowderPtp);
-  if (category === "ATC") return Boolean(row.atc);
+  if (category === "입원산제") return type === "입원산제" || Boolean(row.inpatientPowderPtp);
+  if (category === "ATC") return type === "ATC" || Boolean(row.atc);
   if (category === "PTP") return type === "PTP" || Boolean(row.ptpOpened);
   if (category === "외용제") return type === "외용제";
   if (category === "외용점안제") return type === "외용점안제";

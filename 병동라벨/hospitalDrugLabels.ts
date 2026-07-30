@@ -15,6 +15,11 @@ export type HospitalDrugLabelRow = {
   drugType: string;
   fluidColor?: string;
   highCost?: boolean;
+  narcotic?: boolean;
+  psychotropic?: boolean;
+  anticancer?: boolean;
+  eCart?: boolean;
+  eCartNicu?: boolean;
   spec: string;
   package: string;
   storage: string;
@@ -81,8 +86,10 @@ export function makeHospitalControlledDrugLabelId(row: Pick<HospitalDrugLabelRow
 export function isHospitalDrugType(row: Partial<Pick<HospitalDrugLabelRow, "drugType">>, drugType: string) {
   return compact(row.drugType ?? "") === compact(drugType);
 }
-export function isHospitalControlledDrugType(row: Partial<Pick<HospitalDrugLabelRow, "drugType">>) {
-  return isHospitalDrugType(row, "마약") || isHospitalDrugType(row, "향정");
+export function isHospitalControlledDrugType(
+  row: Partial<Pick<HospitalDrugLabelRow, "drugType" | "narcotic" | "psychotropic">>,
+) {
+  return Boolean(row.narcotic || row.psychotropic) || isHospitalDrugType(row, "마약") || isHospitalDrugType(row, "향정");
 }
 export function isHospitalGeneralDrugLabelType(row: Partial<Pick<HospitalDrugLabelRow, "drugType">>) {
   return Boolean(row.drugType?.trim()) && !isHospitalDrugType(row, "일반수액") && !isHospitalControlledDrugType(row);
@@ -90,7 +97,12 @@ export function isHospitalGeneralDrugLabelType(row: Partial<Pick<HospitalDrugLab
 export function isSelectableHospitalDrugLabelRow(row: Pick<HospitalDrugLabelRow, "name" | "inHospital"> & Partial<Pick<HospitalDrugLabelRow, "drugType">>) {
   return row.inHospital && Boolean(row.name.trim()) && Boolean(row.drugType?.trim()) && !/^\d+(?:\.\d+)?$/.test(row.name.trim());
 }
-export function getHospitalDrugControlledCategory(row: Pick<HospitalDrugLabelRow, "name" | "koreanName"> & Partial<Pick<HospitalDrugLabelRow, "drugType">>) {
+export function getHospitalDrugControlledCategory(
+  row: Pick<HospitalDrugLabelRow, "name" | "koreanName"> &
+    Partial<Pick<HospitalDrugLabelRow, "drugType" | "narcotic" | "psychotropic">>,
+) {
+  if (row.narcotic) return "마약";
+  if (row.psychotropic) return "향정";
   if (isHospitalDrugType(row, "마약")) return "마약";
   if (isHospitalDrugType(row, "향정")) return "향정";
   return /^\s*\[(마약|향정)\]/.exec(row.name)?.[1] as HospitalDrugControlledCategory | undefined;

@@ -20,4 +20,15 @@ describe("pharmacy label workbook update", () => {
     expect(appSource).toContain("nameCaution: draft.warnings.includes");
     expect(appSource).toContain("borderColor: draft.style.outerBorderColor");
   });
+
+  it("writes shared master flags and pharmacy-only label settings to workbook columns", () => {
+    expect(source).toContain("saveHospitalDrugMasterRowToWorkbook");
+    expect(source).toContain('"E-cart(NICU)"');
+    expect(source).toContain('"유색병뚜껑"');
+    expect(source).toContain('"정제용량 0.25T"');
+    expect(source).toContain('"1T 3단장 뺑뺑이 PTP 측면라벨"');
+    expect(appSource).toContain("savePharmacyDrugMaster");
+    expect(appSource).toContain("applySharedPharmacyMasterFields");
+    expect(appSource).toContain("onSaveMaster={savePharmacyDrugMaster}");
+  });
 });

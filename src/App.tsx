@@ -105,14 +105,19 @@ import {
   matchesHospitalDrugLabel,
   shouldExcludeHospitalControlledDrugLabel,
   stripHospitalDrugControlledPrefix,
-  type HospitalDrugLabelRow,
 } from "../병동라벨/hospitalDrugLabels";
-import { loadHospitalDrugLabelRows as loadPharmacyHospitalDrugLabelRows } from "../약제팀 라벨/hospitalDrugLabels";
+import {
+  loadHospitalDrugLabelRows as loadPharmacyHospitalDrugLabelRows,
+  type HospitalDrugLabelRow,
+} from "../약제팀 라벨/hospitalDrugLabels";
 import { PharmacyLabelWorkspace } from "../약제팀 라벨/PharmacyLabelWorkspace";
 import { mergeHospitalDrugRowsIntoPharmacyLabelMatches } from "../약제팀 라벨/hospitalDrugWorkbookUpload";
 import hospitalDrugWorkbookUrl from "../약제팀 라벨/원내보유의약품리스트.xlsx?url";
 import { applyExpirationWorkbook } from "../약제팀 라벨/expirationWorkbookUpdate";
-import { savePharmacyLabelDraftToWorkbook } from "../약제팀 라벨/pharmacyLabelWorkbookUpdate";
+import {
+  saveHospitalDrugMasterRowToWorkbook,
+  savePharmacyLabelDraftToWorkbook,
+} from "../약제팀 라벨/pharmacyLabelWorkbookUpdate";
 import { loadPharmacyLabelMatchRows, type PharmacyLabelMatchRow } from "../약제팀 라벨/pharmacyLabelMatches";
 import {
   A3_PAPER,
@@ -880,9 +885,32 @@ function pharmacyRowFromDraft(draft: PharmacyLabelDraft): HospitalDrugLabelRow {
   };
 }
 
+function applySharedPharmacyMasterFields(base: HospitalDrugLabelRow, master: HospitalDrugLabelRow) {
+  return {
+    ...base,
+    name: master.name || base.name,
+    koreanName: master.koreanName || base.koreanName,
+    strength: master.strength || base.strength,
+    storage: master.storage,
+    lightProtected: master.lightProtected,
+    highCost: master.highCost,
+    narcotic: master.narcotic,
+    psychotropic: master.psychotropic,
+    anticancer: master.anticancer,
+    eCart: master.eCart,
+    eCartNicu: master.eCartNicu,
+    similarLook: master.similarLook,
+    similarSound: master.similarSound,
+    doseCaution: master.doseCaution,
+    doseCheck: master.doseCheck,
+    highRisk: master.highRisk,
+    nameCaution: master.nameCaution,
+  };
+}
+
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
-  for (const row of additional) byCode.set(row.code, row);
+  for (const row of additional) byCode.set(row.code, { ...(byCode.get(row.code) ?? {}), ...row });
   return [...byCode.values()];
 }
 
@@ -1602,7 +1630,7 @@ export function App() {
   }, [hospitalDrugLabelRows.length, isDrugLabelPanelOpen, labelMode, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows.length, savedPharmacyLabels]);
 
   useEffect(() => {
-    if (!isPharmacyLabelWorkspaceOpen || pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
+    if (pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
     setIsPharmacyLabelMatchesLoading(true);
     void Promise.all([loadPharmacyLabelMatchRows(), loadPharmacyHospitalDrugLabelRows()])
       .then(([matchRows, hospitalRows]) => {
@@ -1873,17 +1901,22 @@ export function App() {
     () => filteredMasterRows.filter((row) => labelSelectedCodes.includes(row.code)),
     [filteredMasterRows, labelSelectedCodes],
   );
+  const pharmacyHospitalDrugRowsByCode = useMemo(
+    () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
+    [pharmacyHospitalDrugLabelRows],
+  );
   const hospitalDrugSelectableRows = useMemo(
-    () => hospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow),
-    [hospitalDrugLabelRows],
+    () => hospitalDrugLabelRows
+      .map((row) => {
+        const master = pharmacyHospitalDrugRowsByCode.get(row.code.toUpperCase());
+        return master ? applySharedPharmacyMasterFields(row, master) : row;
+      })
+      .filter(isSelectableHospitalDrugLabelRow),
+    [hospitalDrugLabelRows, pharmacyHospitalDrugRowsByCode],
   );
   const hospitalDrugRowsByCode = useMemo(
     () => new Map(hospitalDrugSelectableRows.map((row) => [row.code.toUpperCase(), row])),
     [hospitalDrugSelectableRows],
-  );
-  const pharmacyHospitalDrugRowsByCode = useMemo(
-    () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
-    [pharmacyHospitalDrugLabelRows],
   );
   const pharmacyHospitalDrugRowsByLabelId = useMemo(
     () => new Map([...pharmacyHospitalDrugRowsByCode.values()].map((row) => [makeHospitalDrugLabelId(row), row])),
@@ -2972,6 +3005,23 @@ export function App() {
       : "수정 내용이 최종 라벨로 저장되었으며, 갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 이 파일로 교체해 주십시오.";
   }
 
+  async function savePharmacyDrugMaster(row: HospitalDrugLabelRow) {
+    if (!row.code.trim()) throw new Error("약품코드를 입력해야 저장할 수 있습니다.");
+    if (!row.name.trim()) throw new Error("상용약품명을 입력해야 저장할 수 있습니다.");
+    const workbookSaveMode = await saveHospitalDrugMasterRowToWorkbook(row, hospitalDrugWorkbookUrl);
+    const existed = pharmacyHospitalDrugLabelRows.some((current) => current.code === row.code);
+    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, [row]));
+    setHospitalDrugLabelRows((previous) => previous.map((current) =>
+      current.code.toUpperCase() === row.code.toUpperCase() ? applySharedPharmacyMasterFields(current, row) : current,
+    ));
+    if (!existed) setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, [row]));
+    return workbookSaveMode === "server"
+      ? "원내보유의약품리스트와 전체 라벨 기준에 저장되었습니다."
+      : workbookSaveMode === "file"
+        ? "선택한 원내보유의약품리스트.xlsx와 현재 화면에 저장되었습니다."
+        : "갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 교체하면 전체 화면에 같은 기준이 적용됩니다.";
+  }
+
   function printPharmacyStudioLabels(labels: PharmacyLabelDraft[], paperKey: "A4" | "A3") {
     if (labels.length === 0) return;
     setPharmacyPrintDrafts(labels);
@@ -3687,6 +3737,7 @@ export function App() {
         onSaveLabel={savePharmacyStudioLabel}
         onPrint={printPharmacyStudioLabels}
         onHospitalDrugWorkbookUpload={importHospitalDrugWorkbook}
+        onSaveMaster={savePharmacyDrugMaster}
         standalone={isPharmacyEditor}
       />
     );

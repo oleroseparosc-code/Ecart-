@@ -1,6 +1,7 @@
 import { ChevronDown, FileDown, Printer, Save, Search, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from "react";
 import { fluidLabelTone, formatFluidLabelName } from "../src/appLogic";
+import { PharmacyDrugMaster } from "./PharmacyDrugMaster";
 import {
   getHospitalDrugControlledCategory,
   matchesHospitalDrugLabel,
@@ -24,6 +25,7 @@ type Props = {
   onSaveLabel: (draft: PharmacyLabelDraft) => Promise<string>;
   onPrint: (labels: PharmacyLabelDraft[], paperKey: "A4" | "A3") => void;
   onHospitalDrugWorkbookUpload: (file: File) => Promise<string>;
+  onSaveMaster: (row: HospitalDrugLabelRow) => Promise<string>;
   standalone?: boolean;
 };
 
@@ -31,8 +33,9 @@ function isLabelMarked(value?: string) {
   return value?.trim().toUpperCase() === "Y";
 }
 
-export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, onSaveLabel, onPrint, onHospitalDrugWorkbookUpload, standalone = false }: Props) {
+export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, onSaveLabel, onPrint, onHospitalDrugWorkbookUpload, onSaveMaster, standalone = false }: Props) {
   const [family, setFamily] = useState<PharmacyLabelFamily>("drug");
+  const [activeTab, setActiveTab] = useState<PharmacyLabelFamily | "master">("drug");
   const [category, setCategory] = useState<PharmacyLabelCategory>("원병");
   const [detailsOpen, setDetailsOpen] = useState(true);
   const [query, setQuery] = useState("");
@@ -57,17 +60,17 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   );
   const categoryRows = useMemo(() => baseCategoryRows.filter((row) => {
     const matchesDoseUnit = doseUnitFilter === "1T"
-      ? isLabelMarked(row.sideLabel1T)
+      ? Boolean(row.labelDose1T ?? isLabelMarked(row.sideLabel1T))
       : doseUnitFilter === "0.5T"
-        ? isLabelMarked(row.sideLabelHalfT)
+        ? Boolean(row.labelDoseHalfT ?? isLabelMarked(row.sideLabelHalfT))
         : doseUnitFilter === "0.25T"
-          ? isLabelMarked(row.sideLabelQuarterT)
+          ? Boolean(row.labelDoseQuarterT ?? isLabelMarked(row.sideLabelQuarterT))
           : true;
     if (!matchesDoseUnit) return false;
-    if (accessoryFilter === "측면라벨") return category === "입원산제" ? Boolean(row.inpatientPowderPtp) : [row.sideLabel1T, row.sideLabelHalfT, row.sideLabelQuarterT].some(isLabelMarked);
+    if (accessoryFilter === "측면라벨") return category === "입원산제" ? Boolean(row.inpatientPowderPtp) : Boolean(row.sideLabel || [row.sideLabel1T, row.sideLabelHalfT, row.sideLabelQuarterT].some(isLabelMarked));
     if (accessoryFilter === "유색 측면라벨") return isLabelMarked(row.coloredSideLabel);
-    if (accessoryFilter === "병뚜껑") return isLabelMarked(row.capLabel);
-    if (accessoryFilter === "유색 병뚜껑") return isLabelMarked(row.capLabel) && Boolean(extractHex(row.capBackground));
+    if (accessoryFilter === "병뚜껑") return Boolean(row.regularCapLabel || isLabelMarked(row.capLabel));
+    if (accessoryFilter === "유색 병뚜껑") return Boolean(row.coloredCapLabel || (isLabelMarked(row.capLabel) && extractHex(row.capBackground)));
     return true;
   }), [accessoryFilter, baseCategoryRows, category, doseUnitFilter]);
   const activeRow = categoryRows.find((row) => row.code === activeCode) ?? categoryRows[0];
@@ -329,11 +332,12 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
 
     <section className="pharmacy-category-panel">
       <div className="pharmacy-label-tabs">
-        <button className={family === "drug" ? "active" : ""} onClick={() => setFamily("drug")}>약품 라벨</button>
-        {!standalone && <button className={family === "cabinet" ? "active" : ""} onClick={() => setFamily("cabinet")}>약품장 라벨</button>}
-        <button className="pharmacy-collapse-button" onClick={() => setDetailsOpen((value) => !value)}>상세 선택 <ChevronDown size={16}/></button>
+        <button className={activeTab === "drug" ? "active" : ""} onClick={() => { setActiveTab("drug"); setFamily("drug"); }}>약품 라벨</button>
+        {!standalone && <button className={activeTab === "cabinet" ? "active" : ""} onClick={() => { setActiveTab("cabinet"); setFamily("cabinet"); }}>약품장 라벨</button>}
+        <button className={activeTab === "master" ? "active" : ""} onClick={() => setActiveTab("master")}>약품 마스터</button>
+        {activeTab !== "master" && <button className="pharmacy-collapse-button" onClick={() => setDetailsOpen((value) => !value)}>상세 선택 <ChevronDown size={16}/></button>}
       </div>
-      {detailsOpen && <div className="pharmacy-category-groups">{categoryGroups.map((group, index) =>
+      {activeTab !== "master" && detailsOpen && <div className="pharmacy-category-groups">{categoryGroups.map((group, index) =>
         <div className="pharmacy-category-block" key={index}>
           <div className="pharmacy-category-row">{group.map((item) =>
             <button key={item} className={category === item ? "active" : ""} onClick={() => setCategoryAndReset(item)}>{item}</button>)}
@@ -357,7 +361,9 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
       </div>}
     </section>
 
-    <section className="pharmacy-studio-workspace">
+    {activeTab === "master"
+      ? <PharmacyDrugMaster rows={rows} isLoading={isLoading} onSave={onSaveMaster}/>
+      : <section className="pharmacy-studio-workspace">
       <aside className="pharmacy-drug-list">
         <div className="pharmacy-panel-head"><div><h2>{category} 약품 리스트</h2><p>{categoryRows.length.toLocaleString("ko-KR")}개</p></div><span className="badge gray">선택 {selectedCodes.length}</span></div>
         <label className="pharmacy-list-search"><Search size={16}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="현재 약품 리스트 검색"/></label>
@@ -449,10 +455,10 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
 
       <aside className="pharmacy-tool-panel">
         <details open><summary>크기 설정</summary><div className="pharmacy-tool-body pharmacy-size-grid">{sizeOptions.map((size) => <button key={size.presetKey} className={`pharmacy-size-preset ${draft?.size.presetKey === size.presetKey ? "active" : ""}`} onClick={() => patch({ size })}>{size.heightMm} × {size.widthMm} mm</button>)}</div></details>
-        {["원병", "PTP", "입원산제"].includes(category) && <details open><summary>정제·부착 위치</summary><div className="pharmacy-tool-body pharmacy-choice-grid">{["0.25T", "0.5T", "1T"].map((value) => <button key={value} className={draft?.doseUnit === value ? "active" : ""} onClick={() => patch({ doseUnit: value as PharmacyLabelDraft["doseUnit"] })}>{value}</button>)}{["측면라벨", ...(isLabelMarked(activeRow?.coloredSideLabel) ? ["유색 측면라벨"] : []), "병뚜껑", ...(isLabelMarked(activeRow?.capLabel) && extractHex(activeRow?.capBackground) ? ["유색 병뚜껑"] : []), ...(family === "cabinet" ? ["선반라벨"] : [])].map((value) => <button key={value} className={draft?.accessory === value ? "active" : ""} onClick={() => chooseAccessory(value as PharmacyLabelDraft["accessory"])}>{value}</button>)}</div></details>}
+        {["원병", "PTP", "입원산제"].includes(category) && <details open><summary>정제·부착 위치</summary><div className="pharmacy-tool-body pharmacy-choice-grid">{["0.25T", "0.5T", "1T"].map((value) => <button key={value} className={draft?.doseUnit === value ? "active" : ""} onClick={() => patch({ doseUnit: value as PharmacyLabelDraft["doseUnit"] })}>{value}</button>)}{["측면라벨", ...(isLabelMarked(activeRow?.coloredSideLabel) ? ["유색 측면라벨"] : []), "병뚜껑", ...(activeRow?.coloredCapLabel || (isLabelMarked(activeRow?.capLabel) && extractHex(activeRow?.capBackground)) ? ["유색 병뚜껑"] : []), ...(family === "cabinet" ? ["선반라벨"] : [])].map((value) => <button key={value} className={draft?.accessory === value ? "active" : ""} onClick={() => chooseAccessory(value as PharmacyLabelDraft["accessory"])}>{value}</button>)}</div></details>}
         <details open><summary>테두리 설정</summary><div className="pharmacy-tool-body"><label><input type="checkbox" checked={(draft?.style.outerBorderPx ?? 0) > 0} onChange={(e) => draft && patch({ style: {...draft.style, outerBorderPx: e.target.checked ? category === "고가약" || activeRow?.border ? 5 : 0.5 : 0} })}/>테두리 있음</label><label>테두리 두께<input type="range" min="0.5" max="5" step="0.5" value={Math.max(0.5, draft?.style.outerBorderPx ?? 0.5)} disabled={(draft?.style.outerBorderPx ?? 0) <= 0} onChange={(e) => draft && patch({style:{...draft.style,outerBorderPx:Number(e.target.value)}})}/><b>{draft?.style.outerBorderPx ?? 0}mm</b></label><input type="color" value={draft?.style.outerBorderColor ?? "#111827"} onChange={(e) => draft && patch({style: {...draft.style, outerBorderColor: e.target.value}})}/></div></details>
         <details open><summary>표시 내용</summary><div className="pharmacy-tool-body"><label>상용약품명<textarea ref={titleEditorRef} value={draft?.printable.title ?? ""} onSelect={(e) => { const start = e.currentTarget.selectionStart; const end = e.currentTarget.selectionEnd; if (end > start) setTitleSelection({ start, end }); }} onChange={(e) => draft && patch({printable:{...draft.printable,title:e.target.value}, titleStyles: []})}/></label><div className="pharmacy-title-style-dashboard"><strong>약품명 부분 편집</strong><small>{titleSelection.end > titleSelection.start ? `"${draft?.printable.title.slice(titleSelection.start, titleSelection.end)}" 선택됨` : "위 약품명에서 편집할 부분을 드래그하여 선택하십시오."}</small><div className="pharmacy-title-style-control"><label>글자 크기<input type="number" min="6" max="48" value={selectedTitleFontSize} onChange={(e) => setSelectedTitleFontSize(Number(e.target.value))}/></label><button type="button" onClick={() => applyTitleStyle({ fontSizePt: selectedTitleFontSize })}>크기 적용</button></div><div className="pharmacy-title-style-control"><label>글자 색상<input type="color" value={selectedTitleColor} onChange={(e) => setSelectedTitleColor(e.target.value)}/></label><button type="button" onClick={() => applyTitleStyle({ color: selectedTitleColor })}>색상 적용</button></div><div><button type="button" onClick={() => applyTitleStyle({ fontWeight: 1000 })}>굵게</button><button type="button" onClick={() => applyTitleStyle({ textTransform: "uppercase" })}>대문자</button><button type="button" onClick={() => applyTitleStyle({ textTransform: "lowercase" })}>소문자</button><button type="button" onClick={() => draft && patch({ titleStyles: [] })}>부분 서식 초기화</button></div></div><label>한글약품명<input value={draft?.printable.koreanName ?? ""} onChange={(e) => draft && patch({printable:{...draft.printable,koreanName:e.target.value}})}/></label><label>용량<input value={draft?.printable.strength ?? ""} onChange={(e) => draft && patch({printable:{...draft.printable,strength:e.target.value}})}/></label><label>약품 위치<input value={draft?.location ?? ""} onChange={(e) => patch({location:e.target.value})}/></label><label>ATC 번호<input value={draft?.atc ?? ""} onChange={(e) => patch({atc:e.target.value})}/></label>{category === "항암제" && <label>재구성·용해액(WI/NS)<input value={draft?.printable.reconstitution ?? ""} onChange={(e) => draft && patch({printable:{...draft.printable,reconstitution:e.target.value}})}/></label>}</div></details>
       </aside>
-    </section>
+    </section>}
   </main>;
 }

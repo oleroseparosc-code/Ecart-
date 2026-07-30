@@ -314,6 +314,12 @@ def main() -> None:
             image_path, image_source_url = fetch_health_image(korean_name, name)
         if not image_source_url:
             image_source_url = f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
+        drug_type = read(raw, "약품유형")
+        legacy_side_1t = read(raw, "1T 3단장 뺑뺑이 PTP 측면라벨")
+        legacy_side_half = read(raw, "0.5T 3단장 뺑뺑이 병 측면라벨")
+        legacy_side_quarter = read(raw, "0.25T 3단장 뺑뺑이 병 측면라벨")
+        legacy_cap = read(raw, "3단장 유색 반티통 병뚜껑")
+        cap_background = read(raw, "3단장 반티통 병뚜껑 바탕색 기호")
         rows.append(
             {
                 "code": code,
@@ -321,9 +327,14 @@ def main() -> None:
                 "name": name,
                 "koreanName": korean_name,
                 "strength": read(raw, "함량"),
-                "drugType": read(raw, "약품유형"),
+                "drugType": drug_type,
                 "fluidColor": read_optional(raw, "일반수액 색기호"),
                 "highCost": is_yes(raw[index["고가약"]]),
+                "narcotic": is_yes(read_optional(raw, "마약")) or drug_type == "마약",
+                "psychotropic": is_yes(read_optional(raw, "향정")) or drug_type == "향정",
+                "anticancer": is_yes(read_optional(raw, "항암제")) or drug_type == "항암제" or is_yes(raw[index["경구항암제"]]),
+                "eCart": is_yes(read_optional(raw, "E-cart")),
+                "eCartNicu": is_yes(read_optional(raw, "E-cart(NICU)")),
                 "spec": read(raw, "규격"),
                 "package": read(raw, "포장"),
                 "storage": read(raw, "보관법"),
@@ -343,13 +354,19 @@ def main() -> None:
                 "expiry": read(raw, "유효기간"),
                 "location": read(raw, "위치"),
                 "ampouleHolder": read(raw, "앰플꽂이"),
-                "sideLabel1T": read(raw, "1T 3단장 뺑뺑이 PTP 측면라벨"),
-                "sideLabelHalfT": read(raw, "0.5T 3단장 뺑뺑이 병 측면라벨"),
-                "sideLabelQuarterT": read(raw, "0.25T 3단장 뺑뺑이 병 측면라벨"),
+                "sideLabel1T": legacy_side_1t,
+                "sideLabelHalfT": legacy_side_half,
+                "sideLabelQuarterT": legacy_side_quarter,
+                "sideLabel": is_yes(read_optional(raw, "측면라벨")) or any(is_yes(value) for value in [legacy_side_1t, legacy_side_half, legacy_side_quarter]),
+                "labelDose1T": is_yes(read_optional(raw, "정제용량 1T")) or is_yes(legacy_side_1t),
+                "labelDoseHalfT": is_yes(read_optional(raw, "정제용량 0.5T")) or is_yes(legacy_side_half),
+                "labelDoseQuarterT": is_yes(read_optional(raw, "정제용량 0.25T")) or is_yes(legacy_side_quarter),
                 "coloredSideLabel": read(raw, "3단장 유색 반티통 측면라벨"),
                 "coloredSideBackground": read(raw, "3단장 유색 반티통 측면라벨 바탕색"),
-                "capLabel": read(raw, "3단장 유색 반티통 병뚜껑"),
-                "capBackground": read(raw, "3단장 반티통 병뚜껑 바탕색 기호"),
+                "capLabel": legacy_cap,
+                "regularCapLabel": is_yes(read_optional(raw, "병뚜껑")) or (is_yes(legacy_cap) and not cap_background),
+                "coloredCapLabel": is_yes(read_optional(raw, "유색병뚜껑")) or (is_yes(legacy_cap) and bool(cap_background)),
+                "capBackground": cap_background,
                 "nameCaution": is_yes(raw[index["이름주의"]]),
                 "border": is_yes(raw[index["테두리"]]),
                 "borderColor": read(raw, "테두리 색기호"),

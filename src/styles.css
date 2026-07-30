@@ -6613,10 +6613,248 @@ button {
   text-align: left;
 }
 
+.pharmacy-master-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.pharmacy-master-column {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.pharmacy-master-column > header {
+  min-height: 112px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line-soft);
+  background: #fbfaf9;
+}
+
+.pharmacy-master-column > header p,
+.pharmacy-master-column > header h2,
+.pharmacy-master-column > header span {
+  margin: 0;
+}
+
+.pharmacy-master-column > header p {
+  color: var(--brand-orange);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pharmacy-master-column > header h2 {
+  margin-top: 4px;
+  color: var(--brand-header);
+  font-size: 18px;
+}
+
+.pharmacy-master-column > header span {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.pharmacy-master-search-results {
+  display: grid;
+  max-height: 176px;
+  overflow: auto;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.pharmacy-master-search-results button,
+.pharmacy-master-live-list button {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink);
+  background: #fff;
+  text-align: left;
+}
+
+.pharmacy-master-search-results button.active {
+  box-shadow: inset 4px 0 var(--brand-orange);
+  background: #fff7ed;
+}
+
+.pharmacy-master-search-results small,
+.pharmacy-master-live-list small,
+.pharmacy-master-selected small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pharmacy-master-new-drug {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.pharmacy-master-new-drug summary {
+  padding: 11px 12px;
+  color: var(--brand-header);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.pharmacy-master-new-drug > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 0 12px 12px;
+}
+
+.pharmacy-master-new-drug input,
+.pharmacy-master-selects select {
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.pharmacy-master-new-drug .secondary-button {
+  grid-column: 1 / -1;
+}
+
+.pharmacy-master-editor {
+  display: grid;
+  gap: 12px;
+  padding: 14px 12px;
+}
+
+.pharmacy-master-selected {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border-radius: 7px;
+  background: #f7f8fa;
+}
+
+.pharmacy-master-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pharmacy-master-check-grid label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pharmacy-master-check-grid label.checked {
+  border-color: #f0a36f;
+  background: #fff7ed;
+}
+
+.pharmacy-master-selects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pharmacy-master-selects label {
+  display: grid;
+  gap: 5px;
+  color: var(--brand-header);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pharmacy-master-editor h3 {
+  margin: 2px 0 -5px;
+  color: var(--brand-header);
+  font-size: 13px;
+}
+
+.pharmacy-master-save {
+  justify-content: center;
+  width: 100%;
+}
+
+.pharmacy-master-status {
+  margin: 0;
+  color: var(--brand-header);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.pharmacy-master-list-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.pharmacy-master-list-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--brand-header);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pharmacy-master-list-tabs button b {
+  min-width: 22px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: #f1edea;
+  font-size: 10px;
+}
+
+.pharmacy-master-list-tabs button.active {
+  color: #fff;
+  border-color: var(--brand-header);
+  background: var(--brand-header);
+}
+
+.pharmacy-master-list-tabs button.active b {
+  color: var(--brand-header);
+  background: #fff;
+}
+
+.pharmacy-master-live-list {
+  display: grid;
+  max-height: 720px;
+  overflow: auto;
+}
+
 @media (max-width: 1120px) {
   .pharmacy-studio-topbar,
-  .pharmacy-studio-workspace {
+  .pharmacy-studio-workspace,
+  .pharmacy-master-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pharmacy-master-column > header {
+    min-height: 0;
   }
 }
 

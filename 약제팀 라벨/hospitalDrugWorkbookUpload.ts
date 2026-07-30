@@ -129,16 +129,16 @@ async function readZipEntryText(bytes: Uint8Array, entry: ZipEntry) {
 }
 
 function parseSharedStrings(xml: string) {
-  return [...xml.matchAll(/<si\b[\s\S]*?<\/si>/g)].map(([item]) =>
-    [...item.matchAll(/<t\b[^>]*>([\s\S]*?)<\/t>/g)].map((match) => decodeXmlEntities(match[1])).join(""),
+  return [...xml.matchAll(/<(?:\w+:)?si\b[\s\S]*?<\/(?:\w+:)?si>/g)].map(([item]) =>
+    [...item.matchAll(/<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/g)].map((match) => decodeXmlEntities(match[1])).join(""),
   );
 }
 
 function resolveFirstWorksheetPath(workbookXml: string, relsXml: string) {
-  const firstSheet = /<sheet\b[^>]*\br:id="([^"]+)"/.exec(workbookXml)?.[1];
+  const firstSheet = /<(?:\w+:)?sheet\b[^>]*\br:id="([^"]+)"/.exec(workbookXml)?.[1];
   if (!firstSheet) return "xl/worksheets/sheet1.xml";
 
-  const relPattern = /<Relationship\b([^>]*)\/?>/g;
+  const relPattern = /<(?:\w+:)?Relationship\b([^>]*)\/?>/g;
   for (const match of relsXml.matchAll(relPattern)) {
     if (getAttribute(match[1], "Id") !== firstSheet) continue;
     const target = getAttribute(match[1], "Target");
@@ -157,21 +157,21 @@ function columnIndexFromCellRef(cellRef: string) {
 function parseCellValue(cellAttributes: string, cellXml: string, sharedStrings: string[]) {
   const type = getAttribute(cellAttributes, "t");
   if (type === "inlineStr") {
-    return clean([...cellXml.matchAll(/<t\b[^>]*>([\s\S]*?)<\/t>/g)].map((match) => decodeXmlEntities(match[1])).join(""));
+    return clean([...cellXml.matchAll(/<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/g)].map((match) => decodeXmlEntities(match[1])).join(""));
   }
 
-  const rawValue = /<v>([\s\S]*?)<\/v>/.exec(cellXml)?.[1] ?? "";
+  const rawValue = /<(?:\w+:)?v>([\s\S]*?)<\/(?:\w+:)?v>/.exec(cellXml)?.[1] ?? "";
   if (type === "s") return clean(sharedStrings[Number(rawValue)] ?? "");
   return clean(decodeXmlEntities(rawValue));
 }
 
 function parseWorksheetRows(xml: string, sharedStrings: string[]) {
-  return [...xml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)].map((rowMatch) => {
+  return [...xml.matchAll(/<(?:\w+:)?row\b[^>]*>([\s\S]*?)<\/(?:\w+:)?row>/g)].map((rowMatch) => {
     const values: string[] = [];
-    for (const cellMatch of rowMatch[1].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)) {
+    for (const cellMatch of rowMatch[1].matchAll(/<(?:\w+:)?c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/(?:\w+:)?c>)/g)) {
       const cellRef = getAttribute(cellMatch[1], "r");
       const columnIndex = columnIndexFromCellRef(cellRef);
-      if (columnIndex >= 0) values[columnIndex] = parseCellValue(cellMatch[1], cellMatch[2], sharedStrings);
+      if (columnIndex >= 0) values[columnIndex] = parseCellValue(cellMatch[1], cellMatch[2] ?? "", sharedStrings);
     }
     return values;
   });
@@ -210,13 +210,26 @@ function rowsToHospitalDrugLabels(rows: string[][]): HospitalDrugLabelRow[] {
       const code = read(row, "약품코드");
       const name = read(row, "상용약품명");
       if (!code || !name) return undefined;
+      const drugType = readAny(row, HOSPITAL_DRUG_TYPE_HEADERS);
+      const sideLabel1T = readOptional(row, "1T 3단장 뺑뺑이 PTP 측면라벨");
+      const sideLabelHalfT = readOptional(row, "0.5T 3단장 뺑뺑이 병 측면라벨");
+      const sideLabelQuarterT = readOptional(row, "0.25T 3단장 뺑뺑이 병 측면라벨");
+      const legacyCapLabel = readOptional(row, "3단장 유색 반티통 병뚜껑");
+      const capBackground = readOptional(row, "3단장 반티통 병뚜껑 바탕색 기호");
       return {
         code,
+        itemCode: readOptional(row, "물품코드"),
         name,
         koreanName: read(row, "한글약품명"),
         strength: read(row, "함량"),
-        drugType: readAny(row, HOSPITAL_DRUG_TYPE_HEADERS),
+        drugType,
         fluidColor: readOptional(row, "일반수액 색기호"),
+        highCost: isYes(readOptional(row, "고가약")),
+        narcotic: isYes(readOptional(row, "마약")) || drugType === "마약",
+        psychotropic: isYes(readOptional(row, "향정")) || drugType === "향정",
+        anticancer: isYes(readOptional(row, "항암제")) || drugType === "항암제" || isYes(readOptional(row, "경구항암제")),
+        eCart: isYes(readOptional(row, "E-cart")),
+        eCartNicu: isYes(readOptional(row, "E-cart(NICU)")),
         spec: read(row, "규격"),
         package: read(row, "포장"),
         storage: readAny(row, HOSPITAL_DRUG_STORAGE_HEADERS),
@@ -227,6 +240,19 @@ function rowsToHospitalDrugLabels(rows: string[][]): HospitalDrugLabelRow[] {
         similarSound: isYes(read(row, "유사발음")),
         doseCaution: isYes(read(row, "용량주의")),
         doseCheck: isYes(read(row, "용량확인")),
+        nameCaution: isYes(readOptional(row, "이름주의")),
+        sideLabel1T,
+        sideLabelHalfT,
+        sideLabelQuarterT,
+        sideLabel: isYes(readOptional(row, "측면라벨")) || [sideLabel1T, sideLabelHalfT, sideLabelQuarterT].some(isYes),
+        labelDose1T: isYes(readOptional(row, "정제용량 1T")) || isYes(sideLabel1T),
+        labelDoseHalfT: isYes(readOptional(row, "정제용량 0.5T")) || isYes(sideLabelHalfT),
+        labelDoseQuarterT: isYes(readOptional(row, "정제용량 0.25T")) || isYes(sideLabelQuarterT),
+        coloredSideLabel: readOptional(row, "3단장 유색 반티통 측면라벨"),
+        capLabel: legacyCapLabel,
+        regularCapLabel: isYes(readOptional(row, "병뚜껑")) || (isYes(legacyCapLabel) && !capBackground),
+        coloredCapLabel: isYes(readOptional(row, "유색병뚜껑")) || (isYes(legacyCapLabel) && Boolean(capBackground)),
+        capBackground,
       };
     })
     .filter((row): row is HospitalDrugLabelRow => row != null)

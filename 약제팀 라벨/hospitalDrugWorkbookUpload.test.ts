@@ -29,6 +29,11 @@ describe("hospital drug workbook upload", () => {
     expect(lantusVial?.storage).toBe("냉장");
     expect(doseCheckRow?.doseCheck).toBe(true);
     expect(rows.find((row) => row.code === "XAQD")?.drugType).toBe("일반수액");
+    expect(rows.find((row) => row.code === "XLID2W")).toMatchObject({ eCart: true, eCartNicu: true });
+    expect(rows.filter((row) => row.eCart)).toHaveLength(19);
+    expect(rows.filter((row) => row.eCartNicu)).toHaveLength(29);
+    expect(rows.some((row) => row.narcotic)).toBe(true);
+    expect(rows.some((row) => row.psychotropic)).toBe(true);
   });
 
   it("updates the pharmacy label list while preserving existing match details by drug code", () => {

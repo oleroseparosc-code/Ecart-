@@ -2,14 +2,32 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const workspaceSource = readFileSync(new URL("./PharmacyLabelWorkspace.tsx", import.meta.url), "utf8");
+const masterSource = readFileSync(new URL("./PharmacyDrugMaster.tsx", import.meta.url), "utf8");
 
 describe("pharmacy label workspace UI", () => {
-  it("provides two collapsible label families and detailed categories", () => {
+  it("provides label, cabinet, and three-column drug master tabs", () => {
     expect(workspaceSource).toContain("약품 라벨");
     expect(workspaceSource).toContain("약품장 라벨");
+    expect(workspaceSource).toContain("약품 마스터");
+    expect(workspaceSource).toContain("PharmacyDrugMaster");
     expect(workspaceSource).toContain("상세 선택");
     expect(workspaceSource).toContain("DRUG_CATEGORIES");
     expect(workspaceSource).toContain("CABINET_CATEGORIES");
+    expect(masterSource).toContain("pharmacy-master-grid");
+    expect(masterSource).toContain("주의·보관·관리 분류");
+    expect(masterSource).toContain("제형·라벨 유형 설정");
+    expect(masterSource).toContain("실시간 대상 목록");
+  });
+
+  it("keeps shared flags separate from pharmacy-only label settings", () => {
+    expect(masterSource).toContain("저장 및 전체 적용");
+    expect(masterSource).toContain("약제팀 라벨에 저장");
+    expect(masterSource).toContain("병동 비치의약품과 E-cart 목록에 영향을 주지 않습니다.");
+    expect(masterSource).toContain("E-cart(NICU)");
+    expect(masterSource).toContain("유색측면라벨");
+    expect(masterSource).toContain("labelDoseQuarterT");
+    expect(masterSource).toContain('label: "0.25T"');
+    expect(masterSource).toContain("신규 등록 후 선택");
   });
 
   it("provides selection, PDF preview, editing, and workbook upload controls", () => {
