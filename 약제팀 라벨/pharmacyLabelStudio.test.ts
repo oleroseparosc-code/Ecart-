@@ -44,6 +44,7 @@ describe("pharmacy label studio rules", () => {
   it("filters by workbook drug type", () => {
     expect(rowMatchesCategory(row, "바이알")).toBe(true);
     expect(rowMatchesCategory(row, "PTP")).toBe(false);
+    expect(rowMatchesCategory({ ...row, code: "XACETATE", drugType: "제로관리약", storage: "실온" }, "냉장주사")).toBe(true);
   });
 
   it("splits high-cost drugs into injection and oral choices", () => {
@@ -141,6 +142,25 @@ describe("pharmacy label studio rules", () => {
     const resolved = resolvePharmacyLabelDraft(row, [saved], "바이알", "drug");
     expect(resolved.warnings).toEqual(["용량확인"]);
     expect(resolved.printable.warning).toBe("용량확인");
+  });
+
+  it("keeps the mandatory dilution phrase on every size even when a saved label omitted it", () => {
+    const dilutionRow = { ...row, code: "XACETATE" };
+    const created = createPharmacyLabelDraft(dilutionRow, "바이알", "drug");
+    expect(created.warnings).toContain("<반드시 희석 후 사용>");
+
+    const saved = savePharmacyLabelDraft({
+      ...created,
+      warnings: ["고위험의약품"],
+      size: { presetKey: "47x80", widthMm: 80, heightMm: 47 },
+      style: { ...created.style, fontColor: "#123456", fontSizePt: 23 },
+    });
+    const resolved = resolvePharmacyLabelDraft(dilutionRow, [saved], "바이알", "drug");
+    expect(resolved.warnings).toContain("<반드시 희석 후 사용>");
+    expect(resolved.printable.warning).toContain("<반드시 희석 후 사용>");
+    expect(resolved.size).toEqual(saved.size);
+    expect(resolved.style.fontColor).toBe("#123456");
+    expect(resolved.style.fontSizePt).toBe(23);
   });
 
   it("creates high-risk warning and footer content", () => {

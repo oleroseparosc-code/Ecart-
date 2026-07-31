@@ -3468,7 +3468,8 @@ export function App() {
     const isExternalShelfLabel = ["외용제", "외용점안제", "팩제", "시럽"].includes(draft.category) && draft.size.presetKey === "13.5x105";
     const hasDoseHighlight = draft.warnings.some((warning) => warning === "용량주의" || warning === "용량확인");
     const hasCautionWarning = draft.warnings.some((warning) =>
-      ["용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning),
+      ["용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning)
+        || warning.includes("반드시 희석 후 사용"),
     );
     const hasFrozenWarning = draft.warnings.includes("냉동");
     const hasColdWarning = draft.warnings.includes("냉장") || hasFrozenWarning;

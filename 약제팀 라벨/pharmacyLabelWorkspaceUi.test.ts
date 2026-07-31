@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const workspaceSource = readFileSync(new URL("./PharmacyLabelWorkspace.tsx", import.meta.url), "utf8");
 const masterSource = readFileSync(new URL("./PharmacyDrugMaster.tsx", import.meta.url), "utf8");
+const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 
 describe("pharmacy label workspace UI", () => {
   it("provides label, cabinet, and three-column drug master tabs", () => {
@@ -166,5 +167,10 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("고위험의약품");
     expect(workspaceSource).toContain("용량확인");
     expect(workspaceSource).toContain("controlledCategory");
+  });
+
+  it("treats the mandatory dilution phrase as a visible caution in previews and printed labels", () => {
+    expect(workspaceSource).toContain('warning.includes("반드시 희석 후 사용")');
+    expect(appSource).toContain('warning.includes("반드시 희석 후 사용")');
   });
 });

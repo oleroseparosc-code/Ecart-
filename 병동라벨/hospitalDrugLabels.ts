@@ -64,6 +64,13 @@ export type HospitalDrugLabelRow = {
 type HospitalDrugLabelsModule = { default: HospitalDrugLabelRow[] };
 
 let hospitalDrugLabelsPromise: Promise<HospitalDrugLabelRow[]> | null = null;
+const MANDATORY_DILUTION_DRUG_CODES = new Set(["XACETATE", "XK20", "XMGSF50", "XNA40", "XKPHMB"]);
+
+export const MANDATORY_DILUTION_LABEL = "<반드시 희석 후 사용>";
+
+export function requiresMandatoryDilutionLabel(code: string) {
+  return MANDATORY_DILUTION_DRUG_CODES.has(code.trim().toUpperCase());
+}
 export type HospitalDrugControlledCategory = "마약" | "향정";
 
 function compact(value: string) {
@@ -150,6 +157,7 @@ export function getHospitalDrugLabelWarnings(row: HospitalDrugLabelRow) {
     row.similarSound ? "유사발음" : "",
     row.similarLook ? "유사모양" : "",
     row.highRisk ? "고위험의약품" : "",
+    requiresMandatoryDilutionLabel(row.code) ? MANDATORY_DILUTION_LABEL : "",
     row.nameCaution ? "이름주의" : "",
     row.doseCheck ? "용량확인" : "",
     isHospitalDrugFrozen(row) ? "냉동" : "",

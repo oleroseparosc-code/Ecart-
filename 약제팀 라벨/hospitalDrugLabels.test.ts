@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  MANDATORY_DILUTION_LABEL,
   getHospitalDrugControlledCategory,
   getHospitalDrugLabelWarnings,
   getHospitalDrugStorageLabel,
@@ -15,6 +16,7 @@ import {
   shouldExcludeHospitalControlledDrugLabel,
   stripHospitalDrugControlledPrefix,
 } from "./hospitalDrugLabels";
+import { getHospitalDrugLabelWarnings as getWardHospitalDrugLabelWarnings } from "../병동라벨/hospitalDrugLabels";
 
 const extractHospitalLabelsSource = readFileSync(new URL("./extract_hospital_labels.py", import.meta.url), "utf8");
 
@@ -104,6 +106,16 @@ describe("hospital drug label source", () => {
     expect(lantusVial && getHospitalDrugLabelWarnings(lantusVial)).toContain("고위험의약품");
     expect(doseCheckRow?.doseCheck).toBe(true);
     expect(doseCheckRow && getHospitalDrugLabelWarnings(doseCheckRow)).not.toContain("용량주의");
+  });
+
+  it("adds the mandatory dilution phrase to every designated high-concentration electrolyte label", async () => {
+    const rows = await loadHospitalDrugLabelRows();
+    for (const code of ["XACETATE", "XK20", "XMGSF50", "XNA40", "XKPHMB"]) {
+      const target = rows.find((row) => row.code === code);
+      if (!target) throw new Error(`Missing designated high-concentration electrolyte: ${code}`);
+      expect(getHospitalDrugLabelWarnings(target)).toContain(MANDATORY_DILUTION_LABEL);
+      expect(getWardHospitalDrugLabelWarnings(target)).toContain(MANDATORY_DILUTION_LABEL);
+    }
   });
 
   it("shows light protection as a caution and only cold or frozen storage as storage labels", () => {

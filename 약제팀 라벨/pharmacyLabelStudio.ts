@@ -1,7 +1,9 @@
 import {
+  MANDATORY_DILUTION_LABEL,
   getHospitalDrugLabelWarnings,
   isHospitalDrugLightProtected,
   isHospitalDrugRefrigerated,
+  requiresMandatoryDilutionLabel,
   type HospitalDrugCabinetInfo,
   type HospitalDrugLabelRow,
 } from "./hospitalDrugLabels";
@@ -139,7 +141,9 @@ export function rowMatchesCategory(
   }
   if (category === "항암제") return Boolean(row.anticancer) || type === "항암제" || (row.highRiskCategory ?? "").includes("주사용항암제");
   if (category === "마약/향정") return Boolean(row.narcotic || row.psychotropic) || type === "마약" || type === "향정";
-  if (category === "냉장주사") return isHospitalDrugRefrigerated(row) && ["앰플", "바이알", "주사"].some((value) => type.includes(value));
+  if (category === "냉장주사") {
+    return type === "제로관리약" || (isHospitalDrugRefrigerated(row) && ["앰플", "바이알", "주사"].some((value) => type.includes(value)));
+  }
   if (category === "입원산제") return type === "입원산제" || Boolean(row.inpatientPowderPtp);
   if (category === "ATC") return type === "ATC" || Boolean(row.atc);
   if (category === "PTP") return type === "PTP" || Boolean(row.ptpOpened);
@@ -319,6 +323,9 @@ export function resolvePharmacyLabelDraft(
   if (!saved) return createPharmacyLabelDraft(row, category, family);
   const cabinetInfo = family === "cabinet" ? getCabinetInfoForCategory(row, category) : undefined;
   const warnings = [...saved.warnings];
+  if (requiresMandatoryDilutionLabel(row.code) && !warnings.includes(MANDATORY_DILUTION_LABEL)) {
+    warnings.push(MANDATORY_DILUTION_LABEL);
+  }
   const workbookBorderColor = extractHex(row.borderColor);
   const hasWorkbookBorder = row.border || Boolean(workbookBorderColor);
   return {

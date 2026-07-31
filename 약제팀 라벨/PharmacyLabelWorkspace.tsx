@@ -145,7 +145,10 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
         !["원병", "입원산제"].includes(category) ? true : isCapLabel ? ["10x27", "15x30"].includes(size.presetKey) : !["10x27", "15x30"].includes(size.presetKey),
       );
   const hasDoseHighlight = draft?.warnings.some((warning) => warning === "용량주의" || warning === "용량확인") ?? false;
-  const hasCautionWarning = draft?.warnings.some((warning) => ["용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning)) ?? false;
+  const hasCautionWarning = draft?.warnings.some((warning) =>
+    ["용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning)
+      || warning.includes("반드시 희석 후 사용"),
+  ) ?? false;
   const hasFrozenWarning = draft?.warnings.includes("냉동") ?? false;
   const hasColdWarning = (draft?.warnings.includes("냉장") ?? false) || hasFrozenWarning;
   const coldWarningText = hasFrozenWarning ? "냉동" : "냉장";
