@@ -3046,14 +3046,13 @@ export function App() {
     if (!row.code.trim()) throw new Error("약품코드를 입력해야 저장할 수 있습니다.");
     if (!row.name.trim()) throw new Error("상용약품명을 입력해야 저장할 수 있습니다.");
     const workbookSaveMode = await saveHospitalDrugMasterRowToWorkbook(row, hospitalDrugWorkbookUrl);
-    const existed = pharmacyHospitalDrugLabelRows.some((current) => current.code === row.code);
     setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, [row]));
     setHospitalDrugLabelRows((previous) => previous.map((current) =>
       current.code.toUpperCase() === row.code.toUpperCase() ? applySharedPharmacyMasterFields(current, row) : current,
     ));
-    if (!existed) setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, [row]));
+    setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, [row]));
     return workbookSaveMode === "server"
-      ? "원내보유의약품리스트와 전체 라벨 기준에 저장되었습니다."
+      ? "클라우드 원내보유의약품리스트에 저장되었으며 관리자와 다른 뷰어에 자동 반영됩니다."
       : workbookSaveMode === "file"
         ? "선택한 원내보유의약품리스트.xlsx와 현재 화면에 저장되었습니다."
         : "갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 교체하면 전체 화면에 같은 기준이 적용됩니다.";

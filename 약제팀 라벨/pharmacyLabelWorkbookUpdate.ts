@@ -26,6 +26,15 @@ function yes(value: boolean | undefined) {
   return value ? "Y" : "N";
 }
 
+function isPublishedViewer() {
+  return typeof window !== "undefined" && window.location.hostname.endsWith(".github.io");
+}
+
+function cloudSaveError(error: unknown) {
+  const detail = error instanceof Error ? ` ${error.message}` : "";
+  return new Error(`클라우드 저장에 실패했습니다. 네트워크 연결을 확인한 후 다시 저장해 주십시오.${detail}`);
+}
+
 function ensureColumns(
   sheet: XLSX.WorkSheet,
   headers: string[],
@@ -122,7 +131,9 @@ export async function savePharmacyLabelDraftToWorkbook(draft: PharmacyLabelDraft
     }
   } catch (error) {
     if (error instanceof Error && error.message.includes("서버 저장 실패")) throw error;
+    if (isPublishedViewer()) throw cloudSaveError(error);
   }
+  if (isPublishedViewer()) throw cloudSaveError(undefined);
   const picker = (window as unknown as {
     showSaveFilePicker?: (options: {
       suggestedName: string;
@@ -225,7 +236,9 @@ export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabel
     }
   } catch (error) {
     if (error instanceof Error && error.message.includes("서버 저장 실패")) throw error;
+    if (isPublishedViewer()) throw cloudSaveError(error);
   }
+  if (isPublishedViewer()) throw cloudSaveError(undefined);
   const picker = (window as unknown as {
     showSaveFilePicker?: (options: {
       suggestedName: string;

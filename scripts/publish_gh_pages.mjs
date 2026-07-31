@@ -10,6 +10,7 @@ const deployDir = join(root, ".deploy");
 const tokenPath = join(deployDir, "github-token");
 const askpassPath = join(deployDir, "git-askpass.cmd");
 const syncConfigFallbackPath = join(deployDir, "sync-config.json");
+const sourceSyncConfigPath = join(root, "public", "sync-config.json");
 const clientId = "178c6fc778ccc68e1d6a";
 const scope = "repo";
 
@@ -106,6 +107,10 @@ function readToken() {
 function captureDistKeepFiles() {
   const keep = new Map();
   for (const fileName of [".nojekyll", "sync-config.json"]) {
+    if (fileName === "sync-config.json" && existsSync(sourceSyncConfigPath)) {
+      keep.set(fileName, readFileSync(sourceSyncConfigPath));
+      continue;
+    }
     const filePath = join(distDir, fileName);
     if (existsSync(filePath)) {
       keep.set(fileName, readFileSync(filePath));
