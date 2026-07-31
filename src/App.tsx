@@ -92,6 +92,7 @@ import {
   getStockSplitParts,
 } from "./appLogic";
 import {
+  MANDATORY_DILUTION_LABEL,
   getHospitalDrugControlledCategory,
   getHospitalDrugLabelWarnings,
   getHospitalDrugStorageLabel,
@@ -3420,9 +3421,15 @@ export function App() {
   function renderDrugLabelArticle(entry: PrintableDrugLabel, key: string) {
     const { row, sizeKey } = entry;
     const flagLabels = labelFlagLabels(row);
+    const hasPositionedMandatoryDilution = flagLabels.includes(MANDATORY_DILUTION_LABEL)
+      && ["10x70", "15x95", "55x95", "35x100"].includes(sizeKey);
+    const toplineRow = hasPositionedMandatoryDilution
+      ? { ...row, cautionLabels: row.cautionLabels.filter((label) => label !== MANDATORY_DILUTION_LABEL) }
+      : row;
+    const toplineFlagLabels = labelFlagLabels(toplineRow);
     const isLightProtected = isLightProtectedLabel(row);
     const hasRedPriority = hasRedPriorityLabel(row);
-    const hasControlledCaution = hasControlledCautionLabel(flagLabels);
+    const hasControlledCaution = hasControlledCautionLabel(toplineFlagLabels);
     const renderedKind = isEcartLabelKind(row.kind) ? "ecart" : row.kind;
     const fluidTone = row.fluidTone;
     const nameClass = getDrugLabelNameClass(row.name, renderedKind, sizeKey);
@@ -3445,19 +3452,23 @@ export function App() {
       flagLabels.length > 0 ? "has-caution-label" : "",
       row.doseCaution ? "has-dose-caution" : "",
       hasDoseWarningLabel ? "has-dose-warning-label" : "",
+      hasPositionedMandatoryDilution ? "has-positioned-mandatory-dilution" : "",
     ]
       .filter(Boolean)
       .join(" ");
 
     return (
       <article className={className} style={labelSizeCssVars(sizeKey)} key={key}>
-        {isNarcoticFortyLabel ? renderNarcoticFortyTopline(row) : renderLabelTopline(row, sizeKey)}
+        {isNarcoticFortyLabel ? renderNarcoticFortyTopline(row) : renderLabelTopline(toplineRow, sizeKey)}
         <h3 className={fluidTone ? `fluid-name ${fluidTone}` : undefined}>
           {isNarcoticFortyLabel
             ? renderNarcoticFortyLabelName(row)
             : renderDrugLabelName(row, renderedKind, sizeKey, entry.isCheckedMasterPrint)}
         </h3>
         {isNarcoticFortyLabel ? renderNarcoticFortyFooter(row) : renderLabelSpec(row)}
+        {hasPositionedMandatoryDilution ? (
+          <strong className="drug-label-mandatory-dilution">{MANDATORY_DILUTION_LABEL}</strong>
+        ) : null}
       </article>
     );
   }

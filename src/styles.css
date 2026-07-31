@@ -7186,3 +7186,72 @@ button {
   grid-column: 1 / -1;
   justify-self: center;
 }
+
+/* High-concentration electrolytes: keep the dilution instruction separate from the high-risk banner. */
+.drug-label-item.has-positioned-mandatory-dilution .drug-label-mandatory-dilution {
+  z-index: 2;
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  background: #fff;
+  font-weight: 1000;
+  line-height: 1.05;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution:is(.label-size-10x70, .label-size-15x95) .drug-label-mandatory-dilution {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 .8mm;
+  border-left: 1px solid #dc2626;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution:is(.label-size-10x70, .label-size-15x95) .drug-label-code-stack {
+  display: none;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution.label-size-10x70 {
+  grid-template-columns: 17mm minmax(0, 1fr) 18mm;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution.label-size-10x70 .drug-label-mandatory-dilution {
+  font-size: 7.5px;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution.label-size-15x95 {
+  grid-template-columns: 22mm minmax(0, 1fr) 24mm;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution.label-size-15x95 .drug-label-mandatory-dilution {
+  font-size: 10px;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution:is(.label-size-55x95, .label-size-35x100) {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution:is(.label-size-55x95, .label-size-35x100) .drug-label-mandatory-dilution {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: stretch;
+  width: 100%;
+  border-top: 1px solid #dc2626;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution.label-size-55x95 .drug-label-mandatory-dilution {
+  min-height: 8mm;
+  padding: 1mm 3mm;
+  font-size: 18px;
+}
+
+.drug-label-item.has-positioned-mandatory-dilution.label-size-35x100 .drug-label-mandatory-dilution {
+  min-height: 6mm;
+  padding: .7mm 2.5mm;
+  font-size: 14px;
+}

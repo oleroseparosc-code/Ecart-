@@ -83,6 +83,18 @@ describe("drug label selection UI", () => {
     expect(cssSource).toContain(".drug-label-code-stack .label-code-storage.light");
   });
 
+  it("positions the mandatory dilution phrase at the right or bottom by label size", () => {
+    expect(appSource).toContain('["10x70", "15x95", "55x95", "35x100"].includes(sizeKey)');
+    expect(appSource).toContain('className="drug-label-mandatory-dilution"');
+    expect(cssSource).toContain(
+      ".drug-label-item.has-positioned-mandatory-dilution:is(.label-size-10x70, .label-size-15x95) .drug-label-mandatory-dilution",
+    );
+    expect(cssSource).toContain(
+      ".drug-label-item.has-positioned-mandatory-dilution:is(.label-size-55x95, .label-size-35x100) .drug-label-mandatory-dilution",
+    );
+    expect(cssSource).toMatch(/\.drug-label-item\.has-positioned-mandatory-dilution[\s\S]*color:\s*#dc2626;[\s\S]*font-weight:\s*1000;/);
+  });
+
   it("applies hospital label rules and readable 10x70 names to checked master labels", () => {
     expect(appSource).toContain("const hospitalDrugRowsByCode = useMemo(");
     expect(appSource).toContain("function buildMasterDrugLabelData(row: MasterRow, mode: DrugLabelMode, roomId?: string)");
