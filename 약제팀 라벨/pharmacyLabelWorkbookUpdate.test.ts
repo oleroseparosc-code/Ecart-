@@ -27,6 +27,7 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain('"유색병뚜껑"');
     expect(source).toContain('"정제용량 0.25T"');
     expect(source).toContain('"1T 3단장 뺑뺑이 PTP 측면라벨"');
+    expect(source).toContain('고위험의약품분류: row.highRiskCategory ?? ""');
     expect(appSource).toContain("savePharmacyDrugMaster");
     expect(appSource).toContain("applySharedPharmacyMasterFields");
     expect(appSource).toContain("applySharedMasterToStockDrug");

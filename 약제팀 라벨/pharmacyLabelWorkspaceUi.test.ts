@@ -17,6 +17,7 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain("주의·보관·관리 분류");
     expect(masterSource).toContain("제형·라벨 유형 설정");
     expect(masterSource).toContain("실시간 대상 목록");
+    expect(masterSource).toContain("의약품 분류 리스트");
   });
 
   it("keeps shared flags separate from pharmacy-only label settings", () => {
@@ -28,6 +29,20 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain("labelDoseQuarterT");
     expect(masterSource).toContain('label: "0.25T"');
     expect(masterSource).toContain("신규 등록 후 선택");
+    expect(masterSource.match(/\{renderNewRegistration\(/g)).toHaveLength(1);
+    expect(masterSource).toContain('MASTER_DRUG_GROUPS = ["경구", "주사", "외용", "일반수액"]');
+    expect(masterSource).toContain("setLabelQuery(row.code)");
+  });
+
+  it("automates high-risk relationships and prioritizes non-sedative, non-injectable-anticancer rows", () => {
+    expect(masterSource).toContain("isControlledHighRisk(nextRow)");
+    expect(masterSource).toContain('patch.highRiskCategory = row.highRiskCategory?.trim() || "중등도진정의약품"');
+    expect(masterSource).toContain('key === "highRisk" && !checked && isControlledHighRisk(row)');
+    expect(masterSource).toContain('category === "주사용항암제" || isInjectableDrug(row)');
+    expect(masterSource).toContain('patch.highRisk = true');
+    expect(masterSource).toContain('"주사용 항암제"');
+    expect(masterSource).toContain("isPriorityHighRisk");
+    expect(masterSource).toContain('"high-risk-priority"');
   });
 
   it("provides selection, PDF preview, editing, and workbook upload controls", () => {

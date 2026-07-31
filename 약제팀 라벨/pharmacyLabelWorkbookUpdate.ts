@@ -181,6 +181,7 @@ export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabel
     차광필요: row.lightProtected ? "차광" : "",
     고가약: yes(row.highCost),
     고위험의약품: yes(row.highRisk),
+    고위험의약품분류: row.highRiskCategory ?? "",
     유사모양: yes(row.similarLook),
     유사발음: yes(row.similarSound),
     용량주의: yes(row.doseCaution),

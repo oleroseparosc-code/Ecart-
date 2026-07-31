@@ -14,13 +14,22 @@ type NewDrugFields = {
   name: string;
   koreanName: string;
   strength: string;
+  drugType: "경구" | "주사" | "외용" | "일반수액";
 };
 
 type SharedFlagKey =
   | "highRisk" | "similarLook" | "similarSound" | "doseCaution" | "doseCheck" | "nameCaution"
   | "lightProtected" | "highCost" | "narcotic" | "psychotropic" | "anticancer" | "eCart" | "eCartNicu";
 
-const EMPTY_NEW_DRUG: NewDrugFields = { code: "", itemCode: "", name: "", koreanName: "", strength: "" };
+const EMPTY_NEW_DRUG: NewDrugFields = {
+  code: "",
+  itemCode: "",
+  name: "",
+  koreanName: "",
+  strength: "",
+  drugType: "경구",
+};
+const MASTER_DRUG_GROUPS = ["경구", "주사", "외용", "일반수액"] as const;
 const ROUTE_GROUPS = {
   경구: ["원병", "PTP", "ATC", "입원산제"],
   외용: ["외용제", "외용점안제", "팩제", "시럽"],
@@ -65,6 +74,7 @@ function setRefrigerated(storage: string, checked: boolean) {
 }
 
 function routeForType(drugType: string) {
+  if (drugType in ROUTE_GROUPS) return drugType as keyof typeof ROUTE_GROUPS;
   return (Object.entries(ROUTE_GROUPS).find(([, types]) => (types as readonly string[]).includes(drugType))?.[0] ?? "경구") as keyof typeof ROUTE_GROUPS;
 }
 
@@ -80,7 +90,7 @@ function createNewMasterRow(fields: NewDrugFields): HospitalDrugLabelRow {
     name: fields.name.trim(),
     koreanName: fields.koreanName.trim(),
     strength: fields.strength.trim(),
-    drugType: "",
+    drugType: fields.drugType,
     spec: fields.strength.trim(),
     package: "",
     storage: "",
@@ -114,6 +124,25 @@ function masterListMatches(row: HospitalDrugLabelRow, key: (typeof MASTER_LISTS)
   return Boolean(row[key]);
 }
 
+function compactCategory(value?: string) {
+  return value?.replace(/\s+/g, "") ?? "";
+}
+
+function isInjectableDrug(row: HospitalDrugLabelRow) {
+  return ["주사", "앰플", "바이알", "냉장주사", "영양수액", "일반수액"].includes(row.drugType)
+    || /(?:inj|injection|vial|amp|ampoule|prefilled|syringe|주사)/i.test(`${row.name} ${row.koreanName}`);
+}
+
+function isControlledHighRisk(row: HospitalDrugLabelRow) {
+  return Boolean(row.narcotic || row.psychotropic)
+    && (compactCategory(row.highRiskCategory) === "중등도진정의약품" || isInjectableDrug(row));
+}
+
+function isPriorityHighRisk(row: HospitalDrugLabelRow) {
+  const category = compactCategory(row.highRiskCategory);
+  return row.highRisk && category !== "중등도진정의약품" && category !== "주사용항암제";
+}
+
 export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
   const [workingRows, setWorkingRows] = useState(rows);
   const [sharedQuery, setSharedQuery] = useState("");
@@ -121,7 +150,6 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
   const [sharedCode, setSharedCode] = useState("");
   const [labelCode, setLabelCode] = useState("");
   const [newShared, setNewShared] = useState<NewDrugFields>(EMPTY_NEW_DRUG);
-  const [newLabel, setNewLabel] = useState<NewDrugFields>(EMPTY_NEW_DRUG);
   const [sharedStatus, setSharedStatus] = useState("");
   const [labelStatus, setLabelStatus] = useState("");
   const [listKey, setListKey] = useState<(typeof MASTER_LISTS)[number]["key"]>("highRisk");
@@ -141,10 +169,37 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
   const selectedList = MASTER_LISTS.find((item) => item.key === listKey) ?? MASTER_LISTS[0];
   const listRows = workingRows
     .filter((row) => row.inHospital && masterListMatches(row, listKey))
-    .sort((left, right) => left.name.localeCompare(right.name, "ko"));
+    .sort((left, right) => {
+      if (listKey === "highRisk") {
+        const priorityDifference = Number(isPriorityHighRisk(right)) - Number(isPriorityHighRisk(left));
+        if (priorityDifference) return priorityDifference;
+        const categoryDifference = compactCategory(left.highRiskCategory).localeCompare(compactCategory(right.highRiskCategory), "ko");
+        if (categoryDifference) return categoryDifference;
+      }
+      return left.name.localeCompare(right.name, "ko");
+    });
 
   function patchRow(code: string, patch: Partial<HospitalDrugLabelRow>) {
     setWorkingRows((current) => current.map((row) => row.code === code ? { ...row, ...patch } : row));
+  }
+
+  function toggleSharedFlag(row: HospitalDrugLabelRow, key: SharedFlagKey) {
+    const checked = !row[key];
+    const patch: Partial<HospitalDrugLabelRow> = { [key]: checked };
+    const category = compactCategory(row.highRiskCategory);
+    const nextRow = { ...row, [key]: checked };
+    if (checked && (key === "narcotic" || key === "psychotropic") && isControlledHighRisk(nextRow)) {
+      patch.highRisk = true;
+      patch.highRiskCategory = row.highRiskCategory?.trim() || "중등도진정의약품";
+    }
+    if (key === "highRisk" && !checked && isControlledHighRisk(row)) {
+      patch.highRisk = true;
+    }
+    if (checked && key === "anticancer" && (category === "주사용항암제" || isInjectableDrug(row))) {
+      patch.highRisk = true;
+      patch.highRiskCategory = row.highRiskCategory?.trim() || "주사용 항암제";
+    }
+    patchRow(row.code, patch);
   }
 
   async function saveRow(row: HospitalDrugLabelRow | undefined, setStatus: (value: string) => void) {
@@ -162,6 +217,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     setFields: (value: NewDrugFields) => void,
     setCode: (value: string) => void,
     setStatus: (value: string) => void,
+    onRegistered?: (row: HospitalDrugLabelRow) => void,
   ) {
     if (!fields.code.trim() || !fields.name.trim()) {
       setStatus("약품코드와 상용약품명을 입력해 주십시오.");
@@ -174,6 +230,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     const next = createNewMasterRow(fields);
     setWorkingRows((current) => [...current, next]);
     setCode(next.code);
+    onRegistered?.(next);
     setFields(EMPTY_NEW_DRUG);
     await saveRow(next, setStatus);
   }
@@ -204,6 +261,11 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
         {field("name", "상용약품명 *")}
         {field("koreanName", "한글약품명")}
         {field("strength", "함량")}
+        <label className="pharmacy-master-new-type">의약품 분류
+          <select value={fields.drugType} onChange={(event) => setFields({ ...fields, drugType: event.target.value as NewDrugFields["drugType"] })}>
+            {MASTER_DRUG_GROUPS.map((group) => <option key={group}>{group}</option>)}
+          </select>
+        </label>
         <button type="button" className="secondary-button" onClick={onRegister}>신규 등록 후 선택</button>
       </div>
     </details>;
@@ -239,12 +301,21 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
       <header><p>전사 공통 기준</p><h2>주의·보관·관리 분류</h2><span>병동 라벨, 비치의약품 및 E-cart 라벨에 함께 적용됩니다.</span></header>
       <label className="pharmacy-list-search"><Search size={16}/><input value={sharedQuery} onChange={(event) => setSharedQuery(event.target.value)} placeholder="약품코드·약품명 검색"/></label>
       {renderSearchResults(sharedMatches, sharedRow?.code ?? "", setSharedCode)}
-      {renderNewRegistration("신규 약품 등록", newShared, setNewShared, () => void registerNew(newShared, setNewShared, setSharedCode, setSharedStatus))}
+      {renderNewRegistration("신규 약품 등록", newShared, setNewShared, () => void registerNew(
+        newShared,
+        setNewShared,
+        setSharedCode,
+        setSharedStatus,
+        (row) => {
+          setLabelCode(row.code);
+          setLabelQuery(row.code);
+        },
+      ))}
       {sharedRow && <div className="pharmacy-master-editor">
         <div className="pharmacy-master-selected"><strong>{sharedRow.name}</strong><small>{sharedRow.code} · {sharedRow.koreanName || "-"}</small></div>
         <div className="pharmacy-master-check-grid">
           {SHARED_FLAGS.map((flag) => <label key={flag.key} className={sharedRow[flag.key] ? "checked" : ""}>
-            <input type="checkbox" checked={Boolean(sharedRow[flag.key])} onChange={() => patchRow(sharedRow.code, { [flag.key]: !sharedRow[flag.key] })}/><span>{flag.label}</span>
+            <input type="checkbox" checked={Boolean(sharedRow[flag.key])} onChange={() => toggleSharedFlag(sharedRow, flag.key)}/><span>{flag.label}</span>
           </label>)}
           <label className={isRefrigerated(sharedRow) ? "checked" : ""}>
             <input type="checkbox" checked={isRefrigerated(sharedRow)} onChange={(event) => patchRow(sharedRow.code, { storage: setRefrigerated(sharedRow.storage, event.target.checked) })}/><span>냉장</span>
@@ -259,7 +330,6 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
       <header><p>약제팀 라벨 전용</p><h2>제형·라벨 유형 설정</h2><span>이 영역의 변경은 병동 비치의약품과 E-cart 목록에 영향을 주지 않습니다.</span></header>
       <label className="pharmacy-list-search"><Search size={16}/><input value={labelQuery} onChange={(event) => setLabelQuery(event.target.value)} placeholder="약품코드·약품명 검색"/></label>
       {renderSearchResults(labelMatches, labelRow?.code ?? "", setLabelCode)}
-      {renderNewRegistration("신규 약품 등록", newLabel, setNewLabel, () => void registerNew(newLabel, setNewLabel, setLabelCode, setLabelStatus))}
       {labelRow && <div className="pharmacy-master-editor">
         <div className="pharmacy-master-selected"><strong>{labelRow.name}</strong><small>{labelRow.code} · {labelRow.koreanName || "-"}</small></div>
         <div className="pharmacy-master-selects">
@@ -301,7 +371,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     </article>
 
     <article className="pharmacy-master-column pharmacy-master-lists">
-      <header><p>실시간 대상 목록</p><h2>{selectedList.label} 약품</h2><span>왼쪽 분류를 바꾸면 이 목록에 즉시 반영됩니다.</span></header>
+      <header><p>실시간 대상 목록</p><h2>의약품 분류 리스트</h2><span>선택 분류: {selectedList.label} · 왼쪽 분류 변경 사항이 즉시 반영됩니다.</span></header>
       <div className="pharmacy-master-list-tabs">
         {MASTER_LISTS.map((item) => {
           const count = workingRows.filter((row) => row.inHospital && masterListMatches(row, item.key)).length;
@@ -310,8 +380,15 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
       </div>
       <div className="pharmacy-master-live-list">
         {listRows.length === 0 && <span className="empty">해당 분류의 약품이 없습니다.</span>}
-        {listRows.map((row) => <button type="button" key={row.code} onClick={() => { setSharedCode(row.code); setSharedQuery(row.code); }}>
-          <strong>{row.name}</strong><small>{row.koreanName || "-"} · {row.code}</small>
+        {listRows.map((row) => <button
+          type="button"
+          key={row.code}
+          className={listKey === "highRisk" && isPriorityHighRisk(row) ? "high-risk-priority" : ""}
+          onClick={() => { setSharedCode(row.code); setSharedQuery(row.code); }}
+        >
+          <strong>{row.name}</strong>
+          <small>{row.koreanName || "-"} · {row.code}</small>
+          {listKey === "highRisk" && <em>{row.highRiskCategory || "기타 고위험의약품"}</em>}
         </button>)}
       </div>
     </article>
