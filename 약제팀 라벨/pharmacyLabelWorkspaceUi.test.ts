@@ -32,6 +32,12 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain("labelDoseQuarterT");
     expect(masterSource).toContain('label: "0.25T"');
     expect(masterSource).toContain("신규 등록 후 선택");
+    expect(masterSource).toContain("선택 약품 불러오기");
+    expect(masterSource).toContain("수정 저장");
+    expect(masterSource).toContain("editableFieldsFromRow");
+    expect(masterSource).toContain("updateExisting");
+    expect(masterSource).toContain("editingOriginalCode");
+    expect(masterSource).toContain("saveRow(next, setSharedStatus, existing.code)");
     expect(masterSource.match(/\{renderNewRegistration\(/g)).toHaveLength(1);
     expect(masterSource).toContain('MASTER_DRUG_GROUPS = ["경구", "주사", "외용", "일반수액"]');
     expect(masterSource).toContain("setLabelQuery(row.code)");

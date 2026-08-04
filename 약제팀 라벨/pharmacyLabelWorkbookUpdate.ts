@@ -154,7 +154,7 @@ export async function savePharmacyLabelDraftToWorkbook(draft: PharmacyLabelDraft
   return "download" as const;
 }
 
-export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabelRow, workbookUrl: string) {
+export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabelRow, workbookUrl: string, originalCode = row.code) {
   let response: Response | undefined;
   try {
     const serverWorkbookResponse = await fetch(buildPharmacyLabelWorkbookApiUrl());
@@ -174,7 +174,7 @@ export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabel
   ensureColumns(sheet, headers, index, MASTER_BOOLEAN_HEADERS);
   const codeIndex = index.get("약품코드");
   if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
-  const existingRowIndex = rows.findIndex((sourceRow, position) => position > 0 && compact(sourceRow[codeIndex]) === compact(row.code));
+  const existingRowIndex = rows.findIndex((sourceRow, position) => position > 0 && compact(sourceRow[codeIndex]) === compact(originalCode));
   const rowIndex = existingRowIndex >= 0 ? existingRowIndex : rows.length;
   const sideLabel1T = Boolean(row.sideLabel && row.labelDose1T);
   const sideLabelHalfT = Boolean(row.sideLabel && row.labelDoseHalfT);

@@ -3043,15 +3043,24 @@ export function App() {
       : "수정 내용이 최종 라벨로 저장되었으며, 갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 이 파일로 교체해 주십시오.";
   }
 
-  async function savePharmacyDrugMaster(row: HospitalDrugLabelRow) {
+  async function savePharmacyDrugMaster(row: HospitalDrugLabelRow, originalCode = row.code) {
     if (!row.code.trim()) throw new Error("약품코드를 입력해야 저장할 수 있습니다.");
     if (!row.name.trim()) throw new Error("상용약품명을 입력해야 저장할 수 있습니다.");
-    const workbookSaveMode = await saveHospitalDrugMasterRowToWorkbook(row, hospitalDrugWorkbookUrl);
-    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, [row]));
-    setHospitalDrugLabelRows((previous) => previous.map((current) =>
-      current.code.toUpperCase() === row.code.toUpperCase() ? applySharedPharmacyMasterFields(current, row) : current,
+    const workbookSaveMode = await saveHospitalDrugMasterRowToWorkbook(row, hospitalDrugWorkbookUrl, originalCode);
+    const originalCodeKey = originalCode.toUpperCase();
+    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(
+      previous.filter((current) => current.code.toUpperCase() !== originalCodeKey),
+      [row],
     ));
-    setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, [row]));
+    setHospitalDrugLabelRows((previous) => previous.map((current) =>
+      current.code.toUpperCase() === originalCodeKey
+        ? { ...applySharedPharmacyMasterFields(current, row), code: row.code }
+        : current,
+    ));
+    setPharmacyAdditionalRows((previous) => mergePharmacyRows(
+      previous.filter((current) => current.code.toUpperCase() !== originalCodeKey),
+      [row],
+    ));
     return workbookSaveMode === "server"
       ? "클라우드 원내보유의약품리스트에 저장되었으며 관리자와 다른 뷰어에 자동 반영됩니다."
       : workbookSaveMode === "file"

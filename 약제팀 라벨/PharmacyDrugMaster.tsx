@@ -5,7 +5,7 @@ import { matchesHospitalDrugLabel, type HospitalDrugLabelRow } from "./hospitalD
 type Props = {
   rows: HospitalDrugLabelRow[];
   isLoading: boolean;
-  onSave: (row: HospitalDrugLabelRow) => Promise<string>;
+  onSave: (row: HospitalDrugLabelRow, originalCode?: string) => Promise<string>;
 };
 
 type NewDrugFields = {
@@ -119,6 +119,20 @@ function createNewMasterRow(fields: NewDrugFields): HospitalDrugLabelRow {
   };
 }
 
+function editableFieldsFromRow(row: HospitalDrugLabelRow): NewDrugFields {
+  const drugType = row.drugType === "일반수액"
+    ? row.drugType
+    : routeForType(row.drugType);
+  return {
+    code: row.code,
+    itemCode: row.itemCode ?? "",
+    name: row.name,
+    koreanName: row.koreanName,
+    strength: row.strength,
+    drugType,
+  };
+}
+
 function masterListMatches(row: HospitalDrugLabelRow, key: (typeof MASTER_LISTS)[number]["key"]) {
   if (key === "refrigerated") return isRefrigerated(row);
   return Boolean(row[key]);
@@ -150,6 +164,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
   const [sharedCode, setSharedCode] = useState("");
   const [labelCode, setLabelCode] = useState("");
   const [newShared, setNewShared] = useState<NewDrugFields>(EMPTY_NEW_DRUG);
+  const [editingOriginalCode, setEditingOriginalCode] = useState("");
   const [sharedStatus, setSharedStatus] = useState("");
   const [labelStatus, setLabelStatus] = useState("");
   const [listKey, setListKey] = useState<(typeof MASTER_LISTS)[number]["key"]>("highRisk");
@@ -202,13 +217,15 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     patchRow(row.code, patch);
   }
 
-  async function saveRow(row: HospitalDrugLabelRow | undefined, setStatus: (value: string) => void) {
-    if (!row) return;
+  async function saveRow(row: HospitalDrugLabelRow | undefined, setStatus: (value: string) => void, originalCode?: string) {
+    if (!row) return false;
     setStatus("저장 중...");
     try {
-      setStatus(await onSave(row));
+      setStatus(await onSave(row, originalCode));
+      return true;
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "약품 마스터를 저장하지 못했습니다.");
+      return false;
     }
   }
 
@@ -232,7 +249,40 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     setCode(next.code);
     onRegistered?.(next);
     setFields(EMPTY_NEW_DRUG);
+    setEditingOriginalCode("");
     await saveRow(next, setStatus);
+  }
+
+  async function updateExisting(fields: NewDrugFields) {
+    const existing = workingRows.find((row) => row.code.toLowerCase() === editingOriginalCode.toLowerCase());
+    if (!existing) {
+      setSharedStatus("수정할 기존 약품을 먼저 검색하여 선택해 주십시오.");
+      return;
+    }
+    const nextCode = fields.code.trim();
+    if (!nextCode || !fields.name.trim()) {
+      setSharedStatus("약품코드와 상용약품명을 입력해 주십시오.");
+      return;
+    }
+    if (workingRows.some((row) => row.code.toLowerCase() === nextCode.toLowerCase() && row.code !== existing.code)) {
+      setSharedStatus("변경할 약품코드가 다른 약품에 이미 등록되어 있습니다.");
+      return;
+    }
+    const next: HospitalDrugLabelRow = {
+      ...existing,
+      code: nextCode,
+      itemCode: fields.itemCode.trim(),
+      name: fields.name.trim(),
+      koreanName: fields.koreanName.trim(),
+      strength: fields.strength.trim(),
+      spec: fields.strength.trim() || existing.spec,
+    };
+    setWorkingRows((current) => current.map((row) => row.code === existing.code ? next : row));
+    setSharedCode(next.code);
+    setLabelCode(next.code);
+    setSharedQuery(next.name);
+    setLabelQuery(next.name);
+    if (await saveRow(next, setSharedStatus, existing.code)) setEditingOriginalCode(next.code);
   }
 
   function renderSearchResults(matches: HospitalDrugLabelRow[], selectedCode: string, setCode: (code: string) => void) {
@@ -250,6 +300,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     fields: NewDrugFields,
     setFields: (value: NewDrugFields) => void,
     onRegister: () => void,
+    selectedRow?: HospitalDrugLabelRow,
   ) {
     const field = (key: keyof NewDrugFields, placeholder: string) =>
       <input value={fields[key]} placeholder={placeholder} onChange={(event) => setFields({ ...fields, [key]: event.target.value })}/>;
@@ -267,6 +318,19 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
           </select>
         </label>
         <button type="button" className="secondary-button" onClick={onRegister}>신규 등록 후 선택</button>
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={!selectedRow}
+          onClick={() => {
+            if (!selectedRow) return;
+            setFields(editableFieldsFromRow(selectedRow));
+            setEditingOriginalCode(selectedRow.code);
+          }}
+        >
+          선택 약품 불러오기
+        </button>
+        <button type="button" className="secondary-button" disabled={!editingOriginalCode} onClick={() => void updateExisting(fields)}>수정 저장</button>
       </div>
     </details>;
   }
@@ -301,7 +365,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
       <header><p>전사 공통 기준</p><h2>주의·보관·관리 분류</h2><span>병동 라벨, 비치의약품 및 E-cart 라벨에 함께 적용됩니다.</span></header>
       <label className="pharmacy-list-search"><Search size={16}/><input value={sharedQuery} onChange={(event) => setSharedQuery(event.target.value)} placeholder="약품코드·약품명 검색"/></label>
       {renderSearchResults(sharedMatches, sharedRow?.code ?? "", setSharedCode)}
-      {renderNewRegistration("신규 약품 등록", newShared, setNewShared, () => void registerNew(
+      {renderNewRegistration("신규 약품 등록·수정", newShared, setNewShared, () => void registerNew(
         newShared,
         setNewShared,
         setSharedCode,
@@ -310,7 +374,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
           setLabelCode(row.code);
           setLabelQuery(row.code);
         },
-      ))}
+      ), workingRows.find((row) => row.code === sharedCode))}
       {sharedRow && <div className="pharmacy-master-editor">
         <div className="pharmacy-master-selected"><strong>{sharedRow.name}</strong><small>{sharedRow.code} · {sharedRow.koreanName || "-"}</small></div>
         <div className="pharmacy-master-check-grid">
