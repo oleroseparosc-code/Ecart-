@@ -134,12 +134,20 @@ describe("pharmacy label studio rules", () => {
     expect(resolved.style.outerBorderColor).toBe("#22C55E");
   });
 
-  it("keeps manually saved warning selections as the next default", () => {
+  it("refreshes a saved label with the current shared master warnings", () => {
+    const currentMasterRow = {
+      ...row,
+      storage: "실온",
+      lightProtected: false,
+      doseCaution: false,
+      doseCheck: true,
+      highRisk: false,
+    };
     const saved = savePharmacyLabelDraft({
-      ...createPharmacyLabelDraft(row, "바이알", "drug"),
-      warnings: ["용량확인"],
+      ...createPharmacyLabelDraft(currentMasterRow, "바이알", "drug"),
+      warnings: ["유사발음"],
     });
-    const resolved = resolvePharmacyLabelDraft(row, [saved], "바이알", "drug");
+    const resolved = resolvePharmacyLabelDraft(currentMasterRow, [saved], "바이알", "drug");
     expect(resolved.warnings).toEqual(["용량확인"]);
     expect(resolved.printable.warning).toBe("용량확인");
   });

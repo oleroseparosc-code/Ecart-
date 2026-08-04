@@ -322,7 +322,11 @@ export function resolvePharmacyLabelDraft(
     .sort((a, b) => b.savedAt.localeCompare(a.savedAt))[0];
   if (!saved) return createPharmacyLabelDraft(row, category, family);
   const cabinetInfo = family === "cabinet" ? getCabinetInfoForCategory(row, category) : undefined;
-  const warnings = [...saved.warnings];
+  const sharedWarnings = new Set<string>(WARNING_OPTIONS);
+  const warnings = [
+    ...saved.warnings.filter((warning) => !sharedWarnings.has(warning)),
+    ...getPharmacyLabelWarnings(row, cabinetInfo),
+  ].filter((warning, index, values) => values.indexOf(warning) === index);
   if (requiresMandatoryDilutionLabel(row.code) && !warnings.includes(MANDATORY_DILUTION_LABEL)) {
     warnings.push(MANDATORY_DILUTION_LABEL);
   }

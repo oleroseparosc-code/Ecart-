@@ -2092,7 +2092,7 @@ export function App() {
       : buildStockLabelData(row, mode, roomId);
     const hospitalRow = mode === "pharmacy"
       ? pharmacyHospitalDrugRowsByCode.get(row.code.toUpperCase())
-      : hospitalDrugRowsByCode.get(row.code.toUpperCase());
+      : hospitalDrugRowsByCode.get(row.code.toUpperCase()) ?? pharmacyHospitalDrugRowsByCode.get(row.code.toUpperCase());
     if (!hospitalRow) return masterLabel;
 
     const hospitalLabel = buildHospitalDrugLabelData(hospitalRow, masterLabel.kind === "pharmacy" ? "pharmacy" : "stock");

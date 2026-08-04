@@ -30,6 +30,7 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain('"정제용량 0.25T"');
     expect(source).toContain('"1T 3단장 뺑뺑이 PTP 측면라벨"');
     expect(source).toContain('고위험의약품분류: row.highRiskCategory ?? ""');
+    expect(source).toContain('용량확인: yes(row.doseCheck)');
     expect(appSource).toContain("savePharmacyDrugMaster");
     expect(appSource).toContain("applySharedPharmacyMasterFields");
     expect(appSource).toContain("applySharedMasterToStockDrug");
@@ -37,6 +38,7 @@ describe("pharmacy label workbook update", () => {
     expect(appSource).toContain("effectiveNarcoticDrugs");
     expect(appSource).toContain("onSaveMaster={savePharmacyDrugMaster}");
     expect(appSource).toContain("setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, [row]))");
+    expect(appSource).toContain("hospitalDrugRowsByCode.get(row.code.toUpperCase()) ?? pharmacyHospitalDrugRowsByCode.get(row.code.toUpperCase())");
     expect(appSource).not.toContain("if (!existed) setPharmacyAdditionalRows");
   });
 });
