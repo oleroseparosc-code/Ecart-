@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-16T07:32:03.173Z",
-  "clientId": "4da351b3-c962-4eda-92d1-f34f718fb166",
+  "updatedAt": "2026-08-04T04:13:31.747Z",
+  "clientId": "3848c1e4-7c1c-477b-a2a4-11b9f37d25e1",
   "state": {
     "stockDrugs": [
       {
@@ -11356,6 +11356,8 @@
         "pharmacyLot": "DJZ201"
       }
     },
-    "narcoticLotFileName": "의약품_재고_상세_20260716.xls"
+    "narcoticLotFileName": "의약품_재고_상세_20260716.xls",
+    "pharmacyLabels": [],
+    "pharmacyAdditionalRows": []
   }
 }
