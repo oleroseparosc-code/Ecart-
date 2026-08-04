@@ -328,6 +328,14 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     <header className="pharmacy-studio-topbar">
       <div><p>원내보유의약품리스트 기준</p><h1>약제팀 라벨 작업실</h1></div>
       <div className="pharmacy-studio-actions">
+        <button
+          type="button"
+          className="print-button pharmacy-master-shortcut"
+          aria-pressed={activeTab === "master"}
+          onClick={() => setActiveTab("master")}
+        >
+          약품 마스터
+        </button>
         <label className="print-button pharmacy-upload-button" title="동국대학교일산병원_매출_날짜 엑셀 파일"><Upload size={16}/>유효기간 파일 업데이트<input className="hidden-file-input" type="file" accept=".xlsx,.xls,.xlsm" onChange={upload}/></label>
         {uploadStatus && <span className="pharmacy-upload-status">{uploadStatus}</span>}
       </div>

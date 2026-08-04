@@ -10,6 +10,8 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("약품 라벨");
     expect(workspaceSource).toContain("약품장 라벨");
     expect(workspaceSource).toContain("약품 마스터");
+    expect(workspaceSource).toContain("pharmacy-master-shortcut");
+    expect(workspaceSource).toContain('aria-pressed={activeTab === "master"}');
     expect(workspaceSource).toContain("PharmacyDrugMaster");
     expect(workspaceSource).toContain("상세 선택");
     expect(workspaceSource).toContain("DRUG_CATEGORIES");
