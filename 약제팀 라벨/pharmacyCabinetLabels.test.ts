@@ -38,19 +38,51 @@ describe("pharmacy cabinet label rules", () => {
     expect(buildCabinetLocationDraft([row("A", "A"), row("B", "A")], "PTP", "A").size.heightMm).toBe(10);
   });
 
-  it("builds exactly two A4 full-list pages with caution, category, and ATC expiry fields", () => {
+  it("builds exactly two ATC pages in ATC-number ascending order with expiry data", () => {
     const drafts = buildCabinetFullListDrafts([
       row("B", "A", { atc: "20", expiry: "2027-01-31", doseCaution: true, highCost: true }),
-      row("A", "B", { oralAnticancer: true }),
-      row("C", "C", { hazardous: true }),
+      row("A", "B", { atc: "3", oralAnticancer: true }),
+      row("C", "C", { atc: "100", hazardous: true }),
     ], "ATC");
     expect(drafts).toHaveLength(2);
-    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["A", "B", "C"]);
+    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.atc)).toEqual(["3", "20", "100"]);
     expect(drafts[0].size).toEqual({ presetKey: "cabinet-full-list", widthMm: 190, heightMm: 277 });
     expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).find((entry) => entry.name === "B")).toMatchObject({
       atc: "20",
       expiry: "2027-01-31",
       reference: "용량주의 · 고가약",
     });
+  });
+
+  it("separates high-cost bottle drugs from the regular bottle full list", () => {
+    const rows = [row("Regular", "A"), row("Premium", "B", { highCost: true })];
+    expect(buildCabinetFullListDrafts(rows, "원병").flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["Regular"]);
+    const highCostDrafts = buildCabinetFullListDrafts(rows, "원병", "high-cost");
+    expect(highCostDrafts).toHaveLength(1);
+    expect(highCostDrafts[0].cabinetLayout?.title).toBe("원병 고가약 리스트");
+    expect(highCostDrafts[0].cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Premium"]);
+  });
+
+  it("excludes high-cost drugs from the PTP full list", () => {
+    const drafts = buildCabinetFullListDrafts([
+      row("Regular PTP", "A", { drugType: "PTP" }),
+      row("Premium PTP", "B", { drugType: "PTP", highCost: true }),
+    ], "PTP");
+    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["Regular PTP"]);
+  });
+
+  it("adds vaccines to the refrigerated-injection cabinet under the vaccine refrigerator", () => {
+    const vaccine = row("Vaccine", "", { drugType: "백신", storage: "냉장" });
+    expect(listCabinetLocations([vaccine], "냉장주사")).toEqual(["백신 냉장고"]);
+    expect(buildCabinetLocationDraft([vaccine], "냉장주사", "백신 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Vaccine"]);
+  });
+
+  it("uses one A4 page for nutrition fluids and keeps external cabinet locations", () => {
+    expect(buildCabinetFullListDrafts([row("Nutrition", "N1", { drugType: "영양수액" })], "영양수액")).toHaveLength(1);
+    const external = buildCabinetFullListDrafts([row("External", "", {
+      drugType: "외용제",
+      cabinetExternalInfo: { source: "외용제리스트", atc: "", warning: "", expiry: "", location: "E4" },
+    })], "외용제");
+    expect(external.flatMap((draft) => draft.cabinetLayout?.entries ?? [])[0].location).toBe("E4");
   });
 });

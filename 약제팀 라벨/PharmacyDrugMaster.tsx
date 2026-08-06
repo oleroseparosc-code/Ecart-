@@ -7,6 +7,7 @@ type Props = {
   rows: HospitalDrugLabelRow[];
   isLoading: boolean;
   onSave: (row: HospitalDrugLabelRow, originalCode?: string) => Promise<string>;
+  onSaveMany: (rows: HospitalDrugLabelRow[]) => Promise<string>;
   onDelete: (row: HospitalDrugLabelRow) => Promise<string>;
   onBulkSave: (rows: HospitalDrugLabelRow[]) => Promise<string>;
   onBulkDelete: (codes: string[]) => Promise<string>;
@@ -218,7 +219,7 @@ function isPriorityHighRisk(row: HospitalDrugLabelRow) {
   return row.highRisk && category !== "중등도진정의약품" && category !== "주사용항암제";
 }
 
-export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSave, onBulkDelete }: Props) {
+export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDelete, onBulkSave, onBulkDelete }: Props) {
   const [workingRows, setWorkingRows] = useState(rows);
   const [sharedQuery, setSharedQuery] = useState("");
   const [labelQuery, setLabelQuery] = useState("");
@@ -228,6 +229,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
   const [editingOriginalCode, setEditingOriginalCode] = useState("");
   const [sharedStatus, setSharedStatus] = useState("");
   const [labelStatus, setLabelStatus] = useState("");
+  const [labelBatchCodes, setLabelBatchCodes] = useState<string[]>([]);
   const [listKey, setListKey] = useState<(typeof MASTER_LISTS)[number]["key"]>("highRisk");
 
   useEffect(() => setWorkingRows(rows), [rows]);
@@ -287,6 +289,20 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "약품 마스터를 저장하지 못했습니다.");
       return false;
+    }
+  }
+
+  async function saveSelectedLabelRows() {
+    const selectedRows = workingRows
+      .filter((row) => labelBatchCodes.includes(row.code))
+      .map(normalizePharmacyLabelMasterRow);
+    if (selectedRows.length === 0) return;
+    setLabelStatus("선택 항목 일괄 저장 중...");
+    try {
+      setLabelStatus(await onSaveMany(selectedRows));
+      setLabelBatchCodes([]);
+    } catch (error) {
+      setLabelStatus(error instanceof Error ? error.message : "선택 항목을 일괄 저장하지 못했습니다.");
     }
   }
 
@@ -540,6 +556,10 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
       {renderSearchResults(labelMatches, labelRow?.code ?? "", setLabelCode)}
       {labelRow && <div className="pharmacy-master-editor">
         <div className="pharmacy-master-selected"><strong>{labelRow.name}</strong><small>{labelRow.code} · {labelRow.koreanName || "-"}</small></div>
+        <label className={`pharmacy-master-batch-check ${labelBatchCodes.includes(labelRow.code) ? "checked" : ""}`}>
+          <input type="checkbox" checked={labelBatchCodes.includes(labelRow.code)} onChange={() => setLabelBatchCodes((current) => current.includes(labelRow.code) ? current.filter((code) => code !== labelRow.code) : [...current, labelRow.code])}/>
+          <span>이 약품을 일괄 저장 대상으로 선택</span>
+        </label>
         <div className="pharmacy-master-selects">
           <label>대분류<select value={routeForType(labelRow.drugType)} onChange={(event) => {
             const route = event.target.value as keyof typeof ROUTE_GROUPS;
@@ -582,6 +602,10 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
           </div>
         </>}
         <button type="button" className="print-button pharmacy-master-save" onClick={() => void saveRow(normalizePharmacyLabelMasterRow(labelRow), setLabelStatus)}>약제팀 라벨에 저장</button>
+        <div className="pharmacy-master-batch-save">
+          <span>일괄 저장 선택 {labelBatchCodes.length.toLocaleString("ko-KR")}개</span>
+          <button type="button" className="print-button" disabled={labelBatchCodes.length === 0} onClick={() => void saveSelectedLabelRows()}>선택 항목 약제팀 라벨에 일괄 저장</button>
+        </div>
         {labelStatus && <p className="pharmacy-master-status">{labelStatus}</p>}
       </div>}
     </article>

@@ -68,7 +68,7 @@ This app previews a pharmacist ward inventory workflow with real Excel data. The
   - Apply hospital common-name corrections for stock/E-cart labels, plus warning labels and storage grouping overrides.
 - `약제팀 라벨/data/hospitalDrugLabels.generated.json`: all hospital drug label candidates with storage/caution fields and `drugType` for label-button filtering.
 - `약제팀 라벨/data/pharmacyLabelMatches.generated.json`: matched pharmacy label text, match status, source file, source location, and caution/storage flags; runtime pharmacy-label rows are rebuilt from hospital drug rows while preserving match details by drug code.
-- 약제팀 라벨 편집 전용 주소 `/pharmacy-label-editor/`는 약제팀 라벨 작업공간만 열며, 저장된 라벨 편집본(`pharmacyLabels`)을 공용 서버 동기화 상태에 포함합니다. 크기, 정제·부착 위치, 약품명 부분 서식, 약품 위치, ATC, 테두리 등 오른쪽 편집 도구의 설정도 최종 편집본에 포함되므로 편집 PC와 관리자 PC가 동일한 결과를 읽습니다.
+- 약제팀 라벨 편집 전용 주소 `/pharmacy-label-editor/`는 저장된 편집본(`pharmacyLabels`)을 공용 서버에 동기화합니다. 상단 경구·외용·주사 대분류는 세부유형을 통합 검색하고 고가약 라벨을 제형보다 우선합니다. 약품장 출력은 위치별 또는 전체 위치를 A3/A4에 자동배치하며 원병 고가약은 별도 목록, PTP 고가약은 제외합니다. 냉장주사는 백신 냉장고를 포함하고, ATC는 번호 오름차순·고정 유효기간 열, 영양수액은 A4 1장 3열, 외용은 약품명·주의·위치를 적용합니다. 마스터 선택 항목은 엑셀에 일괄 저장됩니다.
 - 공용 상태의 `deletedPharmacyDrugCodes`는 약품 마스터에서 삭제한 약품코드를 보관합니다. 원본 JSON이나 병동 엑셀을 다시 불러와도 해당 코드는 약품·라벨·병동 비품·마약류·E-cart 화면에 재등장하지 않습니다.
 - `병동라벨/원내보유의약품리스트.xlsx`와 `병동라벨/data/hospitalDrugLabels.generated.json`은 전체비품약 마스터의 stock/fluid/narcotic 라벨 및 E-cart 보정용 독립 원본입니다. 약제팀 라벨 원본과 생성 JSON은 이 경로를 참조하지 않습니다.
 - `narcoticLabels.generated.json`: legacy narcotic/psychotropic label text, category, source file, and source cell retained for generated-data coverage.

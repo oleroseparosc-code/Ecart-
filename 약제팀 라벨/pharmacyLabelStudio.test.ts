@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   A4_PAPER,
+  categoryForGroupedRow,
   createPharmacyLabelDraft,
   groupPharmacyLabelsForPaper,
+  planPharmacyLabelsForPaper,
   rowMatchesCategory,
+  rowMatchesCategoryGroup,
   resolvePharmacyLabelDraft,
   savePharmacyLabelDraft,
   sizesForCategory,
@@ -13,6 +16,7 @@ import {
   splitStyledPharmacyTitle,
 } from "./pharmacyLabelStudio";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
+import { buildCabinetLocationDraft } from "./pharmacyCabinetLabels";
 
 const row: HospitalDrugLabelRow = {
   code: "XTEST",
@@ -45,6 +49,7 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory(row, "바이알")).toBe(true);
     expect(rowMatchesCategory(row, "PTP")).toBe(false);
     expect(rowMatchesCategory({ ...row, code: "XACETATE", drugType: "제로관리약", storage: "실온" }, "냉장주사")).toBe(true);
+    expect(rowMatchesCategory({ ...row, code: "XVACCINE", drugType: "백신", storage: "냉장" }, "냉장주사", "주사", "cabinet")).toBe(true);
   });
 
   it("uses independently checked pharmacy label subtypes for drug and cabinet lists", () => {
@@ -59,6 +64,15 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory({ ...row, highCost: true }, "고가약", "주사")).toBe(true);
     expect(rowMatchesCategory({ ...row, highCost: true }, "고가약", "경구")).toBe(false);
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "원병" }, "고가약", "경구")).toBe(true);
+  });
+
+  it("prioritizes the high-cost label over dosage-form labels", () => {
+    const highCostSyrup = { ...row, drugType: "시럽", highCost: true };
+    expect(rowMatchesCategory(highCostSyrup, "시럽", "경구", "drug")).toBe(false);
+    expect(rowMatchesCategory(highCostSyrup, "시럽", "경구", "cabinet")).toBe(true);
+    expect(rowMatchesCategory(highCostSyrup, "고가약", "경구", "drug")).toBe(true);
+    expect(rowMatchesCategoryGroup(highCostSyrup, "외용", "drug")).toBe(true);
+    expect(categoryForGroupedRow(highCostSyrup, "외용", "drug")).toBe("고가약");
   });
 
   it("limits bordered vial labels to bordered sizes", () => {
@@ -237,5 +251,24 @@ describe("pharmacy label studio rules", () => {
   it("groups labels for batch print", () => {
     const draft = createPharmacyLabelDraft(row, "바이알", "drug");
     expect(groupPharmacyLabelsForPaper(Array.from({ length: 30 }, () => draft), A4_PAPER).length).toBeGreaterThan(1);
+  });
+
+  it("economically arranges cabinet labels and splits oversized locations without cutting", () => {
+    const cabinetRows = Array.from({ length: 120 }, (_, index) => ({
+      ...row,
+      code: `CAB-${index}`,
+      name: `Cabinet ${index}`,
+      drugType: "원병",
+      location: "A",
+    }));
+    const oversized = buildCabinetLocationDraft(cabinetRows, "원병", "A");
+    const layout = planPharmacyLabelsForPaper([oversized], A4_PAPER);
+    expect(layout.pages.flat().length).toBeGreaterThan(1);
+    expect(layout.pages.flat().every((draft) => draft.size.heightMm <= layout.paper.heightMm - layout.paper.marginMm * 2)).toBe(true);
+
+    const smallLabels = ["A", "B", "C", "D"].map((location) => buildCabinetLocationDraft([
+      { ...row, code: location, name: location, drugType: "원병", location },
+    ], "원병", location));
+    expect(planPharmacyLabelsForPaper(smallLabels, A4_PAPER).orientation).toBe("landscape");
   });
 });

@@ -3175,6 +3175,32 @@ export function App() {
         : "갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 교체하면 전체 화면에 같은 기준이 적용됩니다.";
   }
 
+  async function saveManyPharmacyDrugMasters(rows: HospitalDrugLabelRow[]) {
+    if (rows.length === 0) throw new Error("일괄 저장할 약품을 선택해 주십시오.");
+    const invalid = rows.find((row) => !row.code.trim() || !row.name.trim());
+    if (invalid) throw new Error("약품코드와 상용약품명이 입력된 약품만 저장할 수 있습니다.");
+    const workbookSaveMode = await saveHospitalDrugMasterRowsToWorkbook(rows, hospitalDrugWorkbookUrl);
+    const savedCodes = new Set(rows.map((row) => row.code.trim().toUpperCase()));
+    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(
+      previous.filter((current) => !savedCodes.has(current.code.toUpperCase())),
+      rows,
+    ));
+    setHospitalDrugLabelRows((previous) => previous.map((current) => {
+      const saved = rows.find((row) => row.code.toUpperCase() === current.code.toUpperCase());
+      return saved ? applySharedPharmacyMasterFields(current, saved) : current;
+    }));
+    setPharmacyAdditionalRows((previous) => mergePharmacyRows(
+      previous.filter((current) => !savedCodes.has(current.code.toUpperCase())),
+      rows,
+    ));
+    setDeletedPharmacyDrugCodes((previous) => previous.filter((code) => !savedCodes.has(code)));
+    return workbookSaveMode === "server"
+      ? `${rows.length}개 약품의 약제팀 라벨 설정이 원내보유의약품리스트와 공유 서버에 일괄 저장되었습니다.`
+      : workbookSaveMode === "file"
+        ? `${rows.length}개 약품의 약제팀 라벨 설정이 선택한 원내보유의약품리스트.xlsx에 일괄 저장되었습니다.`
+        : `${rows.length}개 약품의 약제팀 라벨 설정을 반영한 원내보유의약품리스트.xlsx가 다운로드되었습니다.`;
+  }
+
   async function deletePharmacyDrugMaster(row: HospitalDrugLabelRow) {
     const workbookSaveMode = await deleteHospitalDrugMasterRowFromWorkbook(row.code, hospitalDrugWorkbookUrl);
     const code = row.code.trim().toUpperCase();
@@ -3940,6 +3966,7 @@ export function App() {
         onPrint={printPharmacyStudioLabels}
         onHospitalDrugWorkbookUpload={importHospitalDrugWorkbook}
         onSaveMaster={savePharmacyDrugMaster}
+        onSaveManyMaster={saveManyPharmacyDrugMasters}
         onDeleteMaster={deletePharmacyDrugMaster}
         onBulkSaveMaster={bulkSavePharmacyDrugMasters}
         onBulkDeleteMaster={bulkDeletePharmacyDrugMasters}

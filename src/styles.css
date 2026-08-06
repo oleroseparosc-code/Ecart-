@@ -5180,6 +5180,15 @@ button {
   background: var(--brand-orange);
 }
 
+.pharmacy-category-row .pharmacy-major-category {
+  min-width: 78px;
+  border-width: 2px;
+  border-radius: 8px;
+  color: #7c2d12;
+  background: #fff7ed;
+  font-size: 14px;
+}
+
 .pharmacy-high-cost-routes {
   align-items: center;
   padding-top: 3px;
@@ -6819,6 +6828,35 @@ button {
   width: 100%;
 }
 
+.pharmacy-master-batch-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pharmacy-master-batch-check.checked {
+  border-color: #f0a36f;
+  background: #fff7ed;
+}
+
+.pharmacy-master-batch-save {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #bfd4ff;
+  border-radius: 7px;
+  background: #f5f8ff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .pharmacy-master-status {
   margin: 0;
   color: var(--brand-header);
@@ -7332,6 +7370,17 @@ button {
   background: #eef1f4;
 }
 
+.pharmacy-cabinet-preview-shell.multiple {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120mm, 1fr));
+  gap: 12px;
+  max-height: 520px;
+}
+
+.pharmacy-cabinet-preview-shell.multiple > div {
+  break-inside: avoid;
+}
+
 .pharmacy-cabinet-location-label {
   display: grid;
   grid-template-columns: repeat(2, 60mm);
@@ -7377,6 +7426,11 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.pharmacy-cabinet-page-thumbnails.single-page {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 620px;
 }
 
 .pharmacy-cabinet-page-thumbnails > div {
@@ -7463,6 +7517,25 @@ button {
 .pharmacy-cabinet-full-list-row time {
   color: #111827;
   text-align: right;
+}
+
+.pharmacy-cabinet-full-list.nutrition-list .pharmacy-cabinet-full-list-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pharmacy-cabinet-full-list-row.atc-row > div { grid-column: 1; grid-row: 1; }
+.pharmacy-cabinet-full-list-row.atc-row > b { grid-column: 2; grid-row: 1; }
+.pharmacy-cabinet-full-list-row.atc-row > em { grid-column: 1; grid-row: 2; }
+.pharmacy-cabinet-full-list-row.atc-row > time { grid-column: 2; grid-row: 2; min-width: 16mm; }
+
+.pharmacy-cabinet-full-list.external-list .cabinet-entry-location {
+  grid-column: 1 / -1;
+  color: #155eef;
+  font-weight: 900;
+}
+
+.pharmacy-cabinet-full-list.oral-cabinet-list .pharmacy-cabinet-full-list-row {
+  grid-template-rows: 1fr;
 }
 
 .pharmacy-print-label.label-size-cabinet-location,

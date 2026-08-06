@@ -111,14 +111,20 @@ describe("pharmacy label workspace UI", () => {
     expect(appSource).toContain("(isPharmacyEditor || isPharmacyLabelWorkspaceOpen) && !showPrintPreview");
   });
 
-  it("uses a dedicated cabinet canvas with location and two-page full-list output", () => {
+  it("uses a dedicated cabinet canvas with location and category-specific full-list output", () => {
     expect(workspaceSource).toContain("PharmacyCabinetLabelCanvas");
     expect(cabinetSource).toContain("약품장 라벨 편집 캔버스");
     expect(cabinetSource).toContain("위치 선택");
     expect(cabinetSource).toContain("약품 1칸 5 × 60mm");
     expect(cabinetSource).toContain("알파벳 내림차순");
-    expect(cabinetSource).toContain("A4 2페이지");
-    expect(cabinetSource).toContain("ATC 번호와 유효기간을");
+    expect(cabinetSource).toContain("fullListPageCount");
+    expect(cabinetSource).toContain("ATC 번호 올림차순");
+    expect(cabinetSource).toContain("전체 위치 한 번에 출력");
+    expect(cabinetSource).toContain("원병 고가약 별도 리스트");
+    expect(cabinetSource).toContain("blankCellCount");
+    expect(cabinetSource).toContain('"원병", "PTP", "냉장주사"');
+    expect(cabinetSource).toContain("A4 한 페이지의 3열 구성");
+    expect(cabinetSource).toContain("약품명, 주의 분류와 약품장 위치");
   });
 
   it("supports multiple pharmacy-only subtypes, cabinet location, and staged batch save", () => {
@@ -127,6 +133,9 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain('type="checkbox" checked={selectedTypes.includes(type)}');
     expect(workspaceSource).toContain("새 약품라벨 임시저장");
     expect(workspaceSource).toContain("선택 항목 약제팀 라벨에 일괄 저장");
+    expect(masterSource).toContain("이 약품을 일괄 저장 대상으로 선택");
+    expect(masterSource).toContain("선택 항목 약제팀 라벨에 일괄 저장");
+    expect(workspaceSource).toContain("PHARMACY_CATEGORY_GROUP_NAMES");
     expect(workspaceSource).toContain("onSaveLabels(selected)");
   });
 
