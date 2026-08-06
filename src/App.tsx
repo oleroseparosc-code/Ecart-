@@ -116,7 +116,10 @@ import { mergeHospitalDrugRowsIntoPharmacyLabelMatches } from "../약제팀 라�
 import hospitalDrugWorkbookUrl from "../약제팀 라벨/원내보유의약품리스트.xlsx?url";
 import { applyExpirationWorkbook } from "../약제팀 라벨/expirationWorkbookUpdate";
 import {
+  deleteHospitalDrugMasterRowFromWorkbook,
+  deleteHospitalDrugMasterRowsFromWorkbook,
   saveHospitalDrugMasterRowToWorkbook,
+  saveHospitalDrugMasterRowsToWorkbook,
   savePharmacyLabelDraftToWorkbook,
 } from "../약제팀 라벨/pharmacyLabelWorkbookUpdate";
 import { loadPharmacyLabelMatchRows, type PharmacyLabelMatchRow } from "../약제팀 라벨/pharmacyLabelMatches";
@@ -386,6 +389,7 @@ type PersistedAppState = {
   narcoticLotFileName: string;
   pharmacyLabels: PharmacySavedLabel[];
   pharmacyAdditionalRows: HospitalDrugLabelRow[];
+  deletedPharmacyDrugCodes: string[];
 };
 
 type InspectionCycleResetState = Pick<
@@ -455,6 +459,30 @@ function loadPersistedState(): Partial<PersistedAppState> {
   } catch {
     return {};
   }
+}
+
+function normalizeDeletedPharmacyDrugCodes(codes?: string[]) {
+  return [...new Set((codes ?? []).map((code) => code.trim().toUpperCase()).filter(Boolean))];
+}
+
+function filterDeletedDrugRows<T extends { code: string }>(rows: T[], deletedCodes: ReadonlySet<string>) {
+  return rows.filter((row) => !deletedCodes.has(row.code.trim().toUpperCase()));
+}
+
+function filterDeletedDrugAllocations(allocations: StockAllocation[], deletedCodes: ReadonlySet<string>) {
+  return allocations.filter((allocation) => !deletedCodes.has(allocation.drugCode.trim().toUpperCase()));
+}
+
+function filterDeletedDrugRecords<T>(record: Record<string, T>, deletedCodes: ReadonlySet<string>) {
+  return Object.fromEntries(Object.entries(record).filter(([key]) => {
+    const parts = key.split("::");
+    const code = (parts.length > 1 ? parts[1] : parts[0]).trim().toUpperCase();
+    return !deletedCodes.has(code);
+  }));
+}
+
+function filterDeletedEcartItems(state: EcartInspectionState, deletedCodes: ReadonlySet<string>): EcartInspectionState {
+  return { ...state, items: state.items.filter((item) => !deletedCodes.has(item.code.trim().toUpperCase())) };
 }
 
 function getSyncClientId() {
@@ -603,6 +631,9 @@ function normalizePersistedState(state: Partial<PersistedAppState>): Partial<Per
     narcoticLotAssignments: remapStockKeyRecord(state.narcoticLotAssignments, normalizeNarcoticDrugCode),
     pharmacyLabels: Array.isArray(state.pharmacyLabels) ? state.pharmacyLabels : undefined,
     pharmacyAdditionalRows: Array.isArray(state.pharmacyAdditionalRows) ? state.pharmacyAdditionalRows : undefined,
+    deletedPharmacyDrugCodes: Array.isArray(state.deletedPharmacyDrugCodes)
+      ? normalizeDeletedPharmacyDrugCodes(state.deletedPharmacyDrugCodes)
+      : undefined,
   };
 }
 
@@ -1093,6 +1124,9 @@ export function App() {
   const canEditMaster = canEditMasterAssignments(appMode);
   const defaultNewDrugCategory: NewDrugForm["category"] = isNarcoticViewer ? "향정" : "stock";
   const persistedState = useMemo(loadPersistedState, []);
+  const initialDeletedPharmacyDrugCodes = normalizeDeletedPharmacyDrugCodes(persistedState.deletedPharmacyDrugCodes);
+  const initialDeletedPharmacyDrugCodeSet = new Set(initialDeletedPharmacyDrugCodes);
+  const [deletedPharmacyDrugCodes, setDeletedPharmacyDrugCodes] = useState(initialDeletedPharmacyDrugCodes);
   const [mainCategory, setMainCategory] = useState<MainCategory>(isNarcoticViewer ? "narcotic" : "stock");
   const [showMaster, setShowMaster] = useState(isReadOnlyViewer);
   const [showRoundSummary, setShowRoundSummary] = useState(false);
@@ -1101,19 +1135,31 @@ export function App() {
   const [activeEcartTab, setActiveEcartTab] = useState<EcartTab>("general");
   const [activeEcartTargetId, setActiveEcartTargetId] = useState(firstEcartTargetId);
   const [stockDrugs, setStockDrugs] = useState<StockDrug[]>(() =>
-    dedupeStockDrugs(persistedState.stockDrugs ?? inventory.stock.drugs, inventory.stock.drugs),
+    filterDeletedDrugRows(
+      dedupeStockDrugs(persistedState.stockDrugs ?? inventory.stock.drugs, inventory.stock.drugs),
+      initialDeletedPharmacyDrugCodeSet,
+    ),
   );
   const [stockRooms, setStockRooms] = useState<StockRoom[]>(
     (persistedState.stockRooms ?? initialStockRooms).filter((room) => !hiddenStockRooms.has(room.id)),
   );
   const [stockAllocations, setStockAllocations] = useState<StockAllocation[]>(
-    (persistedState.stockAllocations ?? initialStockAllocations).filter((allocation) => !hiddenStockRooms.has(allocation.roomId)),
+    filterDeletedDrugAllocations(
+      (persistedState.stockAllocations ?? initialStockAllocations).filter((allocation) => !hiddenStockRooms.has(allocation.roomId)),
+      initialDeletedPharmacyDrugCodeSet,
+    ),
   );
   const [narcoticDrugs, setNarcoticDrugs] = useState<StockDrug[]>(() =>
-    dedupeStockDrugs(persistedState.narcoticDrugs ?? [...NARCOTIC_DRUGS], NARCOTIC_DRUGS, normalizeNarcoticDrugCode, true),
+    filterDeletedDrugRows(
+      dedupeStockDrugs(persistedState.narcoticDrugs ?? [...NARCOTIC_DRUGS], NARCOTIC_DRUGS, normalizeNarcoticDrugCode, true),
+      initialDeletedPharmacyDrugCodeSet,
+    ),
   );
   const [narcoticAllocations, setNarcoticAllocations] = useState<StockAllocation[]>(() =>
-    normalizeNarcoticAllocations(persistedState.narcoticAllocations ?? [...NARCOTIC_ALLOCATIONS]),
+    filterDeletedDrugAllocations(
+      normalizeNarcoticAllocations(persistedState.narcoticAllocations ?? [...NARCOTIC_ALLOCATIONS]),
+      initialDeletedPharmacyDrugCodeSet,
+    ),
   );
   const [narcoticRooms, setNarcoticRooms] = useState<StockRoom[]>(() =>
     normalizeNarcoticRooms(persistedState.narcoticRooms ?? [...NARCOTIC_ROOMS]),
@@ -1127,7 +1173,10 @@ export function App() {
     persistedState.stockChecklistByRoom ?? {},
   );
   const [ecartByTarget, setEcartByTarget] = useState<Record<string, EcartInspectionState>>(
-    persistedState.ecartByTarget ?? {},
+    Object.fromEntries(Object.entries(persistedState.ecartByTarget ?? {}).map(([key, state]) => [
+      key,
+      filterDeletedEcartItems(state, initialDeletedPharmacyDrugCodeSet),
+    ])),
   );
   const [roundSummaryDraft, setRoundSummaryDraft] = useState<RoundSummaryDraft | null>(
     persistedState.roundSummaryDraft ?? null,
@@ -1156,11 +1205,20 @@ export function App() {
   const [hospitalDrugLabelRows, setHospitalDrugLabelRows] = useState<HospitalDrugLabelRow[]>([]);
   const [isHospitalDrugLabelsLoading, setIsHospitalDrugLabelsLoading] = useState(false);
   const [pharmacyHospitalDrugLabelRows, setPharmacyHospitalDrugLabelRows] = useState<HospitalDrugLabelRow[]>([]);
-  const [pharmacyAdditionalRows, setPharmacyAdditionalRows] = useState<HospitalDrugLabelRow[]>(persistedState.pharmacyAdditionalRows ?? []);
+  const [pharmacyAdditionalRows, setPharmacyAdditionalRows] = useState<HospitalDrugLabelRow[]>(
+    filterDeletedDrugRows(persistedState.pharmacyAdditionalRows ?? [], initialDeletedPharmacyDrugCodeSet),
+  );
   const [pharmacyLabelMatchRows, setPharmacyLabelMatchRows] = useState<PharmacyLabelMatchRow[]>([]);
   const [isPharmacyLabelMatchesLoading, setIsPharmacyLabelMatchesLoading] = useState(false);
   const [savedPharmacyLabels, setSavedPharmacyLabels] = useState<PharmacySavedLabel[]>(() =>
-    persistedState.pharmacyLabels ?? (typeof window === "undefined" ? [] : loadSavedPharmacyLabelsFromStorage(window.localStorage)),
+    filterDeletedDrugRows(
+      persistedState.pharmacyLabels ?? (typeof window === "undefined" ? [] : loadSavedPharmacyLabelsFromStorage(window.localStorage)),
+      initialDeletedPharmacyDrugCodeSet,
+    ),
+  );
+  const deletedPharmacyDrugCodeSet = useMemo(
+    () => new Set(normalizeDeletedPharmacyDrugCodes(deletedPharmacyDrugCodes)),
+    [deletedPharmacyDrugCodes],
   );
   const [pharmacyPrintDrafts, setPharmacyPrintDrafts] = useState<PharmacyLabelDraft[]>([]);
   const [pharmacyPrintPaper, setPharmacyPrintPaper] = useState<"A4" | "A3">("A4");
@@ -1241,6 +1299,7 @@ export function App() {
       narcoticLotFileName: narcoticExcelFileName,
       pharmacyLabels: savedPharmacyLabels,
       pharmacyAdditionalRows,
+      deletedPharmacyDrugCodes,
     }),
     [
       checkedStock,
@@ -1266,8 +1325,40 @@ export function App() {
       uninspectedRoomIds,
       savedPharmacyLabels,
       pharmacyAdditionalRows,
+      deletedPharmacyDrugCodes,
     ],
   );
+
+  function removePharmacyDrugsFromApp(codes: string[]) {
+    const deletedCodes = new Set(normalizeDeletedPharmacyDrugCodes(codes));
+    if (deletedCodes.size === 0) return;
+    setPharmacyHospitalDrugLabelRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setHospitalDrugLabelRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setPharmacyAdditionalRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setPharmacyLabelMatchRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setPharmacyPrintDrafts((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setSavedPharmacyLabels((previous) => {
+      const next = filterDeletedDrugRows(previous, deletedCodes);
+      if (typeof window !== "undefined") writeSavedPharmacyLabelsToStorage(window.localStorage, next);
+      return next;
+    });
+    setStockDrugs((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setStockAllocations((previous) => filterDeletedDrugAllocations(previous, deletedCodes));
+    setNarcoticDrugs((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setNarcoticAllocations((previous) => filterDeletedDrugAllocations(previous, deletedCodes));
+    setNarcoticDrugCategories((previous) => filterDeletedDrugRecords(previous, deletedCodes));
+    setCheckedStock((previous) => filterDeletedDrugRecords(previous, deletedCodes));
+    setStockExpiry((previous) => filterDeletedDrugRecords(previous, deletedCodes));
+    setNarcoticCheckedItems((previous) => filterDeletedDrugRecords(previous, deletedCodes));
+    setNarcoticExpiry((previous) => filterDeletedDrugRecords(previous, deletedCodes));
+    setNarcoticLotAssignments((previous) => filterDeletedDrugRecords(previous, deletedCodes));
+    setEcartByTarget((previous) => Object.fromEntries(Object.entries(previous).map(([key, state]) => [
+      key,
+      filterDeletedEcartItems(state, deletedCodes),
+    ])));
+    setLabelSelectedCodes((previous) => previous.filter((code) => !deletedCodes.has(code.trim().toUpperCase())));
+    setNewAssignment((previous) => deletedCodes.has(previous.drugCode.trim().toUpperCase()) ? { ...previous, drugCode: "" } : previous);
+  }
 
   function applyPersistedAppState(nextState: Partial<PersistedAppState>) {
     const normalized = normalizePersistedState(nextState);
@@ -1305,6 +1396,10 @@ export function App() {
     if (normalized.pharmacyAdditionalRows) {
       setPharmacyAdditionalRows(normalized.pharmacyAdditionalRows);
       setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, normalized.pharmacyAdditionalRows ?? []));
+    }
+    if (normalized.deletedPharmacyDrugCodes) {
+      setDeletedPharmacyDrugCodes(normalized.deletedPharmacyDrugCodes);
+      removePharmacyDrugsFromApp(normalized.deletedPharmacyDrugCodes);
     }
   }
 
@@ -1644,12 +1739,13 @@ export function App() {
     const loadRows = labelMode === "pharmacy" ? loadPharmacyHospitalDrugLabelRows : loadWardHospitalDrugLabelRows;
     void loadRows()
       .then((rows) => {
+        const visibleRows = filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
         if (labelMode === "pharmacy") {
           setPharmacyHospitalDrugLabelRows(
-            mergePharmacyRows(mergePharmacyRows(rows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
+            mergePharmacyRows(mergePharmacyRows(visibleRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
           );
         }
-        else setHospitalDrugLabelRows(rows);
+        else setHospitalDrugLabelRows(visibleRows);
       })
       .catch((error) => {
         console.error(error);
@@ -1657,17 +1753,21 @@ export function App() {
       .finally(() => {
         setIsHospitalDrugLabelsLoading(false);
       });
-  }, [hospitalDrugLabelRows.length, isDrugLabelPanelOpen, labelMode, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows.length, savedPharmacyLabels]);
+  }, [deletedPharmacyDrugCodeSet, hospitalDrugLabelRows.length, isDrugLabelPanelOpen, labelMode, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows.length, savedPharmacyLabels]);
 
   useEffect(() => {
     if (pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
     setIsPharmacyLabelMatchesLoading(true);
     void Promise.all([loadPharmacyLabelMatchRows(), loadPharmacyHospitalDrugLabelRows()])
       .then(([matchRows, hospitalRows]) => {
+        const visibleHospitalRows = filterDeletedDrugRows(hospitalRows, deletedPharmacyDrugCodeSet);
         setPharmacyHospitalDrugLabelRows(
-          mergePharmacyRows(mergePharmacyRows(hospitalRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
+          mergePharmacyRows(mergePharmacyRows(visibleHospitalRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
         );
-        setPharmacyLabelMatchRows(mergeHospitalDrugRowsIntoPharmacyLabelMatches(hospitalRows, matchRows));
+        setPharmacyLabelMatchRows(filterDeletedDrugRows(
+          mergeHospitalDrugRowsIntoPharmacyLabelMatches(visibleHospitalRows, matchRows),
+          deletedPharmacyDrugCodeSet,
+        ));
       })
       .catch((error) => {
         console.error(error);
@@ -1675,7 +1775,7 @@ export function App() {
       .finally(() => {
         setIsPharmacyLabelMatchesLoading(false);
       });
-  }, [isPharmacyLabelMatchesLoading, isPharmacyLabelWorkspaceOpen, pharmacyAdditionalRows, pharmacyLabelMatchRows.length, savedPharmacyLabels]);
+  }, [deletedPharmacyDrugCodeSet, isPharmacyLabelMatchesLoading, isPharmacyLabelWorkspaceOpen, pharmacyAdditionalRows, pharmacyLabelMatchRows.length, savedPharmacyLabels]);
 
   const syncStatusText = useMemo(() => {
     if (syncStatus.lastSyncedAt) {
@@ -1813,8 +1913,11 @@ export function App() {
       : nicuTarget;
   const activeEcartKey = makeEcartKey(activeEcartTab, activeEcartTarget.id);
   const activeEcartState = useMemo(() => {
-    return getEcartDefaultState(ecartByTarget, activeEcartTab, activeEcartKey);
-  }, [activeEcartKey, activeEcartTab, ecartByTarget]);
+    return filterDeletedEcartItems(
+      getEcartDefaultState(ecartByTarget, activeEcartTab, activeEcartKey),
+      deletedPharmacyDrugCodeSet,
+    );
+  }, [activeEcartKey, activeEcartTab, deletedPharmacyDrugCodeSet, ecartByTarget]);
 
   const masterRows = useMemo(
     () => {
@@ -2029,7 +2132,9 @@ export function App() {
   const ecartGeneralLabelRows = useMemo(() => {
     const allTargets = getAllEcartPrintTargets(ecartTargets);
     const generalTargets = allTargets.filter((entry) => entry.tab === "general");
-    return getEcartLabelItemsForMode("ecart", inventory.ecart).map((item, index) => {
+    return getEcartLabelItemsForMode("ecart", inventory.ecart)
+      .filter((item) => !deletedPharmacyDrugCodeSet.has(item.code.trim().toUpperCase()))
+      .map((item, index) => {
       const setQuantity =
         generalTargets
           .map(({ tab, key }) => {
@@ -2039,12 +2144,14 @@ export function App() {
           .find((quantity) => quantity > 0) ?? normalizeEcartItem(item).quantity;
       const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase());
       return buildEcartLabelData(item, setQuantity, `general-${index}`, "ecart", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined);
-    });
-  }, [ecartByTarget, hospitalDrugRowsByCode]);
+      });
+  }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode]);
   const ecartNicuLabelRows = useMemo(() => {
     const allTargets = getAllEcartPrintTargets(ecartTargets);
     const nicuTargets = allTargets.filter((entry) => entry.tab === "nicu");
-    return getEcartLabelItemsForMode("ecart-nicu", inventory.ecart).map((item, index) => {
+    return getEcartLabelItemsForMode("ecart-nicu", inventory.ecart)
+      .filter((item) => !deletedPharmacyDrugCodeSet.has(item.code.trim().toUpperCase()))
+      .map((item, index) => {
       const setQuantity =
         nicuTargets
           .map(({ tab, key }) => {
@@ -2054,8 +2161,8 @@ export function App() {
           .find((quantity) => quantity > 0) ?? normalizeEcartItem(item).quantity;
       const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase());
       return buildEcartLabelData(item, setQuantity, `nicu-${index}`, "ecart-nicu", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined);
-    });
-  }, [ecartByTarget, hospitalDrugRowsByCode]);
+      });
+  }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode]);
   const ecartLabelBaseRows = useMemo(() => {
     return [...ecartGeneralLabelRows, ...ecartNicuLabelRows];
   }, [ecartGeneralLabelRows, ecartNicuLabelRows]);
@@ -3061,11 +3168,49 @@ export function App() {
       previous.filter((current) => current.code.toUpperCase() !== originalCodeKey),
       [row],
     ));
+    setDeletedPharmacyDrugCodes((previous) => previous.filter((code) => code !== row.code.trim().toUpperCase()));
     return workbookSaveMode === "server"
       ? "클라우드 원내보유의약품리스트에 저장되었으며 관리자와 다른 뷰어에 자동 반영됩니다."
       : workbookSaveMode === "file"
         ? "선택한 원내보유의약품리스트.xlsx와 현재 화면에 저장되었습니다."
         : "갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 교체하면 전체 화면에 같은 기준이 적용됩니다.";
+  }
+
+  async function deletePharmacyDrugMaster(row: HospitalDrugLabelRow) {
+    const workbookSaveMode = await deleteHospitalDrugMasterRowFromWorkbook(row.code, hospitalDrugWorkbookUrl);
+    const code = row.code.trim().toUpperCase();
+    setDeletedPharmacyDrugCodes((previous) => normalizeDeletedPharmacyDrugCodes([...previous, code]));
+    removePharmacyDrugsFromApp([code]);
+    return workbookSaveMode === "server"
+      ? `[${row.code}] 약품이 원내보유의약품리스트와 전체 관련 화면에서 삭제되었습니다.`
+      : workbookSaveMode === "file"
+        ? `[${row.code}] 약품을 삭제한 원내보유의약품리스트.xlsx가 저장되었습니다.`
+        : `[${row.code}] 약품을 삭제한 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 교체해 주십시오.`;
+  }
+
+  async function bulkSavePharmacyDrugMasters(rows: HospitalDrugLabelRow[]) {
+    const existingCodes = new Set(pharmacyHospitalDrugLabelRows.map((row) => row.code.trim().toUpperCase()));
+    const duplicate = rows.find((row) => existingCodes.has(row.code.trim().toUpperCase()));
+    if (duplicate) throw new Error(`이미 등록된 약품코드입니다: ${duplicate.code}`);
+    const workbookSaveMode = await saveHospitalDrugMasterRowsToWorkbook(rows, hospitalDrugWorkbookUrl);
+    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, rows));
+    setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, rows));
+    const registeredCodes = new Set(rows.map((row) => row.code.trim().toUpperCase()));
+    setDeletedPharmacyDrugCodes((previous) => previous.filter((code) => !registeredCodes.has(code)));
+    return workbookSaveMode === "server"
+      ? `${rows.length}개 약품이 원내보유의약품리스트와 약품 마스터에 일괄 등록되었습니다.`
+      : workbookSaveMode === "file"
+        ? `${rows.length}개 약품을 일괄 등록한 원내보유의약품리스트.xlsx가 저장되었습니다.`
+        : `${rows.length}개 약품을 일괄 등록한 원내보유의약품리스트.xlsx가 다운로드되었습니다.`;
+  }
+
+  async function bulkDeletePharmacyDrugMasters(codes: string[]) {
+    const normalizedCodes = normalizeDeletedPharmacyDrugCodes(codes);
+    const result = await deleteHospitalDrugMasterRowsFromWorkbook(normalizedCodes, hospitalDrugWorkbookUrl);
+    setDeletedPharmacyDrugCodes((previous) => normalizeDeletedPharmacyDrugCodes([...previous, ...normalizedCodes]));
+    removePharmacyDrugsFromApp(normalizedCodes);
+    const missingMessage = result.missingCodes.length > 0 ? ` · 엑셀에 이미 없던 코드 ${result.missingCodes.length}개도 전체 화면에서 제외했습니다.` : "";
+    return `${normalizedCodes.length}개 약품의 일괄 삭제를 적용했습니다.${missingMessage}`;
   }
 
   function printPharmacyStudioLabels(labels: PharmacyLabelDraft[], paperKey: "A4" | "A3") {
@@ -3410,7 +3555,7 @@ export function App() {
     return (
       <div ref={printPreviewRef} className="bulk-report-stack">
         {getAllEcartPrintTargets(ecartTargets).map(({ tab, target, key }) => {
-          const state = getEcartDefaultState(ecartByTarget, tab, key);
+          const state = filterDeletedEcartItems(getEcartDefaultState(ecartByTarget, tab, key), deletedPharmacyDrugCodeSet);
           return (
             <div key={key} className="bulk-report-page">
               {renderEcartReportCard({
@@ -3795,6 +3940,9 @@ export function App() {
         onPrint={printPharmacyStudioLabels}
         onHospitalDrugWorkbookUpload={importHospitalDrugWorkbook}
         onSaveMaster={savePharmacyDrugMaster}
+        onDeleteMaster={deletePharmacyDrugMaster}
+        onBulkSaveMaster={bulkSavePharmacyDrugMasters}
+        onBulkDeleteMaster={bulkDeletePharmacyDrugMasters}
         standalone={isPharmacyEditor}
       />
     );

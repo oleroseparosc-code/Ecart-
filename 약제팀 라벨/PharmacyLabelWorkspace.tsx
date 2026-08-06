@@ -26,6 +26,9 @@ type Props = {
   onPrint: (labels: PharmacyLabelDraft[], paperKey: "A4" | "A3") => void;
   onHospitalDrugWorkbookUpload: (file: File) => Promise<string>;
   onSaveMaster: (row: HospitalDrugLabelRow) => Promise<string>;
+  onDeleteMaster: (row: HospitalDrugLabelRow) => Promise<string>;
+  onBulkSaveMaster: (rows: HospitalDrugLabelRow[]) => Promise<string>;
+  onBulkDeleteMaster: (codes: string[]) => Promise<string>;
   standalone?: boolean;
 };
 
@@ -33,7 +36,7 @@ function isLabelMarked(value?: string) {
   return value?.trim().toUpperCase() === "Y";
 }
 
-export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, onSaveLabel, onPrint, onHospitalDrugWorkbookUpload, onSaveMaster, standalone = false }: Props) {
+export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, onSaveLabel, onPrint, onHospitalDrugWorkbookUpload, onSaveMaster, onDeleteMaster, onBulkSaveMaster, onBulkDeleteMaster, standalone = false }: Props) {
   const [family, setFamily] = useState<PharmacyLabelFamily>("drug");
   const [activeTab, setActiveTab] = useState<PharmacyLabelFamily | "master">("drug");
   const [category, setCategory] = useState<PharmacyLabelCategory>("원병");
@@ -368,7 +371,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     </section>
 
     {activeTab === "master"
-      ? <PharmacyDrugMaster rows={rows} isLoading={isLoading} onSave={onSaveMaster}/>
+      ? <PharmacyDrugMaster rows={rows} isLoading={isLoading} onSave={onSaveMaster} onDelete={onDeleteMaster} onBulkSave={onBulkSaveMaster} onBulkDelete={onBulkDeleteMaster}/>
       : <section className="pharmacy-studio-workspace">
       <aside className="pharmacy-drug-list">
         <div className="pharmacy-panel-head"><div><h2>{category} 약품 리스트</h2><p>{categoryRows.length.toLocaleString("ko-KR")}개</p></div><span className="badge gray">선택 {selectedCodes.length}</span></div>

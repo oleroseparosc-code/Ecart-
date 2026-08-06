@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { FileDown, Search, Trash2, Upload } from "lucide-react";
+import * as XLSX from "xlsx";
 import { matchesHospitalDrugLabel, type HospitalDrugLabelRow } from "./hospitalDrugLabels";
 
 type Props = {
   rows: HospitalDrugLabelRow[];
   isLoading: boolean;
   onSave: (row: HospitalDrugLabelRow, originalCode?: string) => Promise<string>;
+  onDelete: (row: HospitalDrugLabelRow) => Promise<string>;
+  onBulkSave: (rows: HospitalDrugLabelRow[]) => Promise<string>;
+  onBulkDelete: (codes: string[]) => Promise<string>;
 };
 
 type NewDrugFields = {
@@ -30,6 +34,7 @@ const EMPTY_NEW_DRUG: NewDrugFields = {
   drugType: "경구",
 };
 const MASTER_DRUG_GROUPS = ["경구", "주사", "외용", "일반수액"] as const;
+const BULK_UPLOAD_HEADERS = ["약품코드", "물품코드", "상용약품명", "한글약품명", "함량", "의약품 분류"] as const;
 const ROUTE_GROUPS = {
   경구: ["원병", "PTP", "ATC", "입원산제"],
   외용: ["외용제", "외용점안제", "팩제", "시럽"],
@@ -119,6 +124,38 @@ function createNewMasterRow(fields: NewDrugFields): HospitalDrugLabelRow {
   };
 }
 
+function parseBulkUpload(fileData: ArrayBuffer, action: "register" | "delete") {
+  const workbook = XLSX.read(fileData, { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const sourceRows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: "" });
+  const headers = (sourceRows[0] ?? []).map((value) => String(value ?? "").replace(/\s+/g, " ").trim());
+  const requiredHeaders = action === "register" ? [...BULK_UPLOAD_HEADERS] : ["약품코드"];
+  const missingHeaders = requiredHeaders.filter((header) => !headers.includes(header));
+  if (missingHeaders.length > 0) throw new Error(`필수 열이 없습니다: ${missingHeaders.join(", ")}`);
+  const column = (name: string) => headers.indexOf(name);
+  const rows = sourceRows.slice(1).map((sourceRow, index) => ({
+    rowNumber: index + 2,
+    code: String(sourceRow[column("약품코드")] ?? "").trim(),
+    itemCode: String(sourceRow[column("물품코드")] ?? "").trim(),
+    name: String(sourceRow[column("상용약품명")] ?? "").trim(),
+    koreanName: String(sourceRow[column("한글약품명")] ?? "").trim(),
+    strength: String(sourceRow[column("함량")] ?? "").trim(),
+    drugType: String(sourceRow[column("의약품 분류")] ?? "").trim(),
+  })).filter((row) => row.code);
+  if (rows.length === 0) throw new Error("등록 또는 삭제할 약품코드가 없습니다.");
+  const duplicateCode = rows.find((row, index) => rows.findIndex((candidate) => candidate.code.toUpperCase() === row.code.toUpperCase()) !== index);
+  if (duplicateCode) throw new Error(`${duplicateCode.rowNumber}행의 약품코드가 파일 안에서 중복되었습니다: ${duplicateCode.code}`);
+  if (action === "register") {
+    for (const row of rows) {
+      if (!row.name) throw new Error(`${row.rowNumber}행의 상용약품명이 비어 있습니다.`);
+      if (!(MASTER_DRUG_GROUPS as readonly string[]).includes(row.drugType)) {
+        throw new Error(`${row.rowNumber}행의 의약품 분류는 경구, 주사, 외용, 일반수액 중 하나여야 합니다.`);
+      }
+    }
+  }
+  return rows;
+}
+
 function editableFieldsFromRow(row: HospitalDrugLabelRow): NewDrugFields {
   const drugType = row.drugType === "일반수액"
     ? row.drugType
@@ -157,7 +194,7 @@ function isPriorityHighRisk(row: HospitalDrugLabelRow) {
   return row.highRisk && category !== "중등도진정의약품" && category !== "주사용항암제";
 }
 
-export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
+export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSave, onBulkDelete }: Props) {
   const [workingRows, setWorkingRows] = useState(rows);
   const [sharedQuery, setSharedQuery] = useState("");
   const [labelQuery, setLabelQuery] = useState("");
@@ -285,6 +322,78 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
     if (await saveRow(next, setSharedStatus, existing.code)) setEditingOriginalCode(next.code);
   }
 
+  async function deleteExisting(row: HospitalDrugLabelRow | undefined) {
+    if (!row) return;
+    if (!window.confirm(`[${row.code}] ${row.name} 약품을 삭제하시겠습니까?\n\n원내보유의약품리스트 엑셀과 약품 라벨, 약품 목록, 병동 비품 관련 화면에서 모두 삭제됩니다.`)) return;
+    setSharedStatus("삭제 중...");
+    try {
+      const message = await onDelete(row);
+      setWorkingRows((current) => current.filter((currentRow) => currentRow.code.toUpperCase() !== row.code.toUpperCase()));
+      setSharedCode("");
+      setLabelCode("");
+      setEditingOriginalCode("");
+      setNewShared(EMPTY_NEW_DRUG);
+      setSharedStatus(message);
+    } catch (error) {
+      setSharedStatus(error instanceof Error ? error.message : "약품을 삭제하지 못했습니다.");
+    }
+  }
+
+  function downloadBulkTemplate() {
+    const workbook = XLSX.utils.book_new();
+    const uploadSheet = XLSX.utils.aoa_to_sheet([[...BULK_UPLOAD_HEADERS]]);
+    uploadSheet["!cols"] = [{ wch: 18 }, { wch: 18 }, { wch: 34 }, { wch: 28 }, { wch: 18 }, { wch: 16 }];
+    const guideSheet = XLSX.utils.aoa_to_sheet([
+      ["작업", "입력 기준"],
+      ["일괄 등록", "6개 열을 모두 유지하고 약품코드, 상용약품명, 의약품 분류를 반드시 입력합니다."],
+      ["일괄 삭제", "약품코드만 입력하면 되며 나머지 열은 비워도 됩니다."],
+      ["의약품 분류", "경구, 주사, 외용, 일반수액 중 하나를 입력합니다."],
+    ]);
+    XLSX.utils.book_append_sheet(workbook, uploadSheet, "약품 일괄 작업");
+    XLSX.utils.book_append_sheet(workbook, guideSheet, "작성 안내");
+    XLSX.writeFile(workbook, "약품마스터_일괄등록삭제_양식.xlsx", { compression: true });
+  }
+
+  async function uploadBulkFile(event: ChangeEvent<HTMLInputElement>, action: "register" | "delete") {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    setSharedStatus(action === "register" ? "일괄 등록 중..." : "일괄 삭제 중...");
+    try {
+      const uploadedRows = parseBulkUpload(await file.arrayBuffer(), action);
+      if (action === "register") {
+        const existing = uploadedRows.find((row) => workingRows.some((current) => current.code.toUpperCase() === row.code.toUpperCase()));
+        if (existing) throw new Error(`이미 등록된 약품코드입니다: ${existing.code}`);
+        const masterRows = uploadedRows.map((row) => createNewMasterRow({
+          code: row.code,
+          itemCode: row.itemCode,
+          name: row.name,
+          koreanName: row.koreanName,
+          strength: row.strength,
+          drugType: row.drugType as NewDrugFields["drugType"],
+        }));
+        const message = await onBulkSave(masterRows);
+        setWorkingRows((current) => [...current, ...masterRows]);
+        setSharedStatus(message);
+        return;
+      }
+      const codes = uploadedRows.map((row) => row.code);
+      if (!window.confirm(`${codes.length}개 약품을 일괄 삭제하시겠습니까?\n\n원내보유의약품리스트 엑셀과 전체 관련 화면에서 삭제됩니다.`)) {
+        setSharedStatus("일괄 삭제를 취소했습니다.");
+        return;
+      }
+      const message = await onBulkDelete(codes);
+      const deletedCodes = new Set(codes.map((code) => code.toUpperCase()));
+      setWorkingRows((current) => current.filter((row) => !deletedCodes.has(row.code.toUpperCase())));
+      setSharedCode("");
+      setLabelCode("");
+      setEditingOriginalCode("");
+      setSharedStatus(message);
+    } catch (error) {
+      setSharedStatus(error instanceof Error ? error.message : "엑셀 일괄 작업을 처리하지 못했습니다.");
+    }
+  }
+
   function renderSearchResults(matches: HospitalDrugLabelRow[], selectedCode: string, setCode: (code: string) => void) {
     return <div className="pharmacy-master-search-results">
       {isLoading && <span className="empty">약품 데이터를 불러오는 중입니다.</span>}
@@ -317,20 +426,28 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave }: Props) {
             {MASTER_DRUG_GROUPS.map((group) => <option key={group}>{group}</option>)}
           </select>
         </label>
-        <button type="button" className="secondary-button" onClick={onRegister}>신규 등록 후 선택</button>
-        <button
-          type="button"
-          className="secondary-button"
-          disabled={!selectedRow}
-          onClick={() => {
-            if (!selectedRow) return;
-            setFields(editableFieldsFromRow(selectedRow));
-            setEditingOriginalCode(selectedRow.code);
-          }}
-        >
-          선택 약품 불러오기
-        </button>
-        <button type="button" className="secondary-button" disabled={!editingOriginalCode} onClick={() => void updateExisting(fields)}>수정 저장</button>
+        <div className="pharmacy-master-bulk-actions">
+          <button type="button" className="secondary-button" onClick={onRegister}>신규 등록 후 선택</button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={!selectedRow}
+            onClick={() => {
+              if (!selectedRow) return;
+              setFields(editableFieldsFromRow(selectedRow));
+              setEditingOriginalCode(selectedRow.code);
+            }}
+          >
+            선택 약품 불러오기
+          </button>
+          <button type="button" className="secondary-button" disabled={!editingOriginalCode} onClick={() => void updateExisting(fields)}>수정 저장</button>
+          <button type="button" className="secondary-button danger-light" disabled={!selectedRow} onClick={() => void deleteExisting(selectedRow)}>
+            <Trash2 size={15}/>선택 약품 삭제
+          </button>
+          <label className="secondary-button"><Upload size={15}/>엑셀 일괄 등록<input className="hidden-file-input" type="file" accept=".xlsx,.xls" onChange={(event) => void uploadBulkFile(event, "register")}/></label>
+          <label className="secondary-button danger-light"><Upload size={15}/>엑셀 일괄 삭제<input className="hidden-file-input" type="file" accept=".xlsx,.xls" onChange={(event) => void uploadBulkFile(event, "delete")}/></label>
+          <button type="button" className="secondary-button pharmacy-master-template-download" onClick={downloadBulkTemplate}><FileDown size={15}/>일괄 작업 양식 다운로드</button>
+        </div>
       </div>
     </details>;
   }

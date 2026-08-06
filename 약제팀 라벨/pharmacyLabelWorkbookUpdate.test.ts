@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 import * as XLSX from "xlsx";
 import { describe, expect, it, vi } from "vitest";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { saveHospitalDrugMasterRowToWorkbook } from "./pharmacyLabelWorkbookUpdate";
+import {
+  deleteHospitalDrugMasterRowFromWorkbook,
+  deleteHospitalDrugMasterRowsFromWorkbook,
+  saveHospitalDrugMasterRowToWorkbook,
+  saveHospitalDrugMasterRowsToWorkbook,
+} from "./pharmacyLabelWorkbookUpdate";
 
 const source = readFileSync(new URL("./pharmacyLabelWorkbookUpdate.ts", import.meta.url), "utf8");
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
@@ -51,6 +56,84 @@ describe("pharmacy label workbook update", () => {
       const savedRows = XLSX.utils.sheet_to_json<unknown[]>(savedWorkbook.Sheets.약품조회, { header: 1, raw: true });
       expect(savedRows[1]?.slice(0, 5)).toEqual(["NEW-CODE", "Acetphen 5g/50ml premix", "아세트펜주", "5 g/50 ml", "영양수액"]);
       expect(savedRows).toHaveLength(2);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("deletes the matching drug-code row from the workbook", async () => {
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+      ["약품코드", "상용약품명", "원내보유"],
+      ["KEEP-1", "Keep first", "Y"],
+      ["DELETE-ME", "Retired drug", "Y"],
+      ["KEEP-2", "Keep last", "Y"],
+    ]), "약품조회");
+    const sourceData = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+    let savedData: ArrayBuffer | undefined;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (_input, init) => {
+      if (init?.method === "PUT") {
+        savedData = await new Response(init.body).arrayBuffer();
+        return new Response(null, { status: 200 });
+      }
+      return new Response(sourceData, {
+        status: 200,
+        headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+      });
+    });
+
+    try {
+      await expect(deleteHospitalDrugMasterRowFromWorkbook("DELETE-ME", "/source.xlsx")).resolves.toBe("server");
+      const savedWorkbook = XLSX.read(savedData, { type: "array" });
+      const savedRows = XLSX.utils.sheet_to_json<unknown[]>(savedWorkbook.Sheets.약품조회, { header: 1, raw: true });
+      expect(savedRows).toEqual([
+        ["약품코드", "상용약품명", "원내보유"],
+        ["KEEP-1", "Keep first", "Y"],
+        ["KEEP-2", "Keep last", "Y"],
+      ]);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("registers and deletes multiple master rows with one workbook save per batch", async () => {
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+      ["약품코드", "물품코드", "상용약품명", "한글약품명", "함량", "약품유형", "원내보유"],
+      ["EXISTING", "ITEM-0", "Existing", "기존", "1mg", "원병", "Y"],
+    ]), "약품조회");
+    let currentData = XLSX.write(workbook, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    let putCount = 0;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (_input, init) => {
+      if (init?.method === "PUT") {
+        currentData = await new Response(init.body).arrayBuffer();
+        putCount += 1;
+        return new Response(null, { status: 200 });
+      }
+      return new Response(currentData, {
+        status: 200,
+        headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+      });
+    });
+    const makeRow = (code: string, name: string): HospitalDrugLabelRow => ({
+      code, itemCode: `${code}-ITEM`, name, koreanName: `${name}한글`, strength: "10mg", drugType: "원병",
+      spec: "10mg", package: "", storage: "실온", lightProtected: false, inHospital: true,
+      similarLook: false, similarSound: false, doseCaution: false, doseCheck: false, highRisk: false,
+    });
+
+    try {
+      await expect(saveHospitalDrugMasterRowsToWorkbook([
+        makeRow("BULK-1", "Bulk one"),
+        makeRow("BULK-2", "Bulk two"),
+      ], "/source.xlsx")).resolves.toBe("server");
+      expect(putCount).toBe(1);
+
+      const deletion = await deleteHospitalDrugMasterRowsFromWorkbook(["BULK-1", "BULK-2", "ALREADY-GONE"], "/source.xlsx");
+      expect(deletion).toEqual({ deletedCount: 2, missingCodes: ["ALREADY-GONE"], saveMode: "server" });
+      expect(putCount).toBe(2);
+      const savedWorkbook = XLSX.read(currentData, { type: "array" });
+      const savedRows = XLSX.utils.sheet_to_json<unknown[]>(savedWorkbook.Sheets.약품조회, { header: 1, raw: true });
+      expect(savedRows.map((row) => row[0])).toEqual(["약품코드", "EXISTING"]);
     } finally {
       fetchMock.mockRestore();
     }

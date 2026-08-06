@@ -154,7 +154,7 @@ export async function savePharmacyLabelDraftToWorkbook(draft: PharmacyLabelDraft
   return "download" as const;
 }
 
-export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabelRow, workbookUrl: string, originalCode = row.code) {
+async function loadPharmacyWorkbook(workbookUrl: string) {
   let response: Response | undefined;
   try {
     const serverWorkbookResponse = await fetch(buildPharmacyLabelWorkbookApiUrl());
@@ -165,65 +165,11 @@ export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabel
   }
   response ??= await fetch(workbookUrl);
   if (!response.ok) throw new Error("원내보유의약품리스트 원본을 불러오지 못했습니다.");
+  return XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true });
+}
 
-  const workbook = XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
-  const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
-  const index = new Map(headers.map((header, position) => [header, position]));
-  ensureColumns(sheet, headers, index, MASTER_BOOLEAN_HEADERS);
-  const codeIndex = index.get("약품코드");
-  if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
-  const existingRowIndex = rows.findIndex((sourceRow, position) => position > 0 && compact(sourceRow[codeIndex]) === compact(originalCode));
-  const rowIndex = existingRowIndex >= 0 ? existingRowIndex : rows.length;
-  const sideLabel1T = Boolean(row.sideLabel && row.labelDose1T);
-  const sideLabelHalfT = Boolean(row.sideLabel && row.labelDoseHalfT);
-  const sideLabelQuarterT = Boolean(row.sideLabel && row.labelDoseQuarterT);
-  const anyCapLabel = Boolean(row.regularCapLabel || row.coloredCapLabel);
-  const updates: Record<string, unknown> = {
-    약품코드: row.code,
-    물품코드: row.itemCode ?? "",
-    상용약품명: row.name,
-    한글약품명: row.koreanName,
-    함량: row.strength,
-    약품유형: row.drugType,
-    원내보유: yes(row.inHospital),
-    보관법: row.storage,
-    차광필요: row.lightProtected ? "차광" : "",
-    고가약: yes(row.highCost),
-    고위험의약품: yes(row.highRisk),
-    고위험의약품분류: row.highRiskCategory ?? "",
-    유사모양: yes(row.similarLook),
-    유사발음: yes(row.similarSound),
-    용량주의: yes(row.doseCaution),
-    용량확인: yes(row.doseCheck),
-    이름주의: yes(row.nameCaution),
-    마약: yes(row.narcotic),
-    향정: yes(row.psychotropic),
-    항암제: yes(row.anticancer),
-    "E-cart": yes(row.eCart),
-    "E-cart(NICU)": yes(row.eCartNicu),
-    측면라벨: yes(row.sideLabel),
-    유색측면라벨: yes(isLabelMarked(row.coloredSideLabel)),
-    병뚜껑: yes(row.regularCapLabel),
-    유색병뚜껑: yes(row.coloredCapLabel),
-    "정제용량 1T": yes(row.labelDose1T),
-    "정제용량 0.5T": yes(row.labelDoseHalfT),
-    "정제용량 0.25T": yes(row.labelDoseQuarterT),
-    "1T 3단장 뺑뺑이 PTP 측면라벨": yes(sideLabel1T),
-    "0.5T 3단장 뺑뺑이 병 측면라벨": yes(sideLabelHalfT),
-    "0.25T 3단장 뺑뺑이 병 측면라벨": yes(sideLabelQuarterT),
-    "3단장 유색 반티통 측면라벨": yes(isLabelMarked(row.coloredSideLabel)),
-    "3단장 유색 반티통 병뚜껑": yes(anyCapLabel),
-  };
-  if (existingRowIndex < 0) {
-    const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
-    range.e.r = Math.max(range.e.r, rowIndex);
-    sheet["!ref"] = XLSX.utils.encode_range(range);
-  }
-  setRowValues(sheet, index, rowIndex, updates);
+async function persistPharmacyWorkbook(workbook: XLSX.WorkBook) {
   const workbookData = XLSX.write(workbook, { type: "array", bookType: "xlsx", compression: true });
-
   try {
     const serverResponse = await fetch(buildPharmacyLabelWorkbookApiUrl(), {
       method: "PUT",
@@ -257,6 +203,106 @@ export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabel
   }
   XLSX.writeFile(workbook, "원내보유의약품리스트.xlsx", { compression: true });
   return "download" as const;
+}
+
+function upsertHospitalDrugMasterRow(sheet: XLSX.WorkSheet, row: HospitalDrugLabelRow, originalCode = row.code) {
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
+  const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
+  const index = new Map(headers.map((header, position) => [header, position]));
+  ensureColumns(sheet, headers, index, MASTER_BOOLEAN_HEADERS);
+  const codeIndex = index.get("약품코드");
+  if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
+  const existingRowIndex = rows.findIndex((sourceRow, position) => position > 0 && compact(sourceRow[codeIndex]).toUpperCase() === compact(originalCode).toUpperCase());
+  const rowIndex = existingRowIndex >= 0 ? existingRowIndex : rows.length;
+  const sideLabel1T = Boolean(row.sideLabel && row.labelDose1T);
+  const sideLabelHalfT = Boolean(row.sideLabel && row.labelDoseHalfT);
+  const sideLabelQuarterT = Boolean(row.sideLabel && row.labelDoseQuarterT);
+  const anyCapLabel = Boolean(row.regularCapLabel || row.coloredCapLabel);
+  const updates: Record<string, unknown> = {
+    약품코드: row.code, 물품코드: row.itemCode ?? "", 상용약품명: row.name, 한글약품명: row.koreanName,
+    함량: row.strength, 약품유형: row.drugType, 원내보유: yes(row.inHospital), 보관법: row.storage,
+    차광필요: row.lightProtected ? "차광" : "", 고가약: yes(row.highCost), 고위험의약품: yes(row.highRisk),
+    고위험의약품분류: row.highRiskCategory ?? "", 유사모양: yes(row.similarLook), 유사발음: yes(row.similarSound),
+    용량주의: yes(row.doseCaution), 용량확인: yes(row.doseCheck), 이름주의: yes(row.nameCaution), 마약: yes(row.narcotic),
+    향정: yes(row.psychotropic), 항암제: yes(row.anticancer), "E-cart": yes(row.eCart), "E-cart(NICU)": yes(row.eCartNicu),
+    측면라벨: yes(row.sideLabel), 유색측면라벨: yes(isLabelMarked(row.coloredSideLabel)), 병뚜껑: yes(row.regularCapLabel),
+    유색병뚜껑: yes(row.coloredCapLabel), "정제용량 1T": yes(row.labelDose1T), "정제용량 0.5T": yes(row.labelDoseHalfT),
+    "정제용량 0.25T": yes(row.labelDoseQuarterT), "1T 3단장 뺑뺑이 PTP 측면라벨": yes(sideLabel1T),
+    "0.5T 3단장 뺑뺑이 병 측면라벨": yes(sideLabelHalfT), "0.25T 3단장 뺑뺑이 병 측면라벨": yes(sideLabelQuarterT),
+    "3단장 유색 반티통 측면라벨": yes(isLabelMarked(row.coloredSideLabel)), "3단장 유색 반티통 병뚜껑": yes(anyCapLabel),
+  };
+  if (existingRowIndex < 0) {
+    const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
+    range.e.r = Math.max(range.e.r, rowIndex);
+    sheet["!ref"] = XLSX.utils.encode_range(range);
+  }
+  setRowValues(sheet, index, rowIndex, updates);
+}
+
+export async function saveHospitalDrugMasterRowToWorkbook(row: HospitalDrugLabelRow, workbookUrl: string, originalCode = row.code) {
+  const workbook = await loadPharmacyWorkbook(workbookUrl);
+  upsertHospitalDrugMasterRow(workbook.Sheets[workbook.SheetNames[0]], row, originalCode);
+  return persistPharmacyWorkbook(workbook);
+}
+
+export async function saveHospitalDrugMasterRowsToWorkbook(rows: HospitalDrugLabelRow[], workbookUrl: string) {
+  const workbook = await loadPharmacyWorkbook(workbookUrl);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  for (const row of rows) upsertHospitalDrugMasterRow(sheet, row);
+  return persistPharmacyWorkbook(workbook);
+}
+
+function deleteWorksheetRow(sheet: XLSX.WorkSheet, rowIndex: number) {
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
+  for (let row = rowIndex; row < range.e.r; row += 1) {
+    for (let column = range.s.c; column <= range.e.c; column += 1) {
+      const targetAddress = XLSX.utils.encode_cell({ r: row, c: column });
+      const sourceAddress = XLSX.utils.encode_cell({ r: row + 1, c: column });
+      const sourceCell = sheet[sourceAddress];
+      if (sourceCell) sheet[targetAddress] = { ...sourceCell };
+      else delete sheet[targetAddress];
+    }
+  }
+  for (let column = range.s.c; column <= range.e.c; column += 1) delete sheet[XLSX.utils.encode_cell({ r: range.e.r, c: column })];
+  if (sheet["!rows"]) sheet["!rows"]?.splice(rowIndex, 1);
+  range.e.r = Math.max(range.s.r, range.e.r - 1);
+  sheet["!ref"] = XLSX.utils.encode_range(range);
+}
+
+function deleteHospitalDrugRows(workbook: XLSX.WorkBook, codes: string[]) {
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
+  const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
+  const codeIndex = headers.indexOf("약품코드");
+  if (codeIndex < 0) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
+  const requestedCodes = new Set(codes.map((code) => compact(code).toUpperCase()).filter(Boolean));
+  const foundCodes = new Set<string>();
+  const rowIndices = rows.flatMap((sourceRow, position) => {
+    if (position === 0) return [];
+    const code = compact(sourceRow[codeIndex]).toUpperCase();
+    if (!requestedCodes.has(code)) return [];
+    foundCodes.add(code);
+    return [position];
+  });
+  for (const rowIndex of rowIndices.sort((left, right) => right - left)) deleteWorksheetRow(sheet, rowIndex);
+  return {
+    deletedCount: rowIndices.length,
+    missingCodes: [...requestedCodes].filter((code) => !foundCodes.has(code)),
+  };
+}
+
+export async function deleteHospitalDrugMasterRowFromWorkbook(code: string, workbookUrl: string) {
+  const workbook = await loadPharmacyWorkbook(workbookUrl);
+  const result = deleteHospitalDrugRows(workbook, [code]);
+  if (result.deletedCount === 0) throw new Error(`[${code}] 약품을 원내보유의약품리스트에서 찾지 못했습니다.`);
+  return persistPharmacyWorkbook(workbook);
+}
+
+export async function deleteHospitalDrugMasterRowsFromWorkbook(codes: string[], workbookUrl: string) {
+  const workbook = await loadPharmacyWorkbook(workbookUrl);
+  const result = deleteHospitalDrugRows(workbook, codes);
+  const saveMode = result.deletedCount > 0 ? await persistPharmacyWorkbook(workbook) : "server" as const;
+  return { ...result, saveMode };
 }
 
 function isLabelMarked(value?: string) {

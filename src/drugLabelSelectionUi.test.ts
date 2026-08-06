@@ -53,8 +53,9 @@ describe("drug label selection UI", () => {
     expect(appSource).toContain('if (labelMode === "fluid") return hospitalFluidLabelRows;');
     expect(appSource).toContain('if (labelMode === "narcotic") return hospitalControlledLabelRows;');
     expect(appSource).toContain("if (isEcartLabelKind(labelMode)) return filteredEcartLabelRows;");
-    expect(appSource).toContain('return getEcartLabelItemsForMode("ecart", inventory.ecart).map((item, index) => {');
-    expect(appSource).toContain('return getEcartLabelItemsForMode("ecart-nicu", inventory.ecart).map((item, index) => {');
+    expect(appSource).toContain('return getEcartLabelItemsForMode("ecart", inventory.ecart)');
+    expect(appSource).toContain('return getEcartLabelItemsForMode("ecart-nicu", inventory.ecart)');
+    expect(appSource).toContain('.filter((item) => !deletedPharmacyDrugCodeSet.has(item.code.trim().toUpperCase()))');
   });
 
   it("uses the matched general-fluid color for E-cart label drug names", () => {

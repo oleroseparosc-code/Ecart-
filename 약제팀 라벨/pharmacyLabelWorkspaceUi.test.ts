@@ -34,6 +34,18 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain("신규 등록 후 선택");
     expect(masterSource).toContain("선택 약품 불러오기");
     expect(masterSource).toContain("수정 저장");
+    expect(masterSource).toContain("선택 약품 삭제");
+    expect(masterSource).toContain("원내보유의약품리스트 엑셀과 약품 라벨, 약품 목록, 병동 비품 관련 화면에서 모두 삭제됩니다.");
+    expect(masterSource).toContain("onDelete(row)");
+    expect(masterSource).toContain("엑셀 일괄 등록");
+    expect(masterSource).toContain("엑셀 일괄 삭제");
+    expect(masterSource).toContain("일괄 작업 양식 다운로드");
+    expect(masterSource).toContain('"약품코드", "물품코드", "상용약품명", "한글약품명", "함량", "의약품 분류"');
+    expect(masterSource).toContain("약품마스터_일괄등록삭제_양식.xlsx");
+    expect(appSource).toContain("deletedPharmacyDrugCodes");
+    expect(appSource).toContain("removePharmacyDrugsFromApp");
+    expect(appSource).toContain("onBulkSaveMaster={bulkSavePharmacyDrugMasters}");
+    expect(appSource).toContain("onBulkDeleteMaster={bulkDeletePharmacyDrugMasters}");
     expect(masterSource).toContain("editableFieldsFromRow");
     expect(masterSource).toContain("updateExisting");
     expect(masterSource).toContain("editingOriginalCode");
