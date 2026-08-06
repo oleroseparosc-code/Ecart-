@@ -92,14 +92,9 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     }
     if (doseUnitFilter) next.doseUnit = doseUnitFilter;
     setDraft((current) => {
-      if (!current || current.category !== category || current.labelFamily !== family) return next;
+      if (!current || current.id !== next.id || current.code !== next.code) return next;
       const preserveAccessory = !accessoryFilter || current.accessory === next.accessory;
-      const workbookBorderColor = extractHex(activeRow.borderColor);
       const mergedStyle = { ...next.style, ...current.style };
-      if (activeRow.border || workbookBorderColor || category === "고가약") {
-        mergedStyle.outerBorderPx = 5;
-        mergedStyle.outerBorderColor = workbookBorderColor || next.style.outerBorderColor;
-      }
       return {
         ...next,
         size: preserveAccessory ? current.size : next.size,

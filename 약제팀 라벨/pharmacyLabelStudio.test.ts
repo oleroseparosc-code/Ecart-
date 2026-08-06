@@ -103,23 +103,44 @@ describe("pharmacy label studio rules", () => {
     expect(splitNutritionDoseParts("Citopcin 200mg/100ml inj").filter((part) => part.highlighted).map((part) => part.text)).toEqual(["200", "100"]);
   });
 
-  it("refreshes image, ATC, and expiry values from the workbook over saved labels", () => {
+  it("refreshes workbook-only image and expiry while keeping saved right-panel values", () => {
     const saved = savePharmacyLabelDraft({
       ...createPharmacyLabelDraft(row, "바이알", "drug"),
       imagePath: "old.png",
-      atc: "OLD",
+      itemCode: "EDITED-ITEM",
+      location: "EDITED-LOCATION",
+      atc: "EDITED-ATC",
       expiry: "2025-01-01",
+      size: { presetKey: "47x80", widthMm: 80, heightMm: 47 },
+      doseUnit: "0.5T",
+      accessory: "측면라벨",
+      titleStyles: [{ start: 0, end: 4, fontSizePt: 31, color: "#22c55e" }],
+      style: {
+        ...createPharmacyLabelDraft(row, "바이알", "drug").style,
+        outerBorderPx: 0,
+        outerBorderColor: "#22c55e",
+      },
     });
     const resolved = resolvePharmacyLabelDraft({
       ...row,
+      itemCode: "WORKBOOK-ITEM",
+      location: "WORKBOOK-LOCATION",
       imagePath: "pharmacy-drug-images/new.png",
       imageSourceUrl: "https://www.health.kr/new",
       atc: "191",
       expiry: "2027-12-31",
     }, [saved], "바이알", "drug");
     expect(resolved.imagePath).toBe("pharmacy-drug-images/new.png");
-    expect(resolved.atc).toBe("191");
     expect(resolved.expiry).toBe("2027-12-31");
+    expect(resolved.itemCode).toBe("EDITED-ITEM");
+    expect(resolved.location).toBe("EDITED-LOCATION");
+    expect(resolved.atc).toBe("EDITED-ATC");
+    expect(resolved.size).toEqual(saved.size);
+    expect(resolved.doseUnit).toBe("0.5T");
+    expect(resolved.accessory).toBe("측면라벨");
+    expect(resolved.titleStyles).toEqual(saved.titleStyles);
+    expect(resolved.style.outerBorderPx).toBe(0);
+    expect(resolved.style.outerBorderColor).toBe("#22c55e");
   });
 
   it("keeps manually saved border colors as the final default", () => {

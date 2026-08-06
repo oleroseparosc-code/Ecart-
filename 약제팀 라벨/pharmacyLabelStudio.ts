@@ -334,9 +334,9 @@ export function resolvePharmacyLabelDraft(
   const hasWorkbookBorder = row.border || Boolean(workbookBorderColor);
   return {
     ...saved,
-    itemCode: row.itemCode ?? saved.itemCode,
-    location: cabinetInfo?.location || row.location || saved.location,
-    atc: cabinetInfo?.atc || row.atc || "",
+    itemCode: saved.itemCode,
+    location: saved.location,
+    atc: saved.atc,
     expiry: cabinetInfo?.expiry || row.expiry || "",
     imagePath: row.imagePath ?? "",
     imageSourceUrl: row.imageSourceUrl ?? "",
