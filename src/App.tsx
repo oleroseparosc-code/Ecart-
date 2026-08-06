@@ -3926,7 +3926,7 @@ export function App() {
     );
   }
 
-  if (isPharmacyEditor || isPharmacyLabelWorkspaceOpen) {
+  if ((isPharmacyEditor || isPharmacyLabelWorkspaceOpen) && !showPrintPreview) {
     return (
       <PharmacyLabelWorkspace
         rows={pharmacyHospitalDrugLabelRows}

@@ -108,6 +108,7 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain('sourceType: "manual"');
     expect(workspaceSource).toContain("주의 조건 추가");
     expect(workspaceSource).toContain("테두리:");
+    expect(appSource).toContain("(isPharmacyEditor || isPharmacyLabelWorkspaceOpen) && !showPrintPreview");
   });
 
   it("uses a dedicated cabinet canvas with location and two-page full-list output", () => {
