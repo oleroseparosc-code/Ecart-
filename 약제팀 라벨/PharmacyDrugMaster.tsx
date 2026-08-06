@@ -395,6 +395,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
           name: row.name,
           koreanName: row.koreanName,
           strength: row.strength,
+          location: "",
           drugType: row.drugType as NewDrugFields["drugType"],
         }));
         const message = await onBulkSave(masterRows);
