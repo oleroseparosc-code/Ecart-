@@ -47,6 +47,14 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory({ ...row, code: "XACETATE", drugType: "제로관리약", storage: "실온" }, "냉장주사")).toBe(true);
   });
 
+  it("uses independently checked pharmacy label subtypes for drug and cabinet lists", () => {
+    const multiType = { ...row, drugType: "원병", pharmacyLabelTypes: ["원병", "PTP", "ATC"] };
+    expect(rowMatchesCategory(multiType, "원병", "주사", "cabinet")).toBe(true);
+    expect(rowMatchesCategory(multiType, "PTP", "주사", "cabinet")).toBe(true);
+    expect(rowMatchesCategory(multiType, "ATC", "주사", "cabinet")).toBe(true);
+    expect(rowMatchesCategory({ ...multiType, pharmacyLabelTypes: [] }, "원병", "주사", "cabinet")).toBe(false);
+  });
+
   it("splits high-cost drugs into injection and oral choices", () => {
     expect(rowMatchesCategory({ ...row, highCost: true }, "고가약", "주사")).toBe(true);
     expect(rowMatchesCategory({ ...row, highCost: true }, "고가약", "경구")).toBe(false);

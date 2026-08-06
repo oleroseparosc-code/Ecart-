@@ -225,6 +225,7 @@ function rowsToHospitalDrugLabels(rows: string[][]): HospitalDrugLabelRow[] {
         drugType,
         fluidColor: readOptional(row, "일반수액 색기호"),
         highCost: isYes(readOptional(row, "고가약")),
+        hazardous: isYes(readOptional(row, "위해의약품")),
         narcotic: isYes(readOptional(row, "마약")) || drugType === "마약",
         psychotropic: isYes(readOptional(row, "향정")) || drugType === "향정",
         anticancer: isYes(readOptional(row, "항암제")) || drugType === "항암제" || isYes(readOptional(row, "경구항암제")),
@@ -241,6 +242,11 @@ function rowsToHospitalDrugLabels(rows: string[][]): HospitalDrugLabelRow[] {
         doseCaution: isYes(read(row, "용량주의")),
         doseCheck: isYes(read(row, "용량확인")),
         nameCaution: isYes(readOptional(row, "이름주의")),
+        pharmacyLabelTypes: !index.has("약제팀 라벨 세부유형") || !readOptional(row, "약제팀 라벨 세부유형")
+          ? undefined
+          : readOptional(row, "약제팀 라벨 세부유형") === "없음"
+            ? []
+            : readOptional(row, "약제팀 라벨 세부유형").split(/[,/\n]+/).map((value) => value.trim()).filter(Boolean),
         sideLabel1T,
         sideLabelHalfT,
         sideLabelQuarterT,

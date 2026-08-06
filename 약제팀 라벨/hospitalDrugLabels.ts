@@ -15,6 +15,7 @@ export type HospitalDrugLabelRow = {
   drugType: string;
   fluidColor?: string;
   highCost?: boolean;
+  hazardous?: boolean;
   narcotic?: boolean;
   psychotropic?: boolean;
   anticancer?: boolean;
@@ -38,6 +39,7 @@ export type HospitalDrugLabelRow = {
   threeTierHalf?: boolean;
   expiry?: string;
   location?: string;
+  pharmacyLabelTypes?: string[];
   ampouleHolder?: string;
   sideLabel1T?: string;
   sideLabelHalfT?: string;

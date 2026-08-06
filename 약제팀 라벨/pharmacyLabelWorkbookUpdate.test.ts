@@ -37,6 +37,9 @@ describe("pharmacy label workbook update", () => {
       name: "Acetphen 5g/50ml premix",
       koreanName: "아세트펜주",
       strength: "5 g/50 ml",
+      location: "A-3",
+      pharmacyLabelTypes: ["영양수액", "냉장주사"],
+      hazardous: true,
       drugType: "영양수액",
       spec: "5 g/50 ml",
       package: "",
@@ -55,6 +58,10 @@ describe("pharmacy label workbook update", () => {
       const savedWorkbook = XLSX.read(savedData, { type: "array" });
       const savedRows = XLSX.utils.sheet_to_json<unknown[]>(savedWorkbook.Sheets.약품조회, { header: 1, raw: true });
       expect(savedRows[1]?.slice(0, 5)).toEqual(["NEW-CODE", "Acetphen 5g/50ml premix", "아세트펜주", "5 g/50 ml", "영양수액"]);
+      const headers = savedRows[0] as string[];
+      expect(savedRows[1]?.[headers.indexOf("위치")]).toBe("A-3");
+      expect(savedRows[1]?.[headers.indexOf("약제팀 라벨 세부유형")]).toBe("영양수액, 냉장주사");
+      expect(savedRows[1]?.[headers.indexOf("위해의약품")]).toBe("Y");
       expect(savedRows).toHaveLength(2);
     } finally {
       fetchMock.mockRestore();
@@ -151,10 +158,10 @@ describe("pharmacy label workbook update", () => {
   });
 
   it("updates the current app row and local final-label repository after workbook save", () => {
-    expect(appSource).toContain("savePharmacyLabelDraftToWorkbook");
-    expect(appSource).toContain("savePharmacyLabelToStorage");
-    expect(appSource).toContain("nameCaution: draft.warnings.includes");
-    expect(appSource).toContain("borderColor: draft.style.outerBorderColor");
+    expect(appSource).toContain("savePharmacyLabelDraftsToWorkbook");
+    expect(appSource).toContain("writeSavedPharmacyLabelsToStorage");
+    expect(appSource).toContain("pharmacyRowFromDraft(draft)");
+    expect(appSource).toContain("setPharmacyAdditionalRows");
   });
 
   it("writes shared master flags and pharmacy-only label settings to workbook columns", () => {

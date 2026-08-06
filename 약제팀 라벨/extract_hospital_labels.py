@@ -330,6 +330,7 @@ def main() -> None:
                 "drugType": drug_type,
                 "fluidColor": read_optional(raw, "일반수액 색기호"),
                 "highCost": is_yes(raw[index["고가약"]]),
+                "hazardous": is_yes(read_optional(raw, "위해의약품")),
                 "narcotic": is_yes(read_optional(raw, "마약")) or drug_type == "마약",
                 "psychotropic": is_yes(read_optional(raw, "향정")) or drug_type == "향정",
                 "anticancer": is_yes(read_optional(raw, "항암제")) or drug_type == "항암제" or is_yes(raw[index["경구항암제"]]),
@@ -353,6 +354,8 @@ def main() -> None:
                 "threeTierHalf": is_yes(raw[index["3단반알"]]),
                 "expiry": read(raw, "유효기간"),
                 "location": read(raw, "위치"),
+                **({"pharmacyLabelTypes": [] if read_optional(raw, "약제팀 라벨 세부유형") == "없음" else [value.strip() for value in re.split(r"[,/\n]+", read_optional(raw, "약제팀 라벨 세부유형")) if value.strip()]}
+                   if read_optional(raw, "약제팀 라벨 세부유형") else {}),
                 "ampouleHolder": read(raw, "앰플꽂이"),
                 "sideLabel1T": legacy_side_1t,
                 "sideLabelHalfT": legacy_side_half,

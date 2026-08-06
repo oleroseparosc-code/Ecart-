@@ -111,7 +111,9 @@ import {
   loadHospitalDrugLabelRows as loadPharmacyHospitalDrugLabelRows,
   type HospitalDrugLabelRow,
 } from "../약제팀 라벨/hospitalDrugLabels";
+import { normalizePharmacyLabelMasterRow } from "../약제팀 라벨/PharmacyDrugMaster";
 import { PharmacyLabelWorkspace } from "../약제팀 라벨/PharmacyLabelWorkspace";
+import { PharmacyCabinetLayoutView } from "../약제팀 라벨/PharmacyCabinetLabelCanvas";
 import { mergeHospitalDrugRowsIntoPharmacyLabelMatches } from "../약제팀 라벨/hospitalDrugWorkbookUpload";
 import hospitalDrugWorkbookUrl from "../약제팀 라벨/원내보유의약품리스트.xlsx?url";
 import { applyExpirationWorkbook } from "../약제팀 라벨/expirationWorkbookUpdate";
@@ -120,7 +122,7 @@ import {
   deleteHospitalDrugMasterRowsFromWorkbook,
   saveHospitalDrugMasterRowToWorkbook,
   saveHospitalDrugMasterRowsToWorkbook,
-  savePharmacyLabelDraftToWorkbook,
+  savePharmacyLabelDraftsToWorkbook,
 } from "../약제팀 라벨/pharmacyLabelWorkbookUpdate";
 import { loadPharmacyLabelMatchRows, type PharmacyLabelMatchRow } from "../약제팀 라벨/pharmacyLabelMatches";
 import {
@@ -128,7 +130,6 @@ import {
   A4_PAPER,
   planPharmacyLabelsForPaper,
   loadSavedPharmacyLabelsFromStorage,
-  savePharmacyLabelToStorage,
   writeSavedPharmacyLabelsToStorage,
   formatPharmacyExpiry,
   splitDoseText,
@@ -630,7 +631,9 @@ function normalizePersistedState(state: Partial<PersistedAppState>): Partial<Per
     uninspectedNarcoticRoomIds: Array.isArray(state.uninspectedNarcoticRoomIds) ? state.uninspectedNarcoticRoomIds : undefined,
     narcoticLotAssignments: remapStockKeyRecord(state.narcoticLotAssignments, normalizeNarcoticDrugCode),
     pharmacyLabels: Array.isArray(state.pharmacyLabels) ? state.pharmacyLabels : undefined,
-    pharmacyAdditionalRows: Array.isArray(state.pharmacyAdditionalRows) ? state.pharmacyAdditionalRows : undefined,
+    pharmacyAdditionalRows: Array.isArray(state.pharmacyAdditionalRows)
+      ? state.pharmacyAdditionalRows.map(normalizePharmacyLabelMasterRow)
+      : undefined,
     deletedPharmacyDrugCodes: Array.isArray(state.deletedPharmacyDrugCodes)
       ? normalizeDeletedPharmacyDrugCodes(state.deletedPharmacyDrugCodes)
       : undefined,
@@ -896,6 +899,7 @@ function pharmacyRowFromDraft(draft: PharmacyLabelDraft): HospitalDrugLabelRow {
     koreanName: draft.printable.koreanName,
     strength: draft.printable.strength,
     drugType: draft.drugTypes[0] ?? draft.category,
+    pharmacyLabelTypes: draft.drugTypes,
     spec: draft.printable.strength,
     package: "",
     storage: warnings.has("냉동") ? "냉동" : warnings.has("냉장") ? "냉장" : "",
@@ -2097,8 +2101,15 @@ export function App() {
     const selectableRows = pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow);
     const trimmed = labelQuery.trim().toLowerCase();
     const rows = trimmed ? selectableRows.filter((row) => matchesHospitalDrugLabel(row, trimmed)) : selectableRows;
-    return rows.slice(0, 80).map((row) => buildHospitalDrugLabelData(row, "pharmacy"));
-  }, [labelQuery, pharmacyHospitalDrugLabelRows]);
+    const priorityCodes = new Set([
+      ...pharmacyAdditionalRows.map((row) => row.code.toUpperCase()),
+      ...savedPharmacyLabels.map((label) => label.code.toUpperCase()),
+    ]);
+    return [...rows]
+      .sort((left, right) => Number(priorityCodes.has(right.code.toUpperCase())) - Number(priorityCodes.has(left.code.toUpperCase())))
+      .slice(0, 80)
+      .map((row) => buildHospitalDrugLabelData(row, "pharmacy"));
+  }, [labelQuery, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows, savedPharmacyLabels]);
   const hospitalControlledDrugRows = useMemo(
     () => hospitalDrugSelectableRows.filter((row) => isHospitalControlledDrugType(row) && !shouldExcludeHospitalControlledDrugLabel(row)),
     [hospitalDrugSelectableRows],
@@ -3107,47 +3118,35 @@ export function App() {
     setShowPrintPreview(true);
   }
 
-  async function savePharmacyStudioLabel(draft: PharmacyLabelDraft) {
+  async function savePharmacyStudioLabels(drafts: PharmacyLabelDraft[]) {
     if (typeof window === "undefined") return "";
-    if (!draft.code.trim()) throw new Error("새 라벨은 약품코드를 입력해야 저장할 수 있습니다.");
-    const workbookSaveMode = await savePharmacyLabelDraftToWorkbook(draft, hospitalDrugWorkbookUrl);
-    const saved = savePharmacyLabelToStorage(window.localStorage, draft);
-    setSavedPharmacyLabels((previous) => [...previous.filter((label) => label.id !== saved.id), saved]);
-    setPharmacyHospitalDrugLabelRows((previous) => previous.map((row) => row.code.trim() === draft.code.trim() ? {
-      ...row,
-      name: draft.printable.title,
-      koreanName: draft.printable.koreanName,
-      strength: draft.printable.strength,
-      location: draft.location,
-      atc: draft.atc,
-      drugType: draft.drugTypes[0] ?? row.drugType,
-      doseCaution: draft.warnings.includes("용량주의"),
-      doseCheck: draft.warnings.includes("용량확인"),
-      similarSound: draft.warnings.includes("유사발음"),
-      similarLook: draft.warnings.includes("유사모양"),
-      nameCaution: draft.warnings.includes("이름주의"),
-      highRisk: draft.warnings.includes("고위험의약품"),
-      lightProtected: draft.warnings.includes("차광"),
-      storage: draft.warnings.includes("냉동")
-        ? "냉동"
-        : draft.warnings.includes("냉장")
-          ? "냉장"
-          : row.storage.replace(/냉장|냉동/g, "").trim(),
-      border: draft.style.outerBorderPx > 0,
-      borderColor: draft.style.outerBorderColor,
-    } : row));
-    const nextRow = pharmacyRowFromDraft(draft);
-    const isAdditionalRow = pharmacyAdditionalRows.some((row) => row.code === nextRow.code)
-      || !pharmacyHospitalDrugLabelRows.some((row) => row.code === nextRow.code);
-    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous.filter((row) => row.code !== nextRow.code), [nextRow]));
-    if (isAdditionalRow) {
-      setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous.filter((row) => row.code !== nextRow.code), [nextRow]));
-    }
+    if (drafts.some((draft) => !draft.code.trim())) throw new Error("새 라벨은 약품코드를 입력해야 저장할 수 있습니다.");
+    const workbookSaveMode = await savePharmacyLabelDraftsToWorkbook(drafts, hospitalDrugWorkbookUrl);
+    const savedAt = new Date().toISOString();
+    const saved = drafts.map((draft) => ({ ...draft, sourceType: "manual" as const, savedAt }));
+    setSavedPharmacyLabels((previous) => {
+      const savedIds = new Set(saved.map((label) => label.id));
+      const next = [...previous.filter((label) => !savedIds.has(label.id)), ...saved];
+      writeSavedPharmacyLabelsToStorage(window.localStorage, next);
+      return next;
+    });
+    const nextRows = drafts.map((draft) => {
+      const existing = pharmacyHospitalDrugLabelRows.find((row) => row.code.trim().toUpperCase() === draft.code.trim().toUpperCase());
+      return { ...existing, ...pharmacyRowFromDraft(draft) };
+    });
+    const savedCodes = new Set(nextRows.map((row) => row.code.toUpperCase()));
+    setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous.filter((row) => !savedCodes.has(row.code.toUpperCase())), nextRows));
+    setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous.filter((row) => !savedCodes.has(row.code.toUpperCase())), nextRows));
+    const countText = drafts.length > 1 ? `${drafts.length}개 수정 내용이 ` : "수정 내용이 ";
     return workbookSaveMode === "server"
-      ? "수정 내용이 약제팀 라벨 원본과 공유 서버에 자동 저장되었습니다."
+      ? `${countText}약제팀 라벨 원본과 공유 서버에 자동 저장되었습니다.`
       : workbookSaveMode === "file"
-      ? "수정 내용이 최종 라벨과 선택한 원내보유의약품리스트.xlsx에 저장되었습니다."
-      : "수정 내용이 최종 라벨로 저장되었으며, 갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 이 파일로 교체해 주십시오.";
+      ? `${countText}최종 라벨과 선택한 원내보유의약품리스트.xlsx에 저장되었습니다.`
+      : `${countText}최종 라벨로 저장되었으며, 갱신된 원내보유의약품리스트.xlsx가 다운로드되었습니다. 기존 파일을 이 파일로 교체해 주십시오.`;
+  }
+
+  async function savePharmacyStudioLabel(draft: PharmacyLabelDraft) {
+    return savePharmacyStudioLabels([draft]);
   }
 
   async function savePharmacyDrugMaster(row: HospitalDrugLabelRow, originalCode = row.code) {
@@ -3711,7 +3710,7 @@ export function App() {
 
     return (
       <article className={`pharmacy-print-label print-label label-size-${draft.size.presetKey} ${draft.category === "항암제" ? "anticancer" : ""} ${draft.category === "고가약" ? "high-cost" : ""} ${draft.category === "마약/향정" ? "controlled-drug-label" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${draft.category === "시럽" ? "syrup-label" : ""} ${draft.category === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={style} key={key}>
-        {isSideLabel ? <div className="pharmacy-side-label-form">
+        {draft.cabinetLayout ? <PharmacyCabinetLayoutView layout={draft.cabinetLayout}/> : isSideLabel ? <div className="pharmacy-side-label-form">
           <div className="pharmacy-side-label-photo">{imageUrl
             ? <img src={imageUrl} alt={`${draft.printable.koreanName} 식별사진`}/>
             : <span>사진 미등록</span>}</div>
@@ -3937,6 +3936,7 @@ export function App() {
           if (!isPharmacyEditor) setIsPharmacyLabelWorkspaceOpen(false);
         }}
         onSaveLabel={savePharmacyStudioLabel}
+        onSaveLabels={savePharmacyStudioLabels}
         onPrint={printPharmacyStudioLabels}
         onHospitalDrugWorkbookUpload={importHospitalDrugWorkbook}
         onSaveMaster={savePharmacyDrugMaster}

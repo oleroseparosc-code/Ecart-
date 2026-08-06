@@ -46,6 +46,22 @@ export type PharmacyTitleStyle = {
   fontWeight?: number;
   textTransform?: "none" | "uppercase" | "lowercase";
 };
+export type PharmacyCabinetEntry = {
+  code: string;
+  name: string;
+  koreanName: string;
+  reference: string;
+  location: string;
+  atc: string;
+  expiry: string;
+};
+export type PharmacyCabinetLayout = {
+  kind: "location" | "full-list";
+  title: string;
+  entries: PharmacyCabinetEntry[];
+  page: number;
+  totalPages: number;
+};
 export type PharmacyLabelDraft = {
   id: string;
   code: string;
@@ -68,6 +84,7 @@ export type PharmacyLabelDraft = {
   style: PharmacyLabelStyle;
   sourceType: "workbook" | "manual" | "new";
   savedAt?: string;
+  cabinetLayout?: PharmacyCabinetLayout;
 };
 export type PharmacySavedLabel = PharmacyLabelDraft & { savedAt: string };
 
@@ -85,6 +102,7 @@ export const DRUG_CATEGORIES: PharmacyLabelCategory[][] = [
   ["항암제"],
 ];
 export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = DRUG_CATEGORIES.slice(0, 3);
+const PHARMACY_TYPE_CATEGORIES = new Set<PharmacyLabelCategory>(DRUG_CATEGORIES.slice(0, 3).flat());
 
 const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   외용제: sizes(["33*100", "13.5*105", "40*80", "44*100"]),
@@ -126,13 +144,9 @@ export function rowMatchesCategory(
 ) {
   const type = row.drugType.replace(/\s+/g, "");
   if (!row.inHospital) return false;
-  if (family === "cabinet") {
-    if (category === "영양수액") return Boolean(row.cabinetNutrition);
-    if (["외용제", "외용점안제", "팩제"].includes(category)) return Boolean(row.cabinetExternal);
-    if (category === "시럽") return Boolean(row.cabinetSyrup);
-    if (["원병", "PTP", "ATC", "입원산제", "앰플", "바이알", "냉장주사"].includes(category)) {
-      return Boolean(row.cabinetOralInjection);
-    }
+  const pharmacyTypes = row.pharmacyLabelTypes?.map((value) => value.replace(/\s+/g, "")).filter(Boolean) ?? [];
+  if (row.pharmacyLabelTypes && PHARMACY_TYPE_CATEGORIES.has(category)) {
+    return pharmacyTypes.includes(category.replace(/\s+/g, ""));
   }
   if (category === "고가약") {
     if (!row.highCost) return false;

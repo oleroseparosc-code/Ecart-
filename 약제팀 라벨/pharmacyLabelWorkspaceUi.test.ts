@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { normalizePharmacyLabelMasterRow } from "./PharmacyDrugMaster";
+import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
 
 const workspaceSource = readFileSync(new URL("./PharmacyLabelWorkspace.tsx", import.meta.url), "utf8");
 const masterSource = readFileSync(new URL("./PharmacyDrugMaster.tsx", import.meta.url), "utf8");
+const cabinetSource = readFileSync(new URL("./PharmacyCabinetLabelCanvas.tsx", import.meta.url), "utf8");
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 
 describe("pharmacy label workspace UI", () => {
@@ -55,6 +58,34 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain("setLabelQuery(row.code)");
   });
 
+  it("activates saved pharmacy-label drugs and converts broad routes to visible label types", () => {
+    const base = {
+      code: "XTEST",
+      name: "Test drug",
+      koreanName: "테스트 약품",
+      strength: "",
+      drugType: "주사",
+      spec: "",
+      package: "",
+      storage: "",
+      lightProtected: false,
+      inHospital: false,
+      similarLook: false,
+      similarSound: false,
+      doseCaution: false,
+      doseCheck: false,
+      highRisk: false,
+    } as HospitalDrugLabelRow;
+
+    expect(normalizePharmacyLabelMasterRow(base)).toMatchObject({ drugType: "앰플", inHospital: true });
+    expect(normalizePharmacyLabelMasterRow({ ...base, drugType: "냉장주사" })).toMatchObject({
+      drugType: "냉장주사",
+      inHospital: true,
+    });
+    expect(appSource).toContain("state.pharmacyAdditionalRows.map(normalizePharmacyLabelMasterRow)");
+    expect(appSource).toContain("priorityCodes.has(right.code.toUpperCase())");
+  });
+
   it("automates high-risk relationships and prioritizes non-sedative, non-injectable-anticancer rows", () => {
     expect(masterSource).toContain("isControlledHighRisk(nextRow)");
     expect(masterSource).toContain('patch.highRiskCategory = row.highRiskCategory?.trim() || "중등도진정의약품"');
@@ -77,6 +108,25 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain('sourceType: "manual"');
     expect(workspaceSource).toContain("주의 조건 추가");
     expect(workspaceSource).toContain("테두리:");
+  });
+
+  it("uses a dedicated cabinet canvas with location and two-page full-list output", () => {
+    expect(workspaceSource).toContain("PharmacyCabinetLabelCanvas");
+    expect(cabinetSource).toContain("약품장 라벨 편집 캔버스");
+    expect(cabinetSource).toContain("위치 선택");
+    expect(cabinetSource).toContain("약품 1칸 5 × 60mm");
+    expect(cabinetSource).toContain("알파벳 내림차순");
+    expect(cabinetSource).toContain("A4 2페이지");
+    expect(cabinetSource).toContain("ATC 번호와 유효기간을");
+  });
+
+  it("supports multiple pharmacy-only subtypes, cabinet location, and staged batch save", () => {
+    expect(masterSource).toContain("pharmacyLabelTypesForRow");
+    expect(masterSource).toContain("약품장 위치");
+    expect(masterSource).toContain('type="checkbox" checked={selectedTypes.includes(type)}');
+    expect(workspaceSource).toContain("새 약품라벨 임시저장");
+    expect(workspaceSource).toContain("선택 항목 약제팀 라벨에 일괄 저장");
+    expect(workspaceSource).toContain("onSaveLabels(selected)");
   });
 
   it("applies dose and storage conditions to the label canvas", () => {
@@ -160,9 +210,9 @@ describe("pharmacy label workspace UI", () => {
   });
 
   it("supports list, nutrition, multi-selection, expiry, and border editing rules", () => {
-    expect(workspaceSource).toContain("pharmacy-cabinet-list-row");
-    expect(workspaceSource).toContain("with-location-column");
-    expect(workspaceSource).toContain("{draft.location && <em>{draft.location}</em>}");
+    expect(workspaceSource).toContain("PharmacyCabinetLabelCanvas");
+    expect(cabinetSource).toContain("pharmacy-cabinet-location-label");
+    expect(cabinetSource).toContain("pharmacy-cabinet-full-list-row");
     expect(workspaceSource).toContain("pharmacy-nutrition-label");
     expect(workspaceSource).toContain("next.size = draft.size");
     expect(workspaceSource).toContain("formatPharmacyExpiry");

@@ -18,12 +18,13 @@ type NewDrugFields = {
   name: string;
   koreanName: string;
   strength: string;
+  location: string;
   drugType: "경구" | "주사" | "외용" | "일반수액";
 };
 
 type SharedFlagKey =
   | "highRisk" | "similarLook" | "similarSound" | "doseCaution" | "doseCheck" | "nameCaution"
-  | "lightProtected" | "highCost" | "narcotic" | "psychotropic" | "anticancer" | "eCart" | "eCartNicu";
+  | "lightProtected" | "highCost" | "hazardous" | "narcotic" | "psychotropic" | "anticancer" | "eCart" | "eCartNicu";
 
 const EMPTY_NEW_DRUG: NewDrugFields = {
   code: "",
@@ -31,6 +32,7 @@ const EMPTY_NEW_DRUG: NewDrugFields = {
   name: "",
   koreanName: "",
   strength: "",
+  location: "",
   drugType: "경구",
 };
 const MASTER_DRUG_GROUPS = ["경구", "주사", "외용", "일반수액"] as const;
@@ -50,6 +52,7 @@ const SHARED_FLAGS: { key: SharedFlagKey; label: string }[] = [
   { key: "nameCaution", label: "이름주의" },
   { key: "lightProtected", label: "차광" },
   { key: "highCost", label: "고가약" },
+  { key: "hazardous", label: "위해의약품" },
   { key: "narcotic", label: "마약" },
   { key: "psychotropic", label: "향정" },
   { key: "anticancer", label: "항암제" },
@@ -88,6 +91,24 @@ function subtypeForType(drugType: string) {
   return (ROUTE_GROUPS[route] as readonly string[]).includes(drugType) ? drugType : ROUTE_GROUPS[route][0];
 }
 
+export function normalizePharmacyLabelMasterRow(row: HospitalDrugLabelRow): HospitalDrugLabelRow {
+  return {
+    ...row,
+    drugType: subtypeForType(row.drugType),
+    pharmacyLabelTypes: pharmacyLabelTypesForRow(row),
+    inHospital: true,
+  };
+}
+
+function pharmacyLabelTypesForRow(row: HospitalDrugLabelRow) {
+  if (row.pharmacyLabelTypes) return row.pharmacyLabelTypes;
+  const types = [subtypeForType(row.drugType)];
+  if (row.atc) types.push("ATC");
+  if (row.ptpOpened) types.push("PTP");
+  if (row.inpatientPowderPtp) types.push("입원산제");
+  return [...new Set(types)];
+}
+
 function createNewMasterRow(fields: NewDrugFields): HospitalDrugLabelRow {
   return {
     code: fields.code.trim(),
@@ -95,6 +116,7 @@ function createNewMasterRow(fields: NewDrugFields): HospitalDrugLabelRow {
     name: fields.name.trim(),
     koreanName: fields.koreanName.trim(),
     strength: fields.strength.trim(),
+    location: fields.location.trim(),
     drugType: fields.drugType,
     spec: fields.strength.trim(),
     package: "",
@@ -108,6 +130,7 @@ function createNewMasterRow(fields: NewDrugFields): HospitalDrugLabelRow {
     highRisk: false,
     nameCaution: false,
     highCost: false,
+    hazardous: false,
     narcotic: false,
     psychotropic: false,
     anticancer: false,
@@ -166,6 +189,7 @@ function editableFieldsFromRow(row: HospitalDrugLabelRow): NewDrugFields {
     name: row.name,
     koreanName: row.koreanName,
     strength: row.strength,
+    location: row.location ?? "",
     drugType,
   };
 }
@@ -312,6 +336,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
       name: fields.name.trim(),
       koreanName: fields.koreanName.trim(),
       strength: fields.strength.trim(),
+      location: fields.location.trim(),
       spec: fields.strength.trim() || existing.spec,
     };
     setWorkingRows((current) => current.map((row) => row.code === existing.code ? next : row));
@@ -421,6 +446,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
         {field("name", "상용약품명 *")}
         {field("koreanName", "한글약품명")}
         {field("strength", "함량")}
+        {field("location", "약품장 위치")}
         <label className="pharmacy-master-new-type">의약품 분류
           <select value={fields.drugType} onChange={(event) => setFields({ ...fields, drugType: event.target.value as NewDrugFields["drugType"] })}>
             {MASTER_DRUG_GROUPS.map((group) => <option key={group}>{group}</option>)}
@@ -516,13 +542,21 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
         <div className="pharmacy-master-selects">
           <label>대분류<select value={routeForType(labelRow.drugType)} onChange={(event) => {
             const route = event.target.value as keyof typeof ROUTE_GROUPS;
-            patchRow(labelRow.code, { drugType: ROUTE_GROUPS[route][0] });
+            patchRow(labelRow.code, { drugType: ROUTE_GROUPS[route][0], pharmacyLabelTypes: [ROUTE_GROUPS[route][0]] });
           }}>{Object.keys(ROUTE_GROUPS).map((route) => <option key={route}>{route}</option>)}</select></label>
-          <label>세부 유형<select value={subtypeForType(labelRow.drugType)} onChange={(event) => patchRow(labelRow.code, { drugType: event.target.value })}>
-            {ROUTE_GROUPS[routeForType(labelRow.drugType)].map((type) => <option key={type}>{type}</option>)}
-          </select></label>
+          <div className="pharmacy-master-subtype-field"><span>세부 유형</span><div className="pharmacy-master-check-grid">
+            {ROUTE_GROUPS[routeForType(labelRow.drugType)].map((type) => {
+              const selectedTypes = pharmacyLabelTypesForRow(labelRow);
+              return <label key={type} className={selectedTypes.includes(type) ? "checked" : ""}>
+                <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => patchRow(labelRow.code, {
+                  pharmacyLabelTypes: selectedTypes.includes(type) ? selectedTypes.filter((value) => value !== type) : [...selectedTypes, type],
+                })}/><span>{type}</span>
+              </label>;
+            })}
+          </div></div>
+          <label>약품장 위치<input value={labelRow.location ?? ""} onChange={(event) => patchRow(labelRow.code, { location: event.target.value })} placeholder="예: 가LU-1"/></label>
         </div>
-        {["원병", "PTP"].includes(subtypeForType(labelRow.drugType)) && <>
+        {pharmacyLabelTypesForRow(labelRow).some((type) => ["원병", "PTP"].includes(type)) && <>
           <h3>라벨 유형</h3>
           <div className="pharmacy-master-check-grid">
             {[
@@ -546,7 +580,7 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onDelete, onBulkSa
             </label>)}
           </div>
         </>}
-        <button type="button" className="print-button pharmacy-master-save" onClick={() => void saveRow(labelRow, setLabelStatus)}>약제팀 라벨에 저장</button>
+        <button type="button" className="print-button pharmacy-master-save" onClick={() => void saveRow(normalizePharmacyLabelMasterRow(labelRow), setLabelStatus)}>약제팀 라벨에 저장</button>
         {labelStatus && <p className="pharmacy-master-status">{labelStatus}</p>}
       </div>}
     </article>

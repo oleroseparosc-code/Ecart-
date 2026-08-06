@@ -17,10 +17,11 @@ function compact(value: unknown) {
 }
 
 const MASTER_BOOLEAN_HEADERS = [
-  "고가약", "고위험의약품", "유사모양", "유사발음", "용량주의", "용량확인", "이름주의",
+  "고가약", "위해의약품", "고위험의약품", "유사모양", "유사발음", "용량주의", "용량확인", "이름주의",
   "마약", "향정", "항암제", "E-cart", "E-cart(NICU)", "측면라벨", "유색측면라벨",
   "병뚜껑", "유색병뚜껑", "정제용량 1T", "정제용량 0.5T", "정제용량 0.25T",
 ] as const;
+const MASTER_EXTRA_HEADERS = [...MASTER_BOOLEAN_HEADERS, "약제팀 라벨 세부유형", "위치"] as const;
 
 function yes(value: boolean | undefined) {
   return value ? "Y" : "N";
@@ -66,7 +67,8 @@ function setRowValues(
   }
 }
 
-export async function savePharmacyLabelDraftToWorkbook(draft: PharmacyLabelDraft, workbookUrl: string) {
+export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly PharmacyLabelDraft[], workbookUrl: string) {
+  if (drafts.length === 0) throw new Error("저장할 약품 라벨이 없습니다.");
   let response: Response | undefined;
   try {
     const serverWorkbookResponse = await fetch(buildPharmacyLabelWorkbookApiUrl());
@@ -84,39 +86,38 @@ export async function savePharmacyLabelDraftToWorkbook(draft: PharmacyLabelDraft
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
   const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
   const index = new Map(headers.map((header, position) => [header, position]));
+  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형"]);
   const codeIndex = index.get("약품코드");
   if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
-  const existingRowIndex = rows.findIndex((row, position) => position > 0 && compact(row[codeIndex]) === compact(draft.code));
-  const rowIndex = existingRowIndex >= 0 ? existingRowIndex : rows.length;
-
-  const updates: Record<string, unknown> = {
-    약품코드: draft.code,
-    물품코드: draft.itemCode,
-    상용약품명: draft.printable.title,
-    한글약품명: draft.printable.koreanName,
-    함량: draft.printable.strength,
-    위치: draft.location,
-    ATC: draft.atc,
-    약품유형: draft.drugTypes[0] ?? "",
-    보관법: draft.warnings.includes("냉동") ? "냉동" : draft.warnings.includes("냉장") ? "냉장" : "",
-    원내보유: "Y",
-    유효기간: draft.expiry,
-    테두리: draft.style.outerBorderPx >= 5 ? "Y" : "N",
-    "테두리 색기호": draft.style.outerBorderColor,
-  };
-  for (const [warning, header] of Object.entries(WARNING_HEADERS)) {
-    updates[header] = draft.warnings.includes(warning) ? "Y" : "N";
-  }
-  if (existingRowIndex < 0) {
-    const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
-    range.e.r = Math.max(range.e.r, rowIndex);
-    sheet["!ref"] = XLSX.utils.encode_range(range);
-  }
-  for (const [header, value] of Object.entries(updates)) {
-    const columnIndex = index.get(header);
-    if (columnIndex == null) continue;
-    const address = XLSX.utils.encode_cell({ r: rowIndex, c: columnIndex });
-    sheet[address] = { t: "s", v: String(value ?? "") };
+  let appendedCount = 0;
+  for (const draft of drafts) {
+    const existingRowIndex = rows.findIndex((row, position) => position > 0 && compact(row[codeIndex]) === compact(draft.code));
+    const rowIndex = existingRowIndex >= 0 ? existingRowIndex : rows.length + appendedCount++;
+    const updates: Record<string, unknown> = {
+      약품코드: draft.code,
+      물품코드: draft.itemCode,
+      상용약품명: draft.printable.title,
+      한글약품명: draft.printable.koreanName,
+      함량: draft.printable.strength,
+      위치: draft.location,
+      ATC: draft.atc,
+      약품유형: draft.drugTypes[0] ?? "",
+      "약제팀 라벨 세부유형": draft.drugTypes.join(", "),
+      보관법: draft.warnings.includes("냉동") ? "냉동" : draft.warnings.includes("냉장") ? "냉장" : "",
+      원내보유: "Y",
+      유효기간: draft.expiry,
+      테두리: draft.style.outerBorderPx >= 5 ? "Y" : "N",
+      "테두리 색기호": draft.style.outerBorderColor,
+    };
+    for (const [warning, header] of Object.entries(WARNING_HEADERS)) {
+      updates[header] = draft.warnings.includes(warning) ? "Y" : "N";
+    }
+    if (existingRowIndex < 0) {
+      const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
+      range.e.r = Math.max(range.e.r, rowIndex);
+      sheet["!ref"] = XLSX.utils.encode_range(range);
+    }
+    setRowValues(sheet, index, rowIndex, updates);
   }
   const workbookData = XLSX.write(workbook, { type: "array", bookType: "xlsx", compression: true });
   try {
@@ -209,7 +210,7 @@ function upsertHospitalDrugMasterRow(sheet: XLSX.WorkSheet, row: HospitalDrugLab
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
   const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
   const index = new Map(headers.map((header, position) => [header, position]));
-  ensureColumns(sheet, headers, index, MASTER_BOOLEAN_HEADERS);
+  ensureColumns(sheet, headers, index, MASTER_EXTRA_HEADERS);
   const codeIndex = index.get("약품코드");
   if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
   const existingRowIndex = rows.findIndex((sourceRow, position) => position > 0 && compact(sourceRow[codeIndex]).toUpperCase() === compact(originalCode).toUpperCase());
@@ -220,8 +221,10 @@ function upsertHospitalDrugMasterRow(sheet: XLSX.WorkSheet, row: HospitalDrugLab
   const anyCapLabel = Boolean(row.regularCapLabel || row.coloredCapLabel);
   const updates: Record<string, unknown> = {
     약품코드: row.code, 물품코드: row.itemCode ?? "", 상용약품명: row.name, 한글약품명: row.koreanName,
-    함량: row.strength, 약품유형: row.drugType, 원내보유: yes(row.inHospital), 보관법: row.storage,
-    차광필요: row.lightProtected ? "차광" : "", 고가약: yes(row.highCost), 고위험의약품: yes(row.highRisk),
+    함량: row.strength, 약품유형: row.drugType,
+    "약제팀 라벨 세부유형": row.pharmacyLabelTypes?.length ? row.pharmacyLabelTypes.join(", ") : "없음",
+    위치: row.location ?? "", 원내보유: yes(row.inHospital), 보관법: row.storage,
+    차광필요: row.lightProtected ? "차광" : "", 고가약: yes(row.highCost), 위해의약품: yes(row.hazardous), 고위험의약품: yes(row.highRisk),
     고위험의약품분류: row.highRiskCategory ?? "", 유사모양: yes(row.similarLook), 유사발음: yes(row.similarSound),
     용량주의: yes(row.doseCaution), 용량확인: yes(row.doseCheck), 이름주의: yes(row.nameCaution), 마약: yes(row.narcotic),
     향정: yes(row.psychotropic), 항암제: yes(row.anticancer), "E-cart": yes(row.eCart), "E-cart(NICU)": yes(row.eCartNicu),
