@@ -32,6 +32,10 @@ export function listCabinetLocations(rows: readonly HospitalDrugLabelRow[], cate
     .sort((left, right) => left.localeCompare(right, "ko", { numeric: true }));
 }
 
+export function hasDedicatedHighCostLocation(row: HospitalDrugLabelRow, category?: PharmacyLabelCategory) {
+  return Boolean(row.highCost && splitLocations(cabinetLocation(row, category)).some((location) => location.startsWith("고")));
+}
+
 export function cabinetReference(row: HospitalDrugLabelRow) {
   return [...getHospitalDrugLabelWarnings(row).filter((warning) => !["냉장", "냉동", "차광"].includes(warning)),
     row.hazardous ? "위해의약품" : "",
@@ -127,9 +131,11 @@ export function buildCabinetFullListDrafts(
   listKind: "standard" | "high-cost" = "standard",
 ) {
   const filteredRows = category === "원병"
-    ? rows.filter((row) => listKind === "high-cost" ? row.highCost : !row.highCost)
+    ? rows.filter((row) => listKind === "high-cost"
+      ? hasDedicatedHighCostLocation(row, category)
+      : !hasDedicatedHighCostLocation(row, category))
     : category === "PTP"
-      ? rows.filter((row) => !row.highCost)
+      ? rows.filter((row) => !hasDedicatedHighCostLocation(row, category))
     : rows;
   const entries = [...filteredRows]
     .sort((left, right) => {

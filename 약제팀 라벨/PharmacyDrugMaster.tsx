@@ -436,13 +436,25 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDele
     }
   }
 
-  function renderSearchResults(matches: HospitalDrugLabelRow[], selectedCode: string, setCode: (code: string) => void) {
+  function renderSearchResults(
+    matches: HospitalDrugLabelRow[],
+    selectedCode: string,
+    setCode: (code: string) => void,
+    batchCodes?: string[],
+    onToggleBatch?: (code: string) => void,
+  ) {
     return <div className="pharmacy-master-search-results">
       {isLoading && <span className="empty">약품 데이터를 불러오는 중입니다.</span>}
       {!isLoading && matches.length === 0 && <span className="empty">검색된 약품이 없습니다.</span>}
-      {matches.map((row) => <button type="button" key={row.code} className={row.code === selectedCode ? "active" : ""} onClick={() => setCode(row.code)}>
-        <strong>{row.name}</strong><small>{row.koreanName || "-"} · {row.code}</small>
-      </button>)}
+      {matches.map((row) => <div className={`pharmacy-master-search-row ${row.code === selectedCode ? "active" : ""}`} key={row.code}>
+        {onToggleBatch && <label className={`pharmacy-master-row-check ${batchCodes?.includes(row.code) ? "checked" : ""}`}>
+          <input type="checkbox" checked={batchCodes?.includes(row.code) ?? false} onChange={() => onToggleBatch(row.code)}/>
+          <span>{row.name} 일괄 저장 선택</span>
+        </label>}
+        <button type="button" onClick={() => setCode(row.code)}>
+          <strong>{row.name}</strong><small>{row.koreanName || "-"} · {row.code}</small>
+        </button>
+      </div>)}
     </div>;
   }
 
@@ -553,13 +565,19 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDele
     <article className="pharmacy-master-column">
       <header><p>약제팀 라벨 전용</p><h2>제형·라벨 유형 설정</h2><span>이 영역의 변경은 병동 비치의약품과 E-cart 목록에 영향을 주지 않습니다.</span></header>
       <label className="pharmacy-list-search"><Search size={16}/><input value={labelQuery} onChange={(event) => setLabelQuery(event.target.value)} placeholder="약품코드·약품명 검색"/></label>
-      {renderSearchResults(labelMatches, labelRow?.code ?? "", setLabelCode)}
+      <div className="pharmacy-master-list-batch-toolbar">
+        <label><input type="checkbox" checked={labelMatches.length > 0 && labelMatches.every((row) => labelBatchCodes.includes(row.code))} onChange={() => {
+          const visibleCodes = labelMatches.map((row) => row.code);
+          const allVisibleSelected = visibleCodes.length > 0 && visibleCodes.every((code) => labelBatchCodes.includes(code));
+          setLabelBatchCodes((current) => allVisibleSelected
+            ? current.filter((code) => !visibleCodes.includes(code))
+            : [...new Set([...current, ...visibleCodes])]);
+        }}/><span>현재 검색 결과 전체 선택</span></label>
+        <b>선택 {labelBatchCodes.length.toLocaleString("ko-KR")}개</b>
+      </div>
+      {renderSearchResults(labelMatches, labelRow?.code ?? "", setLabelCode, labelBatchCodes, (code) => setLabelBatchCodes((current) => current.includes(code) ? current.filter((value) => value !== code) : [...current, code]))}
       {labelRow && <div className="pharmacy-master-editor">
         <div className="pharmacy-master-selected"><strong>{labelRow.name}</strong><small>{labelRow.code} · {labelRow.koreanName || "-"}</small></div>
-        <label className={`pharmacy-master-batch-check ${labelBatchCodes.includes(labelRow.code) ? "checked" : ""}`}>
-          <input type="checkbox" checked={labelBatchCodes.includes(labelRow.code)} onChange={() => setLabelBatchCodes((current) => current.includes(labelRow.code) ? current.filter((code) => code !== labelRow.code) : [...current, labelRow.code])}/>
-          <span>이 약품을 일괄 저장 대상으로 선택</span>
-        </label>
         <div className="pharmacy-master-selects">
           <label>대분류<select value={routeForType(labelRow.drugType)} onChange={(event) => {
             const route = event.target.value as keyof typeof ROUTE_GROUPS;

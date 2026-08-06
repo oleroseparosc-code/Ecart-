@@ -54,21 +54,29 @@ describe("pharmacy cabinet label rules", () => {
     });
   });
 
-  it("separates high-cost bottle drugs from the regular bottle full list", () => {
-    const rows = [row("Regular", "A"), row("Premium", "B", { highCost: true })];
-    expect(buildCabinetFullListDrafts(rows, "원병").flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["Regular"]);
+  it("separates only high-cost bottle drugs whose location starts with 고", () => {
+    const rows = [
+      row("Regular", "A"),
+      row("Premium regular shelf", "B", { highCost: true }),
+      row("Premium dedicated shelf", "고-1", { highCost: true }),
+    ];
+    expect(buildCabinetFullListDrafts(rows, "원병").flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual([
+      "Premium regular shelf",
+      "Regular",
+    ]);
     const highCostDrafts = buildCabinetFullListDrafts(rows, "원병", "high-cost");
     expect(highCostDrafts).toHaveLength(1);
     expect(highCostDrafts[0].cabinetLayout?.title).toBe("원병 고가약 리스트");
-    expect(highCostDrafts[0].cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Premium"]);
+    expect(highCostDrafts[0].cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Premium dedicated shelf"]);
   });
 
-  it("excludes high-cost drugs from the PTP full list", () => {
+  it("keeps high-cost drugs in PTP unless their location starts with 고", () => {
     const drafts = buildCabinetFullListDrafts([
       row("Regular PTP", "A", { drugType: "PTP" }),
       row("Premium PTP", "B", { drugType: "PTP", highCost: true }),
+      row("Dedicated Premium PTP", "고-2", { drugType: "PTP", highCost: true }),
     ], "PTP");
-    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["Regular PTP"]);
+    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["Premium PTP", "Regular PTP"]);
   });
 
   it("adds vaccines to the refrigerated-injection cabinet under the vaccine refrigerator", () => {

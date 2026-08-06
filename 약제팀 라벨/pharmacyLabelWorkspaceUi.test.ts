@@ -118,6 +118,13 @@ describe("pharmacy label workspace UI", () => {
     expect(cabinetSource).toContain("약품 1칸 5 × 60mm");
     expect(cabinetSource).toContain("알파벳 내림차순");
     expect(cabinetSource).toContain("fullListPageCount");
+    expect(cabinetSource).not.toContain("entry.koreanName");
+    expect(cabinetSource.indexOf('isAtc && <em>ATC')).toBeLessThan(
+      cabinetSource.indexOf("<div><strong>{entry.name}</strong></div>"),
+    );
+    expect(cabinetSource.indexOf("<div><strong>{entry.name}</strong></div>")).toBeLessThan(
+      cabinetSource.indexOf("<b>{entry.reference || \"-\"}</b>"),
+    );
     expect(cabinetSource).toContain("ATC 번호 올림차순");
     expect(cabinetSource).toContain("전체 위치 한 번에 출력");
     expect(cabinetSource).toContain("원병 고가약 별도 리스트");
@@ -133,7 +140,9 @@ describe("pharmacy label workspace UI", () => {
     expect(masterSource).toContain('type="checkbox" checked={selectedTypes.includes(type)}');
     expect(workspaceSource).toContain("새 약품라벨 임시저장");
     expect(workspaceSource).toContain("선택 항목 약제팀 라벨에 일괄 저장");
-    expect(masterSource).toContain("이 약품을 일괄 저장 대상으로 선택");
+    expect(masterSource).toContain("현재 검색 결과 전체 선택");
+    expect(masterSource).toContain("pharmacy-master-row-check");
+    expect(masterSource).toContain("labelBatchCodes, (code)");
     expect(masterSource).toContain("선택 항목 약제팀 라벨에 일괄 저장");
     expect(workspaceSource).toContain("PHARMACY_CATEGORY_GROUP_NAMES");
     expect(workspaceSource).toContain("onSaveLabels(selected)");

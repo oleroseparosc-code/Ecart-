@@ -1,7 +1,7 @@
 import { FileDown, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { buildCabinetFullListDrafts, buildCabinetLocationDraft, listCabinetLocations } from "./pharmacyCabinetLabels";
+import { buildCabinetFullListDrafts, buildCabinetLocationDraft, hasDedicatedHighCostLocation, listCabinetLocations } from "./pharmacyCabinetLabels";
 import { formatPharmacyExpiry, type PharmacyCabinetLayout, type PharmacyLabelCategory, type PharmacyLabelDraft } from "./pharmacyLabelStudio";
 
 type Props = {
@@ -22,16 +22,15 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
     </div>;
   }
   const isAtc = layout.category === "ATC";
-  const isOralCabinetList = layout.category === "원병" || layout.category === "PTP";
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
-  return <div className={`pharmacy-cabinet-full-list ${isAtc ? "atc-list" : ""} ${isOralCabinetList ? "oral-cabinet-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
+  return <div className={`pharmacy-cabinet-full-list ${isAtc ? "atc-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
     <header><strong>{layout.title}</strong><span>{layout.page} / {layout.totalPages}</span></header>
     <div className="pharmacy-cabinet-full-list-grid">
       {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""}`} key={entry.code}>
-        <div><strong>{entry.name}</strong>{!isOralCabinetList && entry.koreanName && <small>{entry.koreanName}</small>}</div>
-        <b>{entry.reference || "-"}</b>
         {isAtc && <em>ATC {entry.atc || "-"}</em>}
+        <div><strong>{entry.name}</strong></div>
+        <b>{entry.reference || "-"}</b>
         {isAtc && <time>{formatPharmacyExpiry(entry.expiry) || "-"}</time>}
         {isExternalList && <em className="cabinet-entry-location">{entry.location || "위치 미입력"}</em>}
       </div>)}
@@ -40,7 +39,10 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
 }
 
 export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
-  const cabinetRows = useMemo(() => category === "PTP" ? rows.filter((row) => !row.highCost) : rows, [category, rows]);
+  const cabinetRows = useMemo(
+    () => ["원병", "PTP"].includes(category) ? rows.filter((row) => !hasDedicatedHighCostLocation(row, category)) : rows,
+    [category, rows],
+  );
   const locations = useMemo(() => listCabinetLocations(cabinetRows, category), [cabinetRows, category]);
   const [location, setLocation] = useState("");
   const [paper, setPaper] = useState<"A4" | "A3">("A4");
@@ -54,8 +56,8 @@ export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
   const locationDraft = locationDrafts[0];
   const fullListDrafts = useMemo(() => buildCabinetFullListDrafts(cabinetRows, category), [cabinetRows, category]);
   const highCostListDrafts = useMemo(
-    () => category === "원병" ? buildCabinetFullListDrafts(cabinetRows, category, "high-cost") : [],
-    [cabinetRows, category],
+    () => category === "원병" ? buildCabinetFullListDrafts(rows, category, "high-cost") : [],
+    [category, rows],
   );
   const locationEnabled = ["원병", "PTP", "냉장주사"].includes(category);
   const fullListCount = fullListDrafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).length;
