@@ -10,7 +10,7 @@ import {
 
 export type PharmacyLabelFamily = "drug" | "cabinet";
 export type PharmacyLabelCategory =
-  | "원병" | "PTP" | "ATC" | "입원산제" | "경구 고가약"
+  | "원병" | "PTP" | "ATC" | "입원산제" | "경구 고가약" | "유색라벨" | "측면라벨"
   | "외용제" | "외용점안제" | "팩제" | "시럽"
   | "앰플" | "바이알" | "냉장주사" | "영양수액" | "일반수액"
   | "마약/향정" | "고가약" | "항암제";
@@ -54,6 +54,8 @@ export type PharmacyCabinetEntry = {
   location: string;
   atc: string;
   expiry: string;
+  doseUnit?: "0.25T" | "0.5T" | "1T";
+  doseHighlighted?: boolean;
 };
 export type PharmacyCabinetLayout = {
   kind: "location" | "full-list" | "three-tier";
@@ -105,7 +107,7 @@ export const DRUG_CATEGORIES: PharmacyLabelCategory[][] = [
   ["항암제"],
 ];
 export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = [
-  ["원병", "PTP", "ATC", "입원산제", "경구 고가약"],
+  ["원병", "PTP", "ATC", "입원산제", "경구 고가약", "유색라벨", "측면라벨"],
   ...DRUG_CATEGORIES.slice(1, 3),
 ];
 export const PHARMACY_CATEGORY_GROUP_NAMES = ["경구", "외용", "주사"] as const;
@@ -156,6 +158,7 @@ export function rowMatchesCategory(
   const isOralHighCost = ["원병", "PTP"].some((value) => type.includes(value));
   const isInjection = ["앰플", "바이알", "냉장주사", "주사", "영양수액", "일반수액", "항암제", "백신", "제로관리약"].some((value) => type.includes(value));
   if (family === "drug" && row.highCost && PHARMACY_TYPE_CATEGORIES.has(category)) return false;
+  if (["유색라벨", "측면라벨"].includes(category)) return family === "cabinet" && threeTierDoseUnitsForCategory(row, category).length > 0;
   if (category === "경구 고가약") return family === "cabinet" && Boolean(row.highCost) && isOralHighCost;
   if (family === "cabinet" && row.highCost && ["원병", "PTP"].includes(category)) return false;
   if (row.pharmacyLabelTypes && PHARMACY_TYPE_CATEGORIES.has(category)) {
@@ -177,6 +180,25 @@ export function rowMatchesCategory(
   if (category === "외용점안제") return type === "외용점안제";
   if (category === "팩제") return type === "팩제";
   return type === category;
+}
+
+export function threeTierDoseUnitsForCategory(
+  row: HospitalDrugLabelRow,
+  category: PharmacyLabelCategory,
+): NonNullable<PharmacyLabelDraft["doseUnit"]>[] {
+  if (!["유색라벨", "측면라벨"].includes(category)) return [];
+  const types = [row.drugType, ...(row.pharmacyLabelTypes ?? [])].map((value) => value.replace(/\s+/g, ""));
+  if (!types.some((value) => value === "원병" || value === "PTP")) return [];
+  const marked = (value?: string) => value?.trim().toUpperCase() === "Y";
+  const half = Boolean(row.labelDoseHalfT || marked(row.sideLabelHalfT));
+  const quarter = Boolean(row.labelDoseQuarterT || marked(row.sideLabelQuarterT));
+  if (category === "유색라벨") {
+    if (!marked(row.coloredSideLabel)) return [];
+    return [half ? "0.5T" : "", quarter ? "0.25T" : ""].filter(Boolean) as NonNullable<PharmacyLabelDraft["doseUnit"]>[];
+  }
+  if (!Boolean(row.sideLabel || [row.sideLabel1T, row.sideLabelHalfT, row.sideLabelQuarterT].some(marked))) return [];
+  const one = Boolean(row.labelDose1T || marked(row.sideLabel1T) || (!half && !quarter));
+  return [one ? "1T" : "", half ? "0.5T" : "", quarter ? "0.25T" : ""].filter(Boolean) as NonNullable<PharmacyLabelDraft["doseUnit"]>[];
 }
 
 export function rowMatchesCategoryGroup(
@@ -333,7 +355,7 @@ function getCabinetInfoForCategory(row: HospitalDrugLabelRow, category: Pharmacy
   if (category === "영양수액") return row.cabinetNutritionInfo ?? undefined;
   if (["외용제", "외용점안제", "팩제"].includes(category)) return row.cabinetExternalInfo ?? undefined;
   if (category === "시럽") return row.cabinetSyrupInfo ?? undefined;
-  if (["원병", "PTP", "ATC", "입원산제", "경구 고가약", "앰플", "바이알", "냉장주사"].includes(category)) {
+  if (["원병", "PTP", "ATC", "입원산제", "경구 고가약", "유색라벨", "측면라벨", "앰플", "바이알", "냉장주사"].includes(category)) {
     return row.cabinetOralInjectionInfo ?? undefined;
   }
   return undefined;

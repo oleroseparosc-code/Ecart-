@@ -14,6 +14,7 @@ import {
   splitNutritionDoseParts,
   splitNutritionDoseText,
   splitStyledPharmacyTitle,
+  threeTierDoseUnitsForCategory,
 } from "./pharmacyLabelStudio";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
 import { buildCabinetLocationDraft } from "./pharmacyCabinetLabels";
@@ -66,6 +67,16 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "원병" }, "고가약", "경구")).toBe(true);
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "원병" }, "경구 고가약", "주사", "cabinet")).toBe(true);
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "바이알" }, "경구 고가약", "주사", "cabinet")).toBe(false);
+  });
+
+  it("combines original-bottle and PTP rows for colored and side-label cabinet categories", () => {
+    const original = { ...row, drugType: "원병", coloredSideLabel: "Y", sideLabel: true, sideLabelHalfT: "Y", sideLabelQuarterT: "Y" };
+    const ptp = { ...row, drugType: "PTP", sideLabel: true };
+    expect(threeTierDoseUnitsForCategory(original, "유색라벨")).toEqual(["0.5T", "0.25T"]);
+    expect(threeTierDoseUnitsForCategory(original, "측면라벨")).toEqual(["0.5T", "0.25T"]);
+    expect(threeTierDoseUnitsForCategory(ptp, "측면라벨")).toEqual(["1T"]);
+    expect(rowMatchesCategory(original, "유색라벨", "경구", "cabinet")).toBe(true);
+    expect(rowMatchesCategory(ptp, "측면라벨", "경구", "cabinet")).toBe(true);
   });
 
   it("prioritizes the high-cost label over dosage-form labels", () => {

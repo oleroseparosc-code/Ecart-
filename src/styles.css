@@ -7708,11 +7708,12 @@ button {
 }
 
 .pharmacy-three-tier-cell {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9mm;
   box-sizing: border-box;
   min-width: 0;
   align-items: center;
-  padding: 0 .7mm;
+  padding: 0;
   border: .2mm solid #111827;
   overflow: hidden;
   font-size: 5.7pt;
@@ -7722,8 +7723,38 @@ button {
 
 .pharmacy-three-tier-cell strong {
   overflow: hidden;
+  padding: 0 .7mm;
   font-weight: 1000;
   text-overflow: ellipsis;
+}
+
+.pharmacy-three-tier-dose {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: #111827;
+  font-size: 5.8pt;
+  font-weight: 1000;
+}
+
+.pharmacy-three-tier-dose.dose-0-5t {
+  color: #dc2626;
+}
+
+.pharmacy-three-tier-dose.dose-0-25t {
+  color: #155eef;
+}
+
+.pharmacy-three-tier-cell.dose-warning .pharmacy-three-tier-dose {
+  background: #fff200;
+}
+
+.pharmacy-cabinet-canvas-panel > .pharmacy-three-tier-panel {
+  grid-column: auto;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
 }
 
 .pharmacy-master-subtype-field {

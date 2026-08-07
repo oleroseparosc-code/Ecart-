@@ -1,7 +1,7 @@
 import { FileDown, Printer } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierPositionDraft, cabinetAlphabetKey, listCabinetLocations } from "./pharmacyCabinetLabels";
+import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, cabinetAlphabetKey, listCabinetLocations } from "./pharmacyCabinetLabels";
 import { formatPharmacyExpiry, type PharmacyCabinetEntry, type PharmacyCabinetLayout, type PharmacyLabelCategory, type PharmacyLabelDraft } from "./pharmacyLabelStudio";
 
 type Props = {
@@ -14,7 +14,10 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   if (layout.kind === "three-tier") {
     const blankCellCount = layout.entries.length % 2;
     return <div className="pharmacy-three-tier-label" aria-label={layout.title}>
-      {layout.entries.map((entry) => <div className="pharmacy-three-tier-cell" key={entry.code}><strong>{entry.name}</strong></div>)}
+      {layout.entries.map((entry) => <div className={`pharmacy-three-tier-cell ${entry.doseHighlighted ? "dose-warning" : ""}`} key={entry.code}>
+        <strong>{entry.name}</strong>
+        {entry.doseUnit && <b className={`pharmacy-three-tier-dose dose-${entry.doseUnit.replace(".", "-").toLowerCase()}`}>{entry.doseUnit === "1T" ? "" : entry.doseUnit}</b>}
+      </div>)}
       {blankCellCount > 0 && <div className="pharmacy-three-tier-cell blank" aria-label="빈 칸"/>}
     </div>;
   }
@@ -55,6 +58,8 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
 
 export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
   const cabinetRows = rows;
+  const isThreeTierCategory = ["유색라벨", "측면라벨"].includes(category);
+  const threeTierEntries = useMemo(() => isThreeTierCategory ? buildThreeTierEntries(cabinetRows, category) : [], [cabinetRows, category, isThreeTierCategory]);
   const locations = useMemo(() => listCabinetLocations(cabinetRows, category), [cabinetRows, category]);
   const [location, setLocation] = useState("");
   const [paper, setPaper] = useState<"A4" | "A3">("A4");
@@ -70,6 +75,13 @@ export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
   const locationEnabled = ["원병", "PTP", "냉장주사"].includes(category);
   const fullListCount = fullListDrafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).length;
   const fullListPageCount = fullListDrafts.length;
+
+  if (isThreeTierCategory) {
+    return <section className="pharmacy-cabinet-canvas-panel">
+      <div className="pharmacy-panel-head"><div><h2>{category} 약품장 라벨</h2><p>원병과 PTP 약품을 함께 검색하여 분할용량별 라벨을 구성합니다.</p></div></div>
+      <PharmacyThreeTierLocationCanvas category={category} entries={threeTierEntries} onPrint={onPrint}/>
+    </section>;
+  }
 
   return <section className="pharmacy-cabinet-canvas-panel">
     <div className="pharmacy-panel-head"><div><h2>약품장 라벨 편집 캔버스</h2><p>엑셀의 제형 유형과 위치를 기준으로 자동 구성합니다.</p></div></div>
@@ -122,7 +134,7 @@ export function PharmacyThreeTierLocationCanvas({ category, entries, onPrint }: 
   const draft = useMemo(() => selectedEntries.length ? buildThreeTierPositionDraft(selectedEntries, category) : undefined, [category, selectedEntries]);
 
   return <section className="pharmacy-three-tier-panel">
-    <div className="pharmacy-cabinet-section-head"><div><h3>3단장 위치별 라벨</h3><p>약품 1칸 3 × 43mm · 한 줄 2칸 · 선택한 알파벳 순서로 아래로 확장</p></div></div>
+    <div className="pharmacy-cabinet-section-head"><div><h3>{category} 3단장 위치별 라벨</h3><p>약품 1칸 3 × 43mm · 한 줄 2칸 · 선택한 알파벳 순서로 아래로 확장</p></div></div>
     <div className="pharmacy-alphabet-filters" aria-label="약품명 첫 알파벳 선택">
       <button type="button" className={allSelected ? "active" : ""} onClick={() => setSelectedLetters(allSelected ? [] : alphabet)}>전체</button>
       {alphabet.map((letter) => <button type="button" key={letter} className={selectedLetters.includes(letter) ? "active" : ""} onClick={() => setSelectedLetters((current) => current.includes(letter) ? current.filter((value) => value !== letter) : [...current, letter])}>{letter}</button>)}

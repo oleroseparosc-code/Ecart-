@@ -1,5 +1,6 @@
 import { getHospitalDrugLabelWarnings, type HospitalDrugLabelRow } from "./hospitalDrugLabels";
 import {
+  threeTierDoseUnitsForCategory,
   type PharmacyCabinetEntry,
   type PharmacyLabelCategory,
   type PharmacyLabelDraft,
@@ -170,6 +171,23 @@ export function buildCabinetFullListDrafts(
       },
     };
   });
+}
+
+export function buildThreeTierEntries(
+  rows: readonly HospitalDrugLabelRow[],
+  category: PharmacyLabelCategory,
+): PharmacyCabinetEntry[] {
+  return rows.flatMap((row) => threeTierDoseUnitsForCategory(row, category).map((doseUnit) => ({
+    code: `${row.code}::${doseUnit}`,
+    name: row.name,
+    koreanName: row.koreanName,
+    reference: cabinetReference(row),
+    location: cabinetLocation(row, category),
+    atc: formatCabinetAtcNumber(row.atc),
+    expiry: row.expiry ?? "",
+    doseUnit,
+    doseHighlighted: Boolean(row.doseCaution || row.doseCheck),
+  })));
 }
 
 export function buildThreeTierPositionDraft(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierPositionDraft, formatCabinetAtcNumber, listCabinetLocations } from "./pharmacyCabinetLabels";
+import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, formatCabinetAtcNumber, listCabinetLocations } from "./pharmacyCabinetLabels";
 
 function row(name: string, location: string, patch: Partial<HospitalDrugLabelRow> = {}): HospitalDrugLabelRow {
   return {
@@ -70,12 +70,23 @@ describe("pharmacy cabinet label rules", () => {
 
   it("builds 43 by 3mm three-tier cells in two columns and keeps dose variants distinct", () => {
     const draft = buildThreeTierPositionDraft([
-      { code: "A::0.5T", name: "Alpha 0.5T", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
-      { code: "A::0.25T", name: "Alpha 0.25T", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
-      { code: "B::1T", name: "Bravo 1T", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
-    ], "PTP");
+      { code: "A::0.5T", name: "Alpha", koreanName: "", reference: "", location: "", atc: "", expiry: "", doseUnit: "0.5T" },
+      { code: "A::0.25T", name: "Alpha", koreanName: "", reference: "", location: "", atc: "", expiry: "", doseUnit: "0.25T" },
+      { code: "B::1T", name: "Bravo", koreanName: "", reference: "", location: "", atc: "", expiry: "", doseUnit: "1T" },
+    ], "측면라벨");
     expect(draft.size).toEqual({ presetKey: "three-tier-position", widthMm: 86, heightMm: 6 });
-    expect(draft.cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Alpha 0.5T", "Alpha 0.25T", "Bravo 1T"]);
+    expect(draft.cabinetLayout?.entries.map((entry) => [entry.name, entry.doseUnit])).toEqual([["Alpha", "0.5T"], ["Alpha", "0.25T"], ["Bravo", "1T"]]);
+  });
+
+  it("builds split-dose entries from both original-bottle and PTP source rows and marks cautions", () => {
+    const entries = buildThreeTierEntries([
+      row("Original", "A", { coloredSideLabel: "Y", sideLabelHalfT: "Y", doseCaution: true }),
+      row("Ptp", "B", { drugType: "PTP", coloredSideLabel: "Y", sideLabelQuarterT: "Y", doseCheck: true }),
+    ], "유색라벨");
+    expect(entries.map((entry) => [entry.name, entry.doseUnit, entry.doseHighlighted])).toEqual([
+      ["Original", "0.5T", true],
+      ["Ptp", "0.25T", true],
+    ]);
   });
 
   it("adds vaccines to the refrigerated-injection cabinet under the vaccine refrigerator", () => {

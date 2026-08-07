@@ -6,6 +6,9 @@ import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
 const workspaceSource = readFileSync(new URL("./PharmacyLabelWorkspace.tsx", import.meta.url), "utf8");
 const masterSource = readFileSync(new URL("./PharmacyDrugMaster.tsx", import.meta.url), "utf8");
 const cabinetSource = readFileSync(new URL("./PharmacyCabinetLabelCanvas.tsx", import.meta.url), "utf8");
+const cabinetLogicSource = readFileSync(new URL("./pharmacyCabinetLabels.ts", import.meta.url), "utf8");
+const studioSource = readFileSync(new URL("./pharmacyLabelStudio.ts", import.meta.url), "utf8");
+const stylesSource = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 
 describe("pharmacy label workspace UI", () => {
@@ -216,16 +219,22 @@ describe("pharmacy label workspace UI", () => {
   it("filters side and cap labels and places paper controls next to output", () => {
     expect(workspaceSource).toContain("pharmacy-filter-dashboard");
     expect(workspaceSource).toContain("라벨 유형");
-    expect(workspaceSource).toContain("분할 용량 · 복수 선택");
-    expect(workspaceSource).toContain("sideLabelHalfT");
-    expect(workspaceSource).toContain("coloredSideLabel");
+    expect(workspaceSource).not.toContain("분할 용량 · 복수 선택");
+    expect(studioSource).toContain("sideLabelHalfT");
+    expect(studioSource).toContain("coloredSideLabel");
     expect(workspaceSource).toContain("capLabel");
     expect(workspaceSource).toContain("유색 병뚜껑");
-    expect(workspaceSource).toContain("doseUnitFilters");
-    expect(workspaceSource).toContain("sideLabelQuarterT");
-    expect(workspaceSource).toContain("PharmacyThreeTierLocationCanvas");
+    expect(workspaceSource).not.toContain("doseUnitFilters");
+    expect(studioSource).toContain("sideLabelQuarterT");
+    expect(workspaceSource).not.toContain("PharmacyThreeTierLocationCanvas");
+    expect(studioSource).toContain('"유색라벨", "측면라벨"');
+    expect(cabinetLogicSource).toContain("buildThreeTierEntries");
     expect(cabinetSource).toContain("3단장 위치별 라벨");
     expect(cabinetSource).toContain("약품 1칸 3 × 43mm");
+    expect(cabinetSource).toContain('entry.doseUnit === "1T" ? ""');
+    expect(stylesSource).toContain("dose-0-5t");
+    expect(stylesSource).toContain("dose-0-25t");
+    expect(stylesSource).toContain("dose-warning");
     expect(workspaceSource).toContain("pharmacy-list-search");
     expect(workspaceSource).toContain("isLabelMarked");
     expect(workspaceSource).toContain("pharmacy-condition-dashboard");
