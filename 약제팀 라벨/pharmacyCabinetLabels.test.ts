@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, formatCabinetAtcNumber, listCabinetLocations } from "./pharmacyCabinetLabels";
+import { arrangeThreeTierEntriesByAlphabetColumns, buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, cabinetReference, formatCabinetAtcNumber, listCabinetLocations } from "./pharmacyCabinetLabels";
 
 function row(name: string, location: string, patch: Partial<HospitalDrugLabelRow> = {}): HospitalDrugLabelRow {
   return {
@@ -76,6 +76,24 @@ describe("pharmacy cabinet label rules", () => {
     ], "측면라벨");
     expect(draft.size).toEqual({ presetKey: "three-tier-position", widthMm: 86, heightMm: 6 });
     expect(draft.cabinetLayout?.entries.map((entry) => [entry.name, entry.doseUnit])).toEqual([["Alpha", "0.5T"], ["Alpha", "0.25T"], ["Bravo", "1T"]]);
+  });
+
+  it("places each selected alphabet in its own vertical column", () => {
+    const entries = [
+      { code: "A1", name: "Alpha", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+      { code: "A2", name: "Aster", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+      { code: "B1", name: "Beta", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+      { code: "B2", name: "Bravo", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+      { code: "B3", name: "Byetta", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+    ];
+    expect(arrangeThreeTierEntriesByAlphabetColumns(entries).map((entry) => entry?.code ?? "blank")).toEqual([
+      "A1", "B1", "A2", "B2", "blank", "B3",
+    ]);
+    expect(buildThreeTierPositionDraft(entries, "측면라벨").size.heightMm).toBe(9);
+  });
+
+  it("keeps only the oral-anticancer reference when both anticancer flags are checked", () => {
+    expect(cabinetReference(row("Oral cancer", "A", { oralAnticancer: true, anticancer: true }))).toBe("경구항암제");
   });
 
   it("builds split-dose entries from both original-bottle and PTP source rows and marks cautions", () => {

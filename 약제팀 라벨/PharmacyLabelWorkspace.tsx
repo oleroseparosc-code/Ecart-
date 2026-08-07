@@ -67,6 +67,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const titleEditorRef = useRef<HTMLTextAreaElement>(null);
 
   function categoryForRow(row: HospitalDrugLabelRow) {
+    if (family === "drug" && row.highCost) return "고가약";
     return categoryGroup ? categoryForGroupedRow(row, categoryGroup, family) : category;
   }
 
@@ -94,7 +95,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     if (accessoryFilter === "병뚜껑" || accessoryFilter === "유색 병뚜껑") {
       next.accessory = accessoryFilter;
       next.size = sizesForCategory("원병", activeRow).find((size) => size.presetKey === "10x27") ?? next.size;
-      next.backgroundColor = accessoryFilter === "유색 병뚜껑" ? extractHex(activeRow.capBackground) || "#ffffff" : "#ffffff";
+      next.backgroundColor = accessoryFilter === "유색 병뚜껑" ? extractHex(activeRow.coloredSideBackground) || extractHex(activeRow.capBackground) || "#ffffff" : "#ffffff";
     } else if (accessoryFilter === "유색 측면라벨") {
       next.accessory = "유색 측면라벨";
       next.size = sizesForCategory("원병", activeRow).find((size) => size.presetKey === "23x102") ?? next.size;
@@ -135,7 +136,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
       if (draft.accessory === "유색 측면라벨") {
         next.backgroundColor = extractHex(row.coloredSideBackground) || draft.backgroundColor;
       } else if (accessoryFilter === "유색 병뚜껑") {
-        next.backgroundColor = extractHex(row.capBackground) || draft.backgroundColor;
+        next.backgroundColor = extractHex(row.coloredSideBackground) || extractHex(row.capBackground) || draft.backgroundColor;
       }
       return next;
     }),
@@ -145,6 +146,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const allSelected = categoryItems.length > 0 && categoryItems.every((item) => selectedCodes.includes(item.key));
   const categoryGroups = family === "drug" ? DRUG_CATEGORIES : CABINET_CATEGORIES;
   const isCapLabel = draft?.accessory === "병뚜껑" || draft?.accessory === "유색 병뚜껑";
+  const isColoredCapLabel = draft?.accessory === "유색 병뚜껑";
   const isColoredSideLabel = draft?.accessory === "유색 측면라벨";
   const isSideLabel = draft?.accessory === "측면라벨" || isColoredSideLabel;
   const displayCategory = draft?.category ?? activeCategory;
@@ -255,7 +257,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     if (value === "병뚜껑" || value === "유색 병뚜껑") {
       next.size = sizesForCategory("원병", activeRow).find((size) => size.presetKey === "10x27") ?? draft.size;
       next.backgroundColor = value === "유색 병뚜껑"
-        ? extractHex(activeRow?.capBackground) || "#ffffff"
+        ? extractHex(activeRow?.coloredSideBackground) || extractHex(activeRow?.capBackground) || "#ffffff"
         : "#ffffff";
     } else if (value === "유색 측면라벨") {
       setAccessoryFilter("유색 측면라벨");
@@ -445,7 +447,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
           <input placeholder="약품 위치" value={draft.location} onChange={(e) => patch({ location: e.target.value })}/>
           <input placeholder="ATC 번호" value={draft.atc} onChange={(e) => patch({ atc: e.target.value })}/>
         </div>}
-        <div className="pharmacy-label-canvas">{draft ? <article className={`pharmacy-print-label label-size-${draft.size.presetKey} ${displayCategory === "항암제" ? "anticancer" : ""} ${displayCategory === "마약/향정" ? "controlled-drug-label" : ""} ${displayCategory === "고가약" ? "high-cost" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${displayCategory === "시럽" ? "syrup-label" : ""} ${displayCategory === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={labelStyle}>
+        <div className="pharmacy-label-canvas">{draft ? <article className={`pharmacy-print-label label-size-${draft.size.presetKey} ${displayCategory === "항암제" ? "anticancer" : ""} ${displayCategory === "마약/향정" ? "controlled-drug-label" : ""} ${displayCategory === "고가약" ? "high-cost" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isColoredCapLabel ? "colored-cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${displayCategory === "시럽" ? "syrup-label" : ""} ${displayCategory === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={labelStyle}>
           {isSideLabel ? <div className="pharmacy-side-label-form">
             <div className="pharmacy-side-label-photo">{imageUrl
               ? <a href={draft.imageSourceUrl} target="_blank" rel="noreferrer" title="약학정보원 식별사진 검색"><img src={imageUrl} alt={`${draft.printable.koreanName} 식별사진`}/></a>

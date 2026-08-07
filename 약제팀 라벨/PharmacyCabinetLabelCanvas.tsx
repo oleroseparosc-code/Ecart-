@@ -1,7 +1,7 @@
 import { FileDown, Printer } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, cabinetAlphabetKey, listCabinetLocations } from "./pharmacyCabinetLabels";
+import { arrangeThreeTierEntriesByAlphabetColumns, buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, cabinetAlphabetKey, listCabinetLocations } from "./pharmacyCabinetLabels";
 import { formatPharmacyExpiry, splitDoseText, type PharmacyCabinetEntry, type PharmacyCabinetLayout, type PharmacyLabelCategory, type PharmacyLabelDraft } from "./pharmacyLabelStudio";
 
 type Props = {
@@ -12,9 +12,10 @@ type Props = {
 
 export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetLayout }) {
   if (layout.kind === "three-tier") {
-    const blankCellCount = layout.entries.length % 2;
+    const arrangedEntries = arrangeThreeTierEntriesByAlphabetColumns(layout.entries);
     return <div className="pharmacy-three-tier-label" aria-label={layout.title}>
-      {layout.entries.map((entry) => {
+      {arrangedEntries.map((entry, index) => {
+        if (!entry) return <div className="pharmacy-three-tier-cell blank" aria-label="빈 칸" key={`blank-${index}`}/>;
         const nameParts = splitDoseText(entry.name);
         return <div className="pharmacy-three-tier-cell" key={entry.code}>
           <strong>{entry.doseHighlighted && nameParts.dose
@@ -23,7 +24,6 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
           {entry.doseUnit && <b className={`pharmacy-three-tier-dose dose-${entry.doseUnit.replace(".", "-").toLowerCase()}`}>{entry.doseUnit === "1T" ? "" : entry.doseUnit}</b>}
         </div>;
       })}
-      {blankCellCount > 0 && <div className="pharmacy-three-tier-cell blank" aria-label="빈 칸"/>}
     </div>;
   }
   if (layout.kind === "location") {
@@ -53,7 +53,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
         {isAtc && <em>{entry.atc || "-"}</em>}
         <div><strong>{entry.name}</strong></div>
         {isAtc
-          ? <section className="pharmacy-atc-detail"><b>{entry.reference || "주의 없음"}</b><time>{formatPharmacyExpiry(entry.expiry) || "유효기간 미입력"}</time></section>
+          ? <section className="pharmacy-atc-detail">{entry.reference && <b>{entry.reference}</b>}<time>{formatPharmacyExpiry(entry.expiry) || "유효기간 미입력"}</time></section>
           : <b>{entry.reference || "-"}</b>}
         {showsLocation && <em className="cabinet-entry-location">{entry.location || "위치 미입력"}</em>}
       </div>)}

@@ -126,6 +126,7 @@ describe("pharmacy label workspace UI", () => {
       cabinetSource.indexOf("<div><strong>{entry.name}</strong></div>"),
     );
     expect(cabinetSource).toContain("pharmacy-atc-detail");
+    expect(cabinetSource).not.toContain("주의 없음");
     expect(cabinetSource).toContain("ATC 번호를 세로 오름차순");
     expect(cabinetSource).toContain("전체 위치 한 번에 출력");
     expect(cabinetSource).not.toContain("원병 고가약 별도 리스트");
@@ -235,10 +236,16 @@ describe("pharmacy label workspace UI", () => {
     expect(stylesSource).toContain("dose-0-5t");
     expect(stylesSource).toContain("dose-0-25t");
     expect(cabinetSource).toContain("pharmacy-three-tier-name-dose");
+    expect(cabinetSource).toContain("arrangeThreeTierEntriesByAlphabetColumns");
     expect(stylesSource).toContain("pharmacy-three-tier-name-dose");
+    expect(stylesSource).toContain("background: #dcfce7");
+    expect(stylesSource).toContain("color: #c81e1e");
+    expect(stylesSource).not.toContain("border-bottom: .15mm solid #94a3b8");
     expect(workspaceSource).toContain("pharmacy-list-search");
     expect(workspaceSource).toContain("isLabelMarked");
     expect(workspaceSource).toContain("pharmacy-condition-dashboard");
+    expect(workspaceSource).toContain('if (family === "drug" && row.highCost) return "고가약"');
+    expect(workspaceSource).toContain("colored-cap-label");
   });
 
   it("supports list, nutrition, multi-selection, expiry, and border editing rules", () => {

@@ -6678,6 +6678,11 @@ button {
   border-bottom: 1px solid var(--line-soft);
 }
 
+.pharmacy-print-label.colored-cap-label,
+.pharmacy-print-label.colored-cap-label .pharmacy-label-main {
+  background: var(--pharmacy-label-background, #fff);
+}
+
 .pharmacy-master-search-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -7591,9 +7596,9 @@ button {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  border-right: .25mm solid #1e3a8a;
-  color: #fff;
-  background: #2563eb;
+  border-right: .25mm solid #86a789;
+  color: #14532d;
+  background: #dcfce7;
   font-size: 7.4pt;
   font-weight: 1000;
 }
@@ -7636,11 +7641,12 @@ button {
 }
 
 .pharmacy-atc-detail b {
-  border-bottom: .15mm solid #94a3b8;
-  color: #155eef;
+  grid-row: 1;
+  color: #c81e1e;
 }
 
 .pharmacy-atc-detail time {
+  grid-row: 2;
   color: #111827;
 }
 

@@ -82,13 +82,14 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory(ptp, "측면라벨", "경구", "cabinet")).toBe(true);
   });
 
-  it("prioritizes the high-cost label over dosage-form labels", () => {
+  it("keeps high-cost drugs in dosage-form lists while prioritizing grouped high-cost labels", () => {
     const highCostSyrup = { ...row, drugType: "시럽", highCost: true };
-    expect(rowMatchesCategory(highCostSyrup, "시럽", "경구", "drug")).toBe(false);
+    expect(rowMatchesCategory(highCostSyrup, "시럽", "경구", "drug")).toBe(true);
     expect(rowMatchesCategory(highCostSyrup, "시럽", "경구", "cabinet")).toBe(true);
     expect(rowMatchesCategory(highCostSyrup, "고가약", "경구", "drug")).toBe(true);
     expect(rowMatchesCategoryGroup(highCostSyrup, "외용", "drug")).toBe(true);
     expect(categoryForGroupedRow(highCostSyrup, "외용", "drug")).toBe("고가약");
+    expect(rowMatchesCategory({ ...row, drugType: "PTP", highCost: true }, "PTP", "경구", "cabinet")).toBe(true);
   });
 
   it("limits bordered vial labels to bordered sizes", () => {

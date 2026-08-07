@@ -157,10 +157,8 @@ export function rowMatchesCategory(
   const pharmacyTypes = row.pharmacyLabelTypes?.map((value) => value.replace(/\s+/g, "")).filter(Boolean) ?? [];
   const isOralHighCost = ["원병", "PTP"].some((value) => type.includes(value));
   const isInjection = ["앰플", "바이알", "냉장주사", "주사", "영양수액", "일반수액", "항암제", "백신", "제로관리약"].some((value) => type.includes(value));
-  if (family === "drug" && row.highCost && PHARMACY_TYPE_CATEGORIES.has(category)) return false;
   if (["유색라벨", "측면라벨"].includes(category)) return family === "cabinet" && threeTierDoseUnitsForCategory(row, category).length > 0;
   if (category === "경구 고가약") return family === "cabinet" && Boolean(row.highCost) && isOralHighCost;
-  if (family === "cabinet" && row.highCost && ["원병", "PTP"].includes(category)) return false;
   if (row.pharmacyLabelTypes && PHARMACY_TYPE_CATEGORIES.has(category)) {
     return pharmacyTypes.includes(category.replace(/\s+/g, ""));
   }
@@ -410,8 +408,8 @@ export function resolvePharmacyLabelDraft(
     expiry: cabinetInfo?.expiry || row.expiry || "",
     imagePath: row.imagePath ?? "",
     imageSourceUrl: row.imageSourceUrl ?? "",
-    backgroundColor: saved.accessory === "유색 측면라벨"
-      ? extractHex(row.coloredSideBackground) || saved.backgroundColor
+    backgroundColor: saved.accessory === "유색 측면라벨" || saved.accessory === "유색 병뚜껑"
+      ? extractHex(row.coloredSideBackground) || (saved.accessory === "유색 병뚜껑" ? extractHex(row.capBackground) : "") || saved.backgroundColor
       : saved.backgroundColor,
     warnings,
     printable: { ...saved.printable, warning: warnings.join(" · ") },

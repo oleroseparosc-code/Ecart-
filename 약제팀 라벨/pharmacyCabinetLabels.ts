@@ -49,7 +49,7 @@ export function cabinetReference(row: HospitalDrugLabelRow) {
   return [...getHospitalDrugLabelWarnings(row).filter((warning) => !["냉장", "냉동", "차광"].includes(warning)),
     row.hazardous ? "위해의약품" : "",
     row.oralAnticancer ? "경구항암제" : "",
-    row.anticancer ? "항암제" : "",
+    row.anticancer && !row.oralAnticancer ? "항암제" : "",
     row.highCost ? "고가약" : "",
   ].filter((value, index, values) => value && values.indexOf(value) === index).join(" · ");
 }
@@ -173,6 +173,24 @@ export function buildCabinetFullListDrafts(
   });
 }
 
+export function arrangeThreeTierEntriesByAlphabetColumns(entries: readonly PharmacyCabinetEntry[]) {
+  const groups = [...entries].sort((left, right) => left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true }))
+    .reduce<Map<string, PharmacyCabinetEntry[]>>((result, entry) => {
+      const key = cabinetAlphabetKey(entry.name);
+      result.set(key, [...(result.get(key) ?? []), entry]);
+      return result;
+    }, new Map());
+  const columns = [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "en")).map(([, values]) => values);
+  const arranged: Array<PharmacyCabinetEntry | undefined> = [];
+  for (let index = 0; index < columns.length; index += 2) {
+    const left = columns[index] ?? [];
+    const right = columns[index + 1] ?? [];
+    const rowCount = Math.max(left.length, right.length);
+    for (let row = 0; row < rowCount; row += 1) arranged.push(left[row], right[row]);
+  }
+  return arranged;
+}
+
 export function buildThreeTierEntries(
   rows: readonly HospitalDrugLabelRow[],
   category: PharmacyLabelCategory,
@@ -195,11 +213,12 @@ export function buildThreeTierPositionDraft(
   category: PharmacyLabelCategory,
 ) {
   const sortedEntries = [...entries].sort((left, right) => left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true }));
+  const rowCount = arrangeThreeTierEntriesByAlphabetColumns(sortedEntries).length / 2;
   const draft = baseDraft(category, `pharmacy-three-tier-${category}`);
   return {
     ...draft,
     code: `THREE-TIER-${category}`,
-    size: { presetKey: "three-tier-position", widthMm: 86, heightMm: Math.max(3, Math.ceil(sortedEntries.length / 2) * 3) },
+    size: { presetKey: "three-tier-position", widthMm: 86, heightMm: Math.max(3, rowCount * 3) },
     printable: { ...draft.printable, title: "3단장 위치별 라벨" },
     cabinetLayout: {
       kind: "three-tier" as const,
