@@ -36,6 +36,14 @@ export function hasDedicatedHighCostLocation(row: HospitalDrugLabelRow, category
   return Boolean(row.highCost && splitLocations(cabinetLocation(row, category)).some((location) => location.startsWith("고")));
 }
 
+export function formatCabinetAtcNumber(value?: string) {
+  return (value ?? "").trim().replace(/^ATC\s*/i, "");
+}
+
+export function cabinetAlphabetKey(name: string) {
+  return /^[A-Z]/.exec(name.trim().toUpperCase())?.[0] ?? "기타";
+}
+
 export function cabinetReference(row: HospitalDrugLabelRow) {
   return [...getHospitalDrugLabelWarnings(row).filter((warning) => !["냉장", "냉동", "차광"].includes(warning)),
     row.hazardous ? "위해의약품" : "",
@@ -52,7 +60,7 @@ function toEntry(row: HospitalDrugLabelRow, category: PharmacyLabelCategory): Ph
     koreanName: row.koreanName,
     reference: cabinetReference(row),
     location: cabinetLocation(row, category),
-    atc: row.atc ?? "",
+    atc: formatCabinetAtcNumber(row.atc),
     expiry: row.expiry ?? "",
   };
 }
@@ -128,20 +136,12 @@ export function buildCabinetLocationDraft(
 export function buildCabinetFullListDrafts(
   rows: readonly HospitalDrugLabelRow[],
   category: PharmacyLabelCategory,
-  listKind: "standard" | "high-cost" = "standard",
 ) {
-  const filteredRows = category === "원병"
-    ? rows.filter((row) => listKind === "high-cost"
-      ? hasDedicatedHighCostLocation(row, category)
-      : !hasDedicatedHighCostLocation(row, category))
-    : category === "PTP"
-      ? rows.filter((row) => !hasDedicatedHighCostLocation(row, category))
-    : rows;
-  const entries = [...filteredRows]
+  const entries = [...rows]
     .sort((left, right) => {
       if (category === "ATC") {
-        const leftAtc = Number.parseInt(left.atc ?? "", 10);
-        const rightAtc = Number.parseInt(right.atc ?? "", 10);
+        const leftAtc = Number.parseInt(formatCabinetAtcNumber(left.atc), 10);
+        const rightAtc = Number.parseInt(formatCabinetAtcNumber(right.atc), 10);
         const order = (Number.isFinite(leftAtc) ? leftAtc : Number.MAX_SAFE_INTEGER)
           - (Number.isFinite(rightAtc) ? rightAtc : Number.MAX_SAFE_INTEGER);
         if (order) return order;
@@ -149,22 +149,20 @@ export function buildCabinetFullListDrafts(
       return left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true });
     })
     .map((row) => toEntry(row, category));
-  const totalPages = listKind === "high-cost" || category === "영양수액" ? 1 : 2;
+  const totalPages = ["영양수액", "경구 고가약"].includes(category) ? 1 : 2;
   const pageSize = Math.ceil(entries.length / totalPages);
   const pages = Array.from({ length: totalPages }, (_, index) => entries.slice(index * pageSize, (index + 1) * pageSize));
   return pages.map((pageEntries, index) => {
-    const suffix = listKind === "high-cost" ? "high-cost" : "standard";
-    const title = category === "원병" && listKind === "high-cost" ? "원병 고가약 리스트" : `${category} 전체 리스트`;
-    const draft = baseDraft(category, `pharmacy-cabinet-full-${category}-${suffix}-${index + 1}`);
+    const title = `${category} 전체 리스트`;
+    const draft = baseDraft(category, `pharmacy-cabinet-full-${category}-${index + 1}`);
     return {
       ...draft,
-      code: `CABINET-FULL-${category}-${suffix}-${index + 1}`,
+      code: `CABINET-FULL-${category}-${index + 1}`,
       size: { presetKey: "cabinet-full-list", widthMm: 190, heightMm: 277 },
       printable: { ...draft.printable, title },
       cabinetLayout: {
         kind: "full-list" as const,
         category,
-        listKind,
         title,
         entries: pageEntries,
         page: index + 1,
@@ -172,4 +170,27 @@ export function buildCabinetFullListDrafts(
       },
     };
   });
+}
+
+export function buildThreeTierPositionDraft(
+  entries: readonly PharmacyCabinetEntry[],
+  category: PharmacyLabelCategory,
+) {
+  const sortedEntries = [...entries].sort((left, right) => left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true }));
+  const draft = baseDraft(category, `pharmacy-three-tier-${category}`);
+  return {
+    ...draft,
+    code: `THREE-TIER-${category}`,
+    size: { presetKey: "three-tier-position", widthMm: 86, heightMm: Math.max(3, Math.ceil(sortedEntries.length / 2) * 3) },
+    printable: { ...draft.printable, title: "3단장 위치별 라벨" },
+    cabinetLayout: {
+      kind: "three-tier" as const,
+      category,
+      title: "3단장 위치별 라벨",
+      entries: sortedEntries,
+      page: 1,
+      totalPages: 1,
+      appendBlankRow: false,
+    },
+  };
 }

@@ -119,15 +119,15 @@ describe("pharmacy label workspace UI", () => {
     expect(cabinetSource).toContain("알파벳 내림차순");
     expect(cabinetSource).toContain("fullListPageCount");
     expect(cabinetSource).not.toContain("entry.koreanName");
-    expect(cabinetSource.indexOf('isAtc && <em>ATC')).toBeLessThan(
+    expect(cabinetSource.indexOf('isAtc && <em>{entry.atc')).toBeLessThan(
       cabinetSource.indexOf("<div><strong>{entry.name}</strong></div>"),
     );
-    expect(cabinetSource.indexOf("<div><strong>{entry.name}</strong></div>")).toBeLessThan(
-      cabinetSource.indexOf("<b>{entry.reference || \"-\"}</b>"),
-    );
-    expect(cabinetSource).toContain("ATC 번호 올림차순");
+    expect(cabinetSource).toContain("pharmacy-atc-detail");
+    expect(cabinetSource).toContain("ATC 번호를 세로 오름차순");
     expect(cabinetSource).toContain("전체 위치 한 번에 출력");
-    expect(cabinetSource).toContain("원병 고가약 별도 리스트");
+    expect(cabinetSource).not.toContain("원병 고가약 별도 리스트");
+    expect(cabinetSource).toContain("경구 고가약");
+    expect(cabinetSource).toContain("등록 위치를 함께 표시");
     expect(cabinetSource).toContain("blankCellCount");
     expect(cabinetSource).toContain('"원병", "PTP", "냉장주사"');
     expect(cabinetSource).toContain("A4 한 페이지의 3열 구성");
@@ -216,13 +216,16 @@ describe("pharmacy label workspace UI", () => {
   it("filters side and cap labels and places paper controls next to output", () => {
     expect(workspaceSource).toContain("pharmacy-filter-dashboard");
     expect(workspaceSource).toContain("라벨 유형");
-    expect(workspaceSource).toContain("정제 용량");
+    expect(workspaceSource).toContain("분할 용량 · 복수 선택");
     expect(workspaceSource).toContain("sideLabelHalfT");
     expect(workspaceSource).toContain("coloredSideLabel");
     expect(workspaceSource).toContain("capLabel");
     expect(workspaceSource).toContain("유색 병뚜껑");
-    expect(workspaceSource).toContain("doseUnitFilter");
+    expect(workspaceSource).toContain("doseUnitFilters");
     expect(workspaceSource).toContain("sideLabelQuarterT");
+    expect(workspaceSource).toContain("PharmacyThreeTierLocationCanvas");
+    expect(cabinetSource).toContain("3단장 위치별 라벨");
+    expect(cabinetSource).toContain("약품 1칸 3 × 43mm");
     expect(workspaceSource).toContain("pharmacy-list-search");
     expect(workspaceSource).toContain("isLabelMarked");
     expect(workspaceSource).toContain("pharmacy-condition-dashboard");

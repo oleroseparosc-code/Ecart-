@@ -64,6 +64,8 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory({ ...row, highCost: true }, "고가약", "주사")).toBe(true);
     expect(rowMatchesCategory({ ...row, highCost: true }, "고가약", "경구")).toBe(false);
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "원병" }, "고가약", "경구")).toBe(true);
+    expect(rowMatchesCategory({ ...row, highCost: true, drugType: "원병" }, "경구 고가약", "주사", "cabinet")).toBe(true);
+    expect(rowMatchesCategory({ ...row, highCost: true, drugType: "바이알" }, "경구 고가약", "주사", "cabinet")).toBe(false);
   });
 
   it("prioritizes the high-cost label over dosage-form labels", () => {

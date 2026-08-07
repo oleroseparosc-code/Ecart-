@@ -10,7 +10,7 @@ import {
 
 export type PharmacyLabelFamily = "drug" | "cabinet";
 export type PharmacyLabelCategory =
-  | "원병" | "PTP" | "ATC" | "입원산제"
+  | "원병" | "PTP" | "ATC" | "입원산제" | "경구 고가약"
   | "외용제" | "외용점안제" | "팩제" | "시럽"
   | "앰플" | "바이알" | "냉장주사" | "영양수액" | "일반수액"
   | "마약/향정" | "고가약" | "항암제";
@@ -56,7 +56,7 @@ export type PharmacyCabinetEntry = {
   expiry: string;
 };
 export type PharmacyCabinetLayout = {
-  kind: "location" | "full-list";
+  kind: "location" | "full-list" | "three-tier";
   category: PharmacyLabelCategory;
   listKind?: "standard" | "high-cost";
   title: string;
@@ -104,7 +104,10 @@ export const DRUG_CATEGORIES: PharmacyLabelCategory[][] = [
   ["고가약"],
   ["항암제"],
 ];
-export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = DRUG_CATEGORIES.slice(0, 3);
+export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = [
+  ["원병", "PTP", "ATC", "입원산제", "경구 고가약"],
+  ...DRUG_CATEGORIES.slice(1, 3),
+];
 export const PHARMACY_CATEGORY_GROUP_NAMES = ["경구", "외용", "주사"] as const;
 export type PharmacyCategoryGroupName = (typeof PHARMACY_CATEGORY_GROUP_NAMES)[number];
 const PHARMACY_TYPE_CATEGORIES = new Set<PharmacyLabelCategory>(DRUG_CATEGORIES.slice(0, 3).flat());
@@ -150,13 +153,16 @@ export function rowMatchesCategory(
   const type = row.drugType.replace(/\s+/g, "");
   if (!row.inHospital) return false;
   const pharmacyTypes = row.pharmacyLabelTypes?.map((value) => value.replace(/\s+/g, "")).filter(Boolean) ?? [];
+  const isOralHighCost = ["원병", "PTP"].some((value) => type.includes(value));
+  const isInjection = ["앰플", "바이알", "냉장주사", "주사", "영양수액", "일반수액", "항암제", "백신", "제로관리약"].some((value) => type.includes(value));
   if (family === "drug" && row.highCost && PHARMACY_TYPE_CATEGORIES.has(category)) return false;
+  if (category === "경구 고가약") return family === "cabinet" && Boolean(row.highCost) && isOralHighCost;
+  if (family === "cabinet" && row.highCost && ["원병", "PTP"].includes(category)) return false;
   if (row.pharmacyLabelTypes && PHARMACY_TYPE_CATEGORIES.has(category)) {
     return pharmacyTypes.includes(category.replace(/\s+/g, ""));
   }
   if (category === "고가약") {
     if (!row.highCost) return false;
-    const isInjection = ["앰플", "바이알", "냉장주사", "주사", "영양수액", "일반수액", "항암제"].some((value) => type.includes(value));
     return highCostRoute === "주사" ? isInjection : !isInjection;
   }
   if (category === "항암제") return Boolean(row.anticancer) || type === "항암제" || (row.highRiskCategory ?? "").includes("주사용항암제");
@@ -327,7 +333,7 @@ function getCabinetInfoForCategory(row: HospitalDrugLabelRow, category: Pharmacy
   if (category === "영양수액") return row.cabinetNutritionInfo ?? undefined;
   if (["외용제", "외용점안제", "팩제"].includes(category)) return row.cabinetExternalInfo ?? undefined;
   if (category === "시럽") return row.cabinetSyrupInfo ?? undefined;
-  if (["원병", "PTP", "ATC", "입원산제", "앰플", "바이알", "냉장주사"].includes(category)) {
+  if (["원병", "PTP", "ATC", "입원산제", "경구 고가약", "앰플", "바이알", "냉장주사"].includes(category)) {
     return row.cabinetOralInjectionInfo ?? undefined;
   }
   return undefined;
@@ -401,9 +407,11 @@ export function savePharmacyLabelDraft(draft: PharmacyLabelDraft, now = new Date
 function packPharmacyLabelsForPaper(labels: PharmacyLabelDraft[], paper: PharmacyLabelPaper) {
   const maxHeight = paper.heightMm - paper.marginMm * 2;
   const printableLabels = labels.flatMap((label) => {
-    if (label.cabinetLayout?.kind !== "location" || label.size.heightMm <= maxHeight) return [label];
-    const maxRows = Math.max(1, Math.floor(maxHeight / 5));
-    const finalCapacity = Math.max(1, (maxRows - 1) * 2);
+    if (!label.cabinetLayout || !["location", "three-tier"].includes(label.cabinetLayout.kind) || label.size.heightMm <= maxHeight) return [label];
+    const isThreeTier = label.cabinetLayout.kind === "three-tier";
+    const rowHeightMm = isThreeTier ? 3 : 5;
+    const maxRows = Math.max(1, Math.floor(maxHeight / rowHeightMm));
+    const finalCapacity = Math.max(1, (maxRows - (isThreeTier ? 0 : 1)) * 2);
     const chunks: PharmacyCabinetEntry[][] = [];
     let remaining = label.cabinetLayout.entries;
     while (remaining.length > finalCapacity) {
@@ -412,12 +420,12 @@ function packPharmacyLabelsForPaper(labels: PharmacyLabelDraft[], paper: Pharmac
     }
     chunks.push(remaining);
     return chunks.map((entries, index) => {
-      const appendBlankRow = index === chunks.length - 1;
+      const appendBlankRow = !isThreeTier && index === chunks.length - 1;
       return {
         ...label,
         id: `${label.id}-part-${index + 1}`,
         code: `${label.code}-PART-${index + 1}`,
-        size: { ...label.size, heightMm: (Math.ceil(entries.length / 2) + (appendBlankRow ? 1 : 0)) * 5 },
+        size: { ...label.size, heightMm: (Math.ceil(entries.length / 2) + (appendBlankRow ? 1 : 0)) * rowHeightMm },
         cabinetLayout: {
           ...label.cabinetLayout!,
           title: `${label.cabinetLayout!.title} (${index + 1}/${chunks.length})`,

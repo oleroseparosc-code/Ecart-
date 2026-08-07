@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import { buildCabinetFullListDrafts, buildCabinetLocationDraft, listCabinetLocations } from "./pharmacyCabinetLabels";
+import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierPositionDraft, formatCabinetAtcNumber, listCabinetLocations } from "./pharmacyCabinetLabels";
 
 function row(name: string, location: string, patch: Partial<HospitalDrugLabelRow> = {}): HospitalDrugLabelRow {
   return {
@@ -40,12 +40,13 @@ describe("pharmacy cabinet label rules", () => {
 
   it("builds exactly two ATC pages in ATC-number ascending order with expiry data", () => {
     const drafts = buildCabinetFullListDrafts([
-      row("B", "A", { atc: "20", expiry: "2027-01-31", doseCaution: true, highCost: true }),
+      row("B", "A", { atc: "ATC20", expiry: "2027-01-31", doseCaution: true, highCost: true }),
       row("A", "B", { atc: "3", oralAnticancer: true }),
       row("C", "C", { atc: "100", hazardous: true }),
     ], "ATC");
     expect(drafts).toHaveLength(2);
     expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.atc)).toEqual(["3", "20", "100"]);
+    expect(formatCabinetAtcNumber("ATC 191")).toBe("191");
     expect(drafts[0].size).toEqual({ presetKey: "cabinet-full-list", widthMm: 190, heightMm: 277 });
     expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).find((entry) => entry.name === "B")).toMatchObject({
       atc: "20",
@@ -54,29 +55,27 @@ describe("pharmacy cabinet label rules", () => {
     });
   });
 
-  it("separates only high-cost bottle drugs whose location starts with 고", () => {
-    const rows = [
-      row("Regular", "A"),
+  it("builds the oral high-cost classification as one list with workbook locations", () => {
+    const drafts = buildCabinetFullListDrafts([
       row("Premium regular shelf", "B", { highCost: true }),
       row("Premium dedicated shelf", "고-1", { highCost: true }),
-    ];
-    expect(buildCabinetFullListDrafts(rows, "원병").flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual([
-      "Premium regular shelf",
-      "Regular",
+    ], "경구 고가약");
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0].cabinetLayout?.title).toBe("경구 고가약 전체 리스트");
+    expect(drafts[0].cabinetLayout?.entries.map((entry) => [entry.name, entry.location])).toEqual([
+      ["Premium dedicated shelf", "고-1"],
+      ["Premium regular shelf", "B"],
     ]);
-    const highCostDrafts = buildCabinetFullListDrafts(rows, "원병", "high-cost");
-    expect(highCostDrafts).toHaveLength(1);
-    expect(highCostDrafts[0].cabinetLayout?.title).toBe("원병 고가약 리스트");
-    expect(highCostDrafts[0].cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Premium dedicated shelf"]);
   });
 
-  it("keeps high-cost drugs in PTP unless their location starts with 고", () => {
-    const drafts = buildCabinetFullListDrafts([
-      row("Regular PTP", "A", { drugType: "PTP" }),
-      row("Premium PTP", "B", { drugType: "PTP", highCost: true }),
-      row("Dedicated Premium PTP", "고-2", { drugType: "PTP", highCost: true }),
+  it("builds 43 by 3mm three-tier cells in two columns and keeps dose variants distinct", () => {
+    const draft = buildThreeTierPositionDraft([
+      { code: "A::0.5T", name: "Alpha 0.5T", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+      { code: "A::0.25T", name: "Alpha 0.25T", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
+      { code: "B::1T", name: "Bravo 1T", koreanName: "", reference: "", location: "", atc: "", expiry: "" },
     ], "PTP");
-    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.name)).toEqual(["Premium PTP", "Regular PTP"]);
+    expect(draft.size).toEqual({ presetKey: "three-tier-position", widthMm: 86, heightMm: 6 });
+    expect(draft.cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Alpha 0.5T", "Alpha 0.25T", "Bravo 1T"]);
   });
 
   it("adds vaccines to the refrigerated-injection cabinet under the vaccine refrigerator", () => {
