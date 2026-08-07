@@ -190,14 +190,15 @@ export function threeTierDoseUnitsForCategory(
   const types = [row.drugType, ...(row.pharmacyLabelTypes ?? [])].map((value) => value.replace(/\s+/g, ""));
   if (!types.some((value) => value === "원병" || value === "PTP")) return [];
   const marked = (value?: string) => value?.trim().toUpperCase() === "Y";
-  const half = Boolean(row.labelDoseHalfT || marked(row.sideLabelHalfT));
-  const quarter = Boolean(row.labelDoseQuarterT || marked(row.sideLabelQuarterT));
+  const one = marked(row.sideLabel1T);
+  const half = marked(row.sideLabelHalfT);
+  const quarter = marked(row.sideLabelQuarterT);
   if (category === "유색라벨") {
     if (!marked(row.coloredSideLabel)) return [];
-    return [half ? "0.5T" : "", quarter ? "0.25T" : ""].filter(Boolean) as NonNullable<PharmacyLabelDraft["doseUnit"]>[];
+    const markedDoses = [one ? "1T" : "", half ? "0.5T" : "", quarter ? "0.25T" : ""].filter(Boolean) as NonNullable<PharmacyLabelDraft["doseUnit"]>[];
+    return markedDoses.length ? markedDoses : ["1T"];
   }
-  if (!Boolean(row.sideLabel || [row.sideLabel1T, row.sideLabelHalfT, row.sideLabelQuarterT].some(marked))) return [];
-  const one = Boolean(row.labelDose1T || marked(row.sideLabel1T) || (!half && !quarter));
+  if (!one && !half && !quarter) return [];
   return [one ? "1T" : "", half ? "0.5T" : "", quarter ? "0.25T" : ""].filter(Boolean) as NonNullable<PharmacyLabelDraft["doseUnit"]>[];
 }
 

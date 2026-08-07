@@ -2,7 +2,7 @@ import { FileDown, Printer } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
 import { buildCabinetFullListDrafts, buildCabinetLocationDraft, buildThreeTierEntries, buildThreeTierPositionDraft, cabinetAlphabetKey, listCabinetLocations } from "./pharmacyCabinetLabels";
-import { formatPharmacyExpiry, type PharmacyCabinetEntry, type PharmacyCabinetLayout, type PharmacyLabelCategory, type PharmacyLabelDraft } from "./pharmacyLabelStudio";
+import { formatPharmacyExpiry, splitDoseText, type PharmacyCabinetEntry, type PharmacyCabinetLayout, type PharmacyLabelCategory, type PharmacyLabelDraft } from "./pharmacyLabelStudio";
 
 type Props = {
   category: PharmacyLabelCategory;
@@ -14,10 +14,15 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   if (layout.kind === "three-tier") {
     const blankCellCount = layout.entries.length % 2;
     return <div className="pharmacy-three-tier-label" aria-label={layout.title}>
-      {layout.entries.map((entry) => <div className={`pharmacy-three-tier-cell ${entry.doseHighlighted ? "dose-warning" : ""}`} key={entry.code}>
-        <strong>{entry.name}</strong>
-        {entry.doseUnit && <b className={`pharmacy-three-tier-dose dose-${entry.doseUnit.replace(".", "-").toLowerCase()}`}>{entry.doseUnit === "1T" ? "" : entry.doseUnit}</b>}
-      </div>)}
+      {layout.entries.map((entry) => {
+        const nameParts = splitDoseText(entry.name);
+        return <div className="pharmacy-three-tier-cell" key={entry.code}>
+          <strong>{entry.doseHighlighted && nameParts.dose
+            ? <>{nameParts.before}<mark className="pharmacy-three-tier-name-dose">{nameParts.dose}</mark>{nameParts.after}</>
+            : entry.name}</strong>
+          {entry.doseUnit && <b className={`pharmacy-three-tier-dose dose-${entry.doseUnit.replace(".", "-").toLowerCase()}`}>{entry.doseUnit === "1T" ? "" : entry.doseUnit}</b>}
+        </div>;
+      })}
       {blankCellCount > 0 && <div className="pharmacy-three-tier-cell blank" aria-label="빈 칸"/>}
     </div>;
   }

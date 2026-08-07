@@ -234,7 +234,8 @@ describe("pharmacy label workspace UI", () => {
     expect(cabinetSource).toContain('entry.doseUnit === "1T" ? ""');
     expect(stylesSource).toContain("dose-0-5t");
     expect(stylesSource).toContain("dose-0-25t");
-    expect(stylesSource).toContain("dose-warning");
+    expect(cabinetSource).toContain("pharmacy-three-tier-name-dose");
+    expect(stylesSource).toContain("pharmacy-three-tier-name-dose");
     expect(workspaceSource).toContain("pharmacy-list-search");
     expect(workspaceSource).toContain("isLabelMarked");
     expect(workspaceSource).toContain("pharmacy-condition-dashboard");

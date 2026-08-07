@@ -71,10 +71,13 @@ describe("pharmacy label studio rules", () => {
 
   it("combines original-bottle and PTP rows for colored and side-label cabinet categories", () => {
     const original = { ...row, drugType: "원병", coloredSideLabel: "Y", sideLabel: true, sideLabelHalfT: "Y", sideLabelQuarterT: "Y" };
-    const ptp = { ...row, drugType: "PTP", sideLabel: true };
+    const ptp = { ...row, drugType: "PTP", sideLabel: true, sideLabel1T: "Y" };
+    const coloredWithoutSplitDose = { ...row, drugType: "원병", coloredSideLabel: "Y" };
     expect(threeTierDoseUnitsForCategory(original, "유색라벨")).toEqual(["0.5T", "0.25T"]);
     expect(threeTierDoseUnitsForCategory(original, "측면라벨")).toEqual(["0.5T", "0.25T"]);
     expect(threeTierDoseUnitsForCategory(ptp, "측면라벨")).toEqual(["1T"]);
+    expect(threeTierDoseUnitsForCategory(coloredWithoutSplitDose, "유색라벨")).toEqual(["1T"]);
+    expect(threeTierDoseUnitsForCategory({ ...ptp, sideLabel1T: "", labelDose1T: true }, "측면라벨")).toEqual([]);
     expect(rowMatchesCategory(original, "유색라벨", "경구", "cabinet")).toBe(true);
     expect(rowMatchesCategory(ptp, "측면라벨", "경구", "cabinet")).toBe(true);
   });

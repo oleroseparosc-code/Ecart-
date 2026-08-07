@@ -7746,7 +7746,8 @@ button {
   color: #155eef;
 }
 
-.pharmacy-three-tier-cell.dose-warning .pharmacy-three-tier-dose {
+.pharmacy-three-tier-name-dose {
+  color: #dc2626;
   background: #fff200;
 }
 

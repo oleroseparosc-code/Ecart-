@@ -87,6 +87,9 @@ describe("pharmacy cabinet label rules", () => {
       ["Original", "0.5T", true],
       ["Ptp", "0.25T", true],
     ]);
+    expect(buildThreeTierEntries([
+      row("Colored default", "C", { coloredSideLabel: "Y" }),
+    ], "유색라벨").map((entry) => [entry.name, entry.doseUnit])).toEqual([["Colored default", "1T"]]);
   });
 
   it("adds vaccines to the refrigerated-injection cabinet under the vaccine refrigerator", () => {
