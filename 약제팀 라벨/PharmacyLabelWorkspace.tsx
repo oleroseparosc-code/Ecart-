@@ -16,6 +16,7 @@ import {
   extractHex, formatPharmacyExpiry,
   splitDoseText, splitNutritionDoseParts, splitNutritionDoseText, splitStyledPharmacyTitle,
   type PharmacyLabelCategory, type PharmacyLabelDraft, type PharmacyLabelFamily, type PharmacySavedLabel,
+  type PharmacyTitleStyle,
   type PharmacyHighCostRoute,
   type PharmacyCategoryGroupName,
 } from "./pharmacyLabelStudio";
@@ -61,10 +62,15 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const [accessoryFilter, setAccessoryFilter] = useState<"" | "측면라벨" | "유색 측면라벨" | "병뚜껑" | "유색 병뚜껑">("");
   const [titleSelection, setTitleSelection] = useState({ start: 0, end: 0 });
   const [selectedTitleFontSize, setSelectedTitleFontSize] = useState(30);
+  const [selectedTitleFontSizeChanged, setSelectedTitleFontSizeChanged] = useState(false);
   const [selectedTitleColor, setSelectedTitleColor] = useState("#111827");
+  const [selectedTitleColorChanged, setSelectedTitleColorChanged] = useState(false);
   const [selectedTitleBackgroundColor, setSelectedTitleBackgroundColor] = useState("#ffffff");
+  const [selectedTitleBackgroundMode, setSelectedTitleBackgroundMode] = useState<"unchanged" | "none" | "color">("unchanged");
   const [selectedTitleBold, setSelectedTitleBold] = useState(false);
+  const [selectedTitleBoldChanged, setSelectedTitleBoldChanged] = useState(false);
   const [selectedTitleTransform, setSelectedTitleTransform] = useState<"none" | "uppercase" | "lowercase">("none");
+  const [selectedTitleTransformChanged, setSelectedTitleTransformChanged] = useState(false);
   const [stagedLabels, setStagedLabels] = useState<PharmacyLabelDraft[]>([]);
   const [stagedLabelIds, setStagedLabelIds] = useState<string[]>([]);
   const titleEditorRef = useRef<HTMLTextAreaElement>(null);
@@ -251,14 +257,27 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
 
   function applyTitleStyle(style: { fontSizePt?: number; color?: string; backgroundColor?: string; fontWeight?: number; textTransform?: "none" | "uppercase" | "lowercase" }) {
     if (!draft || titleSelection.end <= titleSelection.start) return;
-    const preservedStyles = (draft.titleStyles ?? []).flatMap((existing) => {
-      if (existing.end <= titleSelection.start || existing.start >= titleSelection.end) return [existing];
-      return [
-        ...(existing.start < titleSelection.start ? [{ ...existing, end: titleSelection.start }] : []),
-        ...(existing.end > titleSelection.end ? [{ ...existing, start: titleSelection.end }] : []),
-      ];
+    if (Object.keys(style).length === 0) return;
+    const existingStyles = draft.titleStyles ?? [];
+    const points = [...new Set([
+      0,
+      draft.printable.title.length,
+      titleSelection.start,
+      titleSelection.end,
+      ...existingStyles.flatMap((existing) => [existing.start, existing.end]),
+    ])].sort((a, b) => a - b);
+    const titleStyles = points.slice(0, -1).flatMap((start, index) => {
+      const end = points[index + 1];
+      const existing = existingStyles
+        .filter((item) => item.start <= start && item.end >= end)
+        .reduce<PharmacyTitleStyle>((result, item) => ({ ...result, ...item }), { start, end });
+      const nextStyle = start >= titleSelection.start && end <= titleSelection.end
+        ? { ...existing, ...style }
+        : existing;
+      const { start: _start, end: _end, ...properties } = nextStyle;
+      return Object.keys(properties).length ? [{ start, end, ...properties }] : [];
     });
-    patch({ titleStyles: [...preservedStyles, { ...titleSelection, ...style }] });
+    patch({ titleStyles });
   }
 
   function chooseAccessory(value: PharmacyLabelDraft["accessory"]) {
@@ -534,8 +553,8 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
         <details open><summary>표시 내용</summary><div className="pharmacy-tool-body">
           <label>상용약품명<textarea ref={titleEditorRef} value={draft?.printable.title ?? ""} onSelect={(e) => { const start = e.currentTarget.selectionStart; const end = e.currentTarget.selectionEnd; if (end > start) setTitleSelection({ start, end }); }} onChange={(e) => draft && patch({ printable: { ...draft.printable, title: e.target.value }, titleStyles: [] })}/></label>
           <div className="pharmacy-title-style-dashboard"><strong>약품명 부분 편집</strong><small>{titleSelection.end > titleSelection.start ? `"${draft?.printable.title.slice(titleSelection.start, titleSelection.end)}" 선택됨` : "위 약품명에서 편집할 부분을 드래그하여 선택하십시오."}</small>
-            <div className="pharmacy-title-style-control"><label>글자 크기<input type="number" min="6" max="48" value={selectedTitleFontSize} onChange={(e) => setSelectedTitleFontSize(Number(e.target.value))}/></label><label>글자 색상<input type="color" value={selectedTitleColor} onChange={(e) => setSelectedTitleColor(e.target.value)}/></label><label>배경색<input type="color" value={selectedTitleBackgroundColor} onChange={(e) => setSelectedTitleBackgroundColor(e.target.value)}/></label></div>
-            <div className="pharmacy-title-style-control"><label><input type="checkbox" checked={selectedTitleBold} onChange={(e) => setSelectedTitleBold(e.target.checked)}/>굵게</label><label><input type="radio" name="title-case" checked={selectedTitleTransform === "uppercase"} onChange={() => setSelectedTitleTransform("uppercase")}/>대문자</label><label><input type="radio" name="title-case" checked={selectedTitleTransform === "lowercase"} onChange={() => setSelectedTitleTransform("lowercase")}/>소문자</label><label><input type="radio" name="title-case" checked={selectedTitleTransform === "none"} onChange={() => setSelectedTitleTransform("none")}/>원문</label><button type="button" onClick={() => applyTitleStyle({ fontSizePt: selectedTitleFontSize, color: selectedTitleColor, backgroundColor: selectedTitleBackgroundColor, fontWeight: selectedTitleBold ? 1000 : undefined, textTransform: selectedTitleTransform })}>선택 부분 수정 적용</button><button type="button" onClick={() => draft && patch({ titleStyles: [] })}>부분 서식 초기화</button></div>
+            <div className="pharmacy-title-style-control"><label>글자 크기<input type="number" min="6" max="48" value={selectedTitleFontSize} onChange={(e) => { setSelectedTitleFontSize(Number(e.target.value)); setSelectedTitleFontSizeChanged(true); }}/></label><label>글자 색상<input type="color" value={selectedTitleColor} onChange={(e) => { setSelectedTitleColor(e.target.value); setSelectedTitleColorChanged(true); }}/></label><label>배경색<input type="color" value={selectedTitleBackgroundColor} disabled={selectedTitleBackgroundMode === "none"} onChange={(e) => { setSelectedTitleBackgroundColor(e.target.value); setSelectedTitleBackgroundMode("color"); }}/></label><label><input type="checkbox" checked={selectedTitleBackgroundMode === "none"} onChange={(e) => setSelectedTitleBackgroundMode(e.target.checked ? "none" : "unchanged")}/>배경색 없음</label></div>
+            <div className="pharmacy-title-style-control"><label><input type="checkbox" checked={selectedTitleBold} onChange={(e) => { setSelectedTitleBold(e.target.checked); setSelectedTitleBoldChanged(true); }}/>굵게</label><label><input type="radio" name="title-case" checked={selectedTitleTransform === "uppercase"} onChange={() => { setSelectedTitleTransform("uppercase"); setSelectedTitleTransformChanged(true); }}/>대문자</label><label><input type="radio" name="title-case" checked={selectedTitleTransform === "lowercase"} onChange={() => { setSelectedTitleTransform("lowercase"); setSelectedTitleTransformChanged(true); }}/>소문자</label><label><input type="radio" name="title-case" checked={selectedTitleTransform === "none"} onChange={() => { setSelectedTitleTransform("none"); setSelectedTitleTransformChanged(true); }}/>원문</label><button type="button" onClick={() => { applyTitleStyle({ ...(selectedTitleFontSizeChanged ? { fontSizePt: selectedTitleFontSize } : {}), ...(selectedTitleColorChanged ? { color: selectedTitleColor } : {}), ...(selectedTitleBackgroundMode === "none" ? { backgroundColor: "transparent" } : selectedTitleBackgroundMode === "color" ? { backgroundColor: selectedTitleBackgroundColor } : {}), ...(selectedTitleBoldChanged ? { fontWeight: selectedTitleBold ? 1000 : 400 } : {}), ...(selectedTitleTransformChanged ? { textTransform: selectedTitleTransform } : {}) }); setSelectedTitleFontSizeChanged(false); setSelectedTitleColorChanged(false); setSelectedTitleBackgroundMode("unchanged"); setSelectedTitleBoldChanged(false); setSelectedTitleTransformChanged(false); }}>선택 부분 수정 적용</button><button type="button" onClick={() => draft && patch({ titleStyles: [] })}>부분 서식 초기화</button></div>
           </div>
           <label>한글약품명<input value={draft?.printable.koreanName ?? ""} onChange={(e) => draft && patch({ printable: { ...draft.printable, koreanName: e.target.value } })}/></label><label>용량<input value={draft?.printable.strength ?? ""} onChange={(e) => draft && patch({ printable: { ...draft.printable, strength: e.target.value } })}/></label><label>약품 위치<input value={draft?.location ?? ""} onChange={(e) => patch({ location: e.target.value })}/></label><label>ATC 번호<input value={draft?.atc ?? ""} onChange={(e) => patch({ atc: e.target.value })}/></label>{displayCategory === "항암제" && <label>재구성·용해액(WI/NS)<input value={draft?.printable.reconstitution ?? ""} onChange={(e) => draft && patch({ printable: { ...draft.printable, reconstitution: e.target.value } })}/></label>}
         </div></details>

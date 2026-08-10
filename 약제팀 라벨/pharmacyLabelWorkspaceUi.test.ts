@@ -207,9 +207,10 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain('selectedTitleTransform === "uppercase"');
     expect(workspaceSource).toContain('selectedTitleTransform === "lowercase"');
     expect(workspaceSource).toContain("배경색");
+    expect(workspaceSource).toContain("배경색 없음");
     expect(workspaceSource).toContain("선택 부분 수정 적용");
-    expect(workspaceSource).toContain("fontWeight: selectedTitleBold ? 1000 : undefined");
-    expect(workspaceSource).toContain("const preservedStyles");
+    expect(workspaceSource).toContain("selectedTitleFontSizeChanged ? { fontSizePt: selectedTitleFontSize }");
+    expect(workspaceSource).toContain("const titleStyles");
     expect(workspaceSource).toContain("if (end > start) setTitleSelection");
   });
 
