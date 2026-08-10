@@ -6,7 +6,7 @@ const distDir = path.resolve("dist");
 const indexPath = path.join(distDir, "index.html");
 const appStatePath = path.resolve("app-state", "shared-state.json");
 const routes = ["viewer", "pharmacy-viewer", "pharmacy-label-editor", "narcotic-viewer"];
-const assetVersion = "20260722a";
+const assetVersion = "20260810b";
 
 export function versionAssetLinks(html, version = assetVersion) {
   return html.replace(/(src|href)="(\/Ecart-\/assets\/[^"?]+\.(?:js|css))"/g, `$1="$2?v=${version}"`);

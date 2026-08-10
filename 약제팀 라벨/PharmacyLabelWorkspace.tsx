@@ -144,7 +144,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const isColoredSideLabel = draft?.accessory === "유색 측면라벨";
   const isSideLabel = draft?.accessory === "측면라벨" || isColoredSideLabel;
   const isAmpouleHolder = draft?.accessory === "앰플꽂이"
-    || (draft?.category === "앰플" && activeRow?.ampouleHolder?.trim().toUpperCase() === "Y");
+    || activeRow?.ampouleHolder?.trim().toUpperCase() === "Y";
   const hasCustomOuterBorderColor = Boolean(draft?.style.outerBorderPx && draft.style.outerBorderColor.toLowerCase() !== "#111827");
   const displayCategory = draft?.category ?? activeCategory;
   const isExternalShelfLabel = ["외용제", "외용점안제", "팩제", "시럽"].includes(displayCategory) && draft?.size.presetKey === "13.5x105";
@@ -519,6 +519,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
             {!isCapLabel && !isExternalShelfLabel && draft.atc && <small className="pharmacy-label-atc">ATC {draft.atc}</small>}
             {!isCapLabel && !isExternalShelfLabel && draft.location && <small className="pharmacy-label-location">{draft.location}</small>}
             {!isExternalShelfLabel && draft.printable.reconstitution && <em>{draft.printable.reconstitution}</em>}</div>
+          {isAmpouleHolder && <div className="pharmacy-ampoule-holder">앰플꽂이</div>}
           {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) && <footer className={displayCategory === "항암제" ? "anticancer-footer" : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : displayCategory === "항암제" ? "항암제" : draft.printable.footer.text}</footer>}
           </>}
         </article> : <span className="empty">표시할 라벨이 없습니다.</span>}</div>

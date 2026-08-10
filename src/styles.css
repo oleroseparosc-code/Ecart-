@@ -6143,8 +6143,7 @@ button {
   grid-row: 1 / 3;
 }
 
-.pharmacy-print-label.has-ampoule-holder::after {
-  content: "앰플꽂이";
+.pharmacy-ampoule-holder {
   grid-column: 1 / -1;
   grid-row: 3;
   display: flex;
