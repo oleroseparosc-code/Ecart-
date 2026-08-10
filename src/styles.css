@@ -6087,7 +6087,7 @@ button {
   border-bottom: 0;
 }
 
-.pharmacy-label-main span {
+.pharmacy-label-main > span {
   margin-top: 1mm;
   font-size: .48em;
 }
