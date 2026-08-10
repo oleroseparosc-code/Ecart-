@@ -5712,6 +5712,11 @@ button {
 .pharmacy-print-label.general-fluid-label.fluid-tone-yellow .pharmacy-label-main strong { color: #ca8a04; }
 .pharmacy-print-label.general-fluid-label.fluid-tone-red .pharmacy-label-main strong { color: #dc2626; }
 .pharmacy-print-label.general-fluid-label.fluid-tone-purple .pharmacy-label-main strong { color: #7c3aed; }
+.pharmacy-print-label.general-fluid-label.custom-general-fluid-text-color .pharmacy-label-main strong { color: var(--pharmacy-label-color) !important; }
+
+.drug-label-item.label-kind-fluid.saved-general-fluid-text-color h3.fluid-name {
+  color: var(--saved-general-fluid-text-color) !important;
+}
 
 .pharmacy-title-style-dashboard {
   display: grid;

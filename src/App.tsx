@@ -3609,6 +3609,13 @@ export function App() {
 
   function renderDrugLabelArticle(entry: PrintableDrugLabel, key: string) {
     const { row, sizeKey } = entry;
+    const savedGeneralFluidLabel = savedPharmacyLabels.find((label) =>
+      label.labelFamily === "drug"
+      && label.category === "일반수액"
+      && label.code.trim().toUpperCase() === row.code.trim().toUpperCase(),
+    );
+    const savedGeneralFluidTextColor = savedGeneralFluidLabel?.style.fontColor?.trim();
+    const hasSavedGeneralFluidTextColor = Boolean(savedGeneralFluidTextColor && savedGeneralFluidTextColor.toLowerCase() !== "#111827");
     const flagLabels = labelFlagLabels(row);
     const hasPositionedMandatoryDilution = flagLabels.includes(MANDATORY_DILUTION_LABEL)
       && ["10x70", "15x95", "55x95", "35x100"].includes(sizeKey);
@@ -3633,6 +3640,7 @@ export function App() {
       nameClass,
       fluidTone ? "fluid-label" : "",
       fluidTone ? `fluid-tone-${fluidTone}` : "",
+      hasSavedGeneralFluidTextColor ? "saved-general-fluid-text-color" : "",
       row.highRisk ? "high-risk-label" : "",
       isLightProtected ? "light-protected-label" : "",
       hasRedPriority ? "has-red-priority-label" : "",
@@ -3647,7 +3655,7 @@ export function App() {
       .join(" ");
 
     return (
-      <article className={className} style={labelSizeCssVars(sizeKey)} key={key}>
+      <article className={className} style={{ ...labelSizeCssVars(sizeKey), "--saved-general-fluid-text-color": savedGeneralFluidTextColor } as CSSProperties} key={key}>
         {isNarcoticFortyLabel ? renderNarcoticFortyTopline(row) : renderLabelTopline(toplineRow, sizeKey)}
         <h3 className={fluidTone ? `fluid-name ${fluidTone}` : undefined}>
           {isNarcoticFortyLabel
