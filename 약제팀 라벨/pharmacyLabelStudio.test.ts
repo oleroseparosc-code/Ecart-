@@ -194,6 +194,20 @@ describe("pharmacy label studio rules", () => {
     expect(resolved.style.outerBorderColor).toBe("#22C55E");
   });
 
+  it("uses the latest saved copy for the same drug label", () => {
+    const base = createPharmacyLabelDraft(row, "바이알", "drug");
+    const older = savePharmacyLabelDraft({
+      ...base,
+      printable: { ...base.printable, title: "이전 라벨" },
+    }, new Date("2026-08-10T00:00:00.000Z"));
+    const latest = savePharmacyLabelDraft({
+      ...older,
+      id: "latest-copy",
+      printable: { ...older.printable, title: "수정 라벨" },
+    }, new Date("2026-08-10T00:00:00.000Z"));
+    expect(resolvePharmacyLabelDraft({ ...row, code: row.code.toLowerCase() }, [older, latest], base.category, base.labelFamily).printable.title).toBe("수정 라벨");
+  });
+
   it("refreshes a saved label with the current shared master warnings", () => {
     const currentMasterRow = {
       ...row,

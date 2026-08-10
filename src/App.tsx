@@ -3130,8 +3130,8 @@ export function App() {
     const savedAt = new Date().toISOString();
     const saved = drafts.map((draft) => ({ ...draft, sourceType: "manual" as const, savedAt }));
     setSavedPharmacyLabels((previous) => {
-      const savedIds = new Set(saved.map((label) => label.id));
-      const next = [...previous.filter((label) => !savedIds.has(label.id)), ...saved];
+      const savedKeys = new Set(saved.map((label) => `${label.labelFamily}|${label.category}|${label.code.trim().toUpperCase()}`));
+      const next = [...previous.filter((label) => !savedKeys.has(`${label.labelFamily}|${label.category}|${label.code.trim().toUpperCase()}`)), ...saved];
       writeSavedPharmacyLabelsToStorage(window.localStorage, next);
       return next;
     });

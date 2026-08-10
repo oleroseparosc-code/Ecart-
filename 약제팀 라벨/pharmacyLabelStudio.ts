@@ -387,8 +387,9 @@ export function resolvePharmacyLabelDraft(
   family: PharmacyLabelFamily,
 ) {
   const saved = savedLabels
-    .filter((label) => label.code === row.code && label.category === category && label.labelFamily === family)
-    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))[0];
+    .filter((label) => label.code.trim().toUpperCase() === row.code.trim().toUpperCase() && label.category === category && label.labelFamily === family)
+    .sort((a, b) => a.savedAt.localeCompare(b.savedAt))
+    .pop();
   if (!saved) return createPharmacyLabelDraft(row, category, family);
   const cabinetInfo = family === "cabinet" ? getCabinetInfoForCategory(row, category) : undefined;
   const sharedWarnings = new Set<string>(WARNING_OPTIONS);
