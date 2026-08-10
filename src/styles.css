@@ -7649,6 +7649,39 @@ button {
   align-items: end;
 }
 
+.pharmacy-cabinet-full-list.refrigerated-list .pharmacy-cabinet-full-list-row {
+  grid-template-columns: minmax(0, 1fr) 14mm;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: .25mm .5mm;
+}
+
+.pharmacy-cabinet-full-list.refrigerated-list .pharmacy-cabinet-full-list-row > div:first-of-type {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+}
+
+.pharmacy-cabinet-full-list.refrigerated-list .cabinet-entry-location {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  color: #155eef;
+  font-size: 6.2pt;
+  font-style: normal;
+  font-weight: 1000;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pharmacy-cabinet-full-list.refrigerated-list .cabinet-entry-warning {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  color: #c81e1e;
+  font-size: 4.8pt;
+  text-align: right;
+}
+
 .pharmacy-cabinet-full-list-row .cabinet-entry-details {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

@@ -37,6 +37,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
     </div>;
   }
   const isAtc = layout.category === "ATC";
+  const isRefrigeratedList = layout.category === "냉장주사";
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
   const showsLocation = isExternalList || ["경구 고가약", "앰플", "바이알", "냉장주사", "영양수액"].includes(layout.category);
@@ -47,7 +48,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
     "--cabinet-list-columns": columnCount,
     "--cabinet-list-rows": rowCount,
   } as CSSProperties;
-  return <div className={`pharmacy-cabinet-full-list ${isAtc ? "atc-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
+  return <div className={`pharmacy-cabinet-full-list ${isAtc ? "atc-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
     <header><strong>{layout.title}</strong><span>{layout.page} / {layout.totalPages}</span></header>
     <div className="pharmacy-cabinet-full-list-grid" style={gridStyle}>
       {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""} ${showsLocation && !isAtc ? "with-category-details" : ""}`} key={entry.code}>
@@ -55,6 +56,8 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
         <div><strong>{entry.name}</strong></div>
         {isAtc
           ? <section className="pharmacy-atc-detail">{entry.reference && <b>{entry.reference}</b>}<time>{formatPharmacyExpiry(entry.expiry) || "유효기간 미입력"}</time></section>
+          : isRefrigeratedList
+            ? <><em className="cabinet-entry-location">위치: {entry.location}</em><b className="cabinet-entry-warning">주의: {entry.reference || "없음"}</b></>
           : showsLocation
             ? <div className="cabinet-entry-details"><b>주의: {entry.reference || "없음"}</b><em>위치: {entry.location || "미입력"}</em></div>
             : <b>{entry.reference || "-"}</b>}
@@ -113,7 +116,7 @@ export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
       </div>
     </section>}
     <section className="pharmacy-cabinet-full-section">
-      <div className="pharmacy-cabinet-section-head"><div><h3>{category} 전체 리스트</h3><p>{category === "ATC" ? "ATC 번호를 세로 오름차순으로 정렬하고 주의·유효기간을 두 행으로 표시합니다." : category === "경구 고가약" ? "엑셀에서 경구 고가약으로 분류된 전체 약품과 등록 위치를 함께 표시합니다." : category === "영양수액" ? "A4 한 페이지의 3열 구성으로 빈 공간을 줄여 정렬합니다." : ["외용제", "외용점안제", "팩제", "시럽"].includes(category) ? "약품명, 주의 분류와 약품장 위치를 함께 표시합니다." : ["원병", "PTP"].includes(category) ? "영문 상용약품명과 주의·항암제·고가약 분류만 표시합니다." : "약품명과 주의·항암제·고가약 분류를 표시합니다."}</p></div></div>
+      <div className="pharmacy-cabinet-section-head"><div><h3>{category} 전체 리스트</h3><p>{category === "ATC" ? "ATC 번호를 세로 오름차순으로 정렬하고 주의·유효기간을 두 행으로 표시합니다." : category === "냉장주사" ? "위치가 있는 약품만 표시하고, 약품명 오른쪽에 엑셀 위치를 고정 표시합니다." : category === "경구 고가약" ? "엑셀에서 경구 고가약으로 분류된 전체 약품과 등록 위치를 함께 표시합니다." : category === "영양수액" ? "A4 한 페이지의 3열 구성으로 빈 공간을 줄여 정렬합니다." : ["외용제", "외용점안제", "팩제", "시럽"].includes(category) ? "약품명, 주의 분류와 약품장 위치를 함께 표시합니다." : ["원병", "PTP"].includes(category) ? "영문 상용약품명과 주의·항암제·고가약 분류만 표시합니다." : "약품명과 주의·항암제·고가약 분류를 표시합니다."}</p></div></div>
       <div className={`pharmacy-cabinet-page-thumbnails ${fullListPageCount === 1 ? "single-page" : ""}`}>
         {fullListDrafts.map((draft) => draft.cabinetLayout && <div key={draft.id}><PharmacyCabinetLayoutView layout={draft.cabinetLayout}/></div>)}
       </div>
