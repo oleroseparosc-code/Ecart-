@@ -143,7 +143,8 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const isColoredCapLabel = draft?.accessory === "유색 병뚜껑";
   const isColoredSideLabel = draft?.accessory === "유색 측면라벨";
   const isSideLabel = draft?.accessory === "측면라벨" || isColoredSideLabel;
-  const isAmpouleHolder = draft?.accessory === "앰플꽂이";
+  const isAmpouleHolder = draft?.accessory === "앰플꽂이"
+    || (draft?.category === "앰플" && activeRow?.ampouleHolder?.trim().toUpperCase() === "Y");
   const hasCustomOuterBorderColor = Boolean(draft?.style.outerBorderPx && draft.style.outerBorderColor.toLowerCase() !== "#111827");
   const displayCategory = draft?.category ?? activeCategory;
   const isExternalShelfLabel = ["외용제", "외용점안제", "팩제", "시럽"].includes(displayCategory) && draft?.size.presetKey === "13.5x105";

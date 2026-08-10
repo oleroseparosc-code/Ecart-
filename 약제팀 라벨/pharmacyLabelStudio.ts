@@ -404,18 +404,22 @@ export function resolvePharmacyLabelDraft(
   if (requiresMandatoryDilutionLabel(row.code) && !warnings.includes(MANDATORY_DILUTION_LABEL)) {
     warnings.push(MANDATORY_DILUTION_LABEL);
   }
+  const accessory = category === "앰플"
+    ? row.ampouleHolder?.trim().toUpperCase() === "Y" ? "앰플꽂이" : undefined
+    : saved.accessory;
   const workbookBorderColor = extractHex(row.borderColor);
   const hasWorkbookBorder = row.border || Boolean(workbookBorderColor);
   return {
     ...saved,
+    accessory,
     itemCode: saved.itemCode,
     location: saved.location,
     atc: saved.atc,
     expiry: cabinetInfo?.expiry || row.expiry || "",
     imagePath: row.imagePath ?? "",
     imageSourceUrl: row.imageSourceUrl ?? "",
-    backgroundColor: saved.accessory === "유색 측면라벨" || saved.accessory === "유색 병뚜껑"
-      ? extractHex(row.coloredSideBackground) || (saved.accessory === "유색 병뚜껑" ? extractHex(row.capBackground) : "") || saved.backgroundColor
+    backgroundColor: accessory === "유색 측면라벨" || accessory === "유색 병뚜껑"
+      ? extractHex(row.coloredSideBackground) || (accessory === "유색 병뚜껑" ? extractHex(row.capBackground) : "") || saved.backgroundColor
       : saved.backgroundColor,
     warnings,
     printable: { ...saved.printable, warning: warnings.join(" · ") },
