@@ -134,7 +134,6 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
       const workbookBorderColor = extractHex(row.borderColor);
       if (row.border || workbookBorderColor || rowCategory === "고가약") {
         next.style.outerBorderPx = 5;
-        next.style.outerBorderColor = workbookBorderColor || next.style.outerBorderColor;
       }
       if (draft.accessory === "유색 측면라벨") {
         next.backgroundColor = extractHex(row.coloredSideBackground) || draft.backgroundColor;
@@ -252,7 +251,14 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
 
   function applyTitleStyle(style: { fontSizePt?: number; color?: string; backgroundColor?: string; fontWeight?: number; textTransform?: "none" | "uppercase" | "lowercase" }) {
     if (!draft || titleSelection.end <= titleSelection.start) return;
-    patch({ titleStyles: [...(draft.titleStyles ?? []), { ...titleSelection, ...style }] });
+    const preservedStyles = (draft.titleStyles ?? []).flatMap((existing) => {
+      if (existing.end <= titleSelection.start || existing.start >= titleSelection.end) return [existing];
+      return [
+        ...(existing.start < titleSelection.start ? [{ ...existing, end: titleSelection.start }] : []),
+        ...(existing.end > titleSelection.end ? [{ ...existing, start: titleSelection.end }] : []),
+      ];
+    });
+    patch({ titleStyles: [...preservedStyles, { ...titleSelection, ...style }] });
   }
 
   function chooseAccessory(value: PharmacyLabelDraft["accessory"]) {

@@ -209,6 +209,7 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("배경색");
     expect(workspaceSource).toContain("선택 부분 수정 적용");
     expect(workspaceSource).toContain("fontWeight: selectedTitleBold ? 1000 : undefined");
+    expect(workspaceSource).toContain("const preservedStyles");
     expect(workspaceSource).toContain("if (end > start) setTitleSelection");
   });
 
@@ -260,7 +261,7 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("pharmacy-list-dose-warning");
     expect(workspaceSource).toContain("size: preserveAccessory ? current.size : next.size");
     expect(workspaceSource).toContain("workbookBorderColor");
-    expect(workspaceSource).toContain("next.style.outerBorderColor = workbookBorderColor");
+    expect(workspaceSource).not.toContain("next.style.outerBorderColor = workbookBorderColor");
     expect(workspaceSource).toContain("nutrition-fluid-label");
     expect(workspaceSource).toContain("splitNutritionDoseParts");
     expect(workspaceSource).toContain('join("\\n")');
