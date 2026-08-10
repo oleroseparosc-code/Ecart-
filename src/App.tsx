@@ -114,6 +114,7 @@ import {
 import { normalizePharmacyLabelMasterRow } from "../약제팀 라벨/PharmacyDrugMaster";
 import { PharmacyLabelWorkspace } from "../약제팀 라벨/PharmacyLabelWorkspace";
 import { PharmacyCabinetLayoutView } from "../약제팀 라벨/PharmacyCabinetLabelCanvas";
+import { PharmacyAutoFitLabelContent } from "../약제팀 라벨/PharmacyAutoFitLabelContent";
 import { mergeHospitalDrugRowsIntoPharmacyLabelMatches } from "../약제팀 라벨/hospitalDrugWorkbookUpload";
 import hospitalDrugWorkbookUrl from "../약제팀 라벨/원내보유의약품리스트.xlsx?url";
 import { applyExpirationWorkbook } from "../약제팀 라벨/expirationWorkbookUpdate";
@@ -3792,11 +3793,13 @@ export function App() {
         </div> : null}
         {!hasCautionWarning && hasColdWarning && hasLightWarning ? <b className="pharmacy-storage-circle cold">{coldWarningText}</b> : null}
         <div className="pharmacy-label-main">
+          <PharmacyAutoFitLabelContent fitKey={`${draft.size.presetKey}|${draft.style.outerBorderPx}|${draft.printable.title}|${draft.printable.koreanName}|${draft.warnings.join("|")}|${JSON.stringify(draft.titleStyles ?? [])}`}>
           <strong className={`${titleSizeClass} ${hasNameConfusion && ["외용제", "외용점안제", "팩제"].includes(draft.category) ? "confusion-name" : ""}`}>{styledTitle ?? (hasDoseHighlight && titleParts.dose
             ? <>{titleParts.before}<mark className="dose-highlight">{titleParts.dose}</mark>{titleParts.after}</>
             : renderedDisplayTitle)}</strong>
           {!isCapLabel && !isExternalShelfLabel && !isCompactSyrupLabel && !isGeneralFluidLabel ? <span>{draft.printable.koreanName}</span> : null}
           {isCapLabel && draft.doseUnit && draft.doseUnit !== "1T" ? <b>{draft.doseUnit}</b> : null}
+          </PharmacyAutoFitLabelContent>
           {!isCapLabel && !isExternalShelfLabel && draft.atc ? <small className="pharmacy-label-atc">ATC {draft.atc}</small> : null}
           {!isCapLabel && !isExternalShelfLabel && draft.location ? <small className="pharmacy-label-location">{draft.location}</small> : null}
         </div>

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSPropert
 import { fluidLabelTone, formatFluidLabelName } from "../src/appLogic";
 import { PharmacyDrugMaster } from "./PharmacyDrugMaster";
 import { PharmacyCabinetLabelCanvas } from "./PharmacyCabinetLabelCanvas";
+import { PharmacyAutoFitLabelContent } from "./PharmacyAutoFitLabelContent";
 import {
   getHospitalDrugControlledCategory,
   matchesHospitalDrugLabel,
@@ -519,11 +520,12 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
             {hasCautionWarning && hasColdWarning && <b className="pharmacy-storage-badge cold">{coldWarningText}</b>}
           </div>}
           {!hasCautionWarning && hasColdWarning && hasLightWarning && <b className="pharmacy-storage-circle cold">{coldWarningText}</b>}
-          <div className="pharmacy-label-main"><strong className={`${titleSizeClass} ${hasNameConfusion && ["외용제", "외용점안제", "팩제"].includes(displayCategory) ? "confusion-name" : ""}`}>
+          <div className="pharmacy-label-main"><PharmacyAutoFitLabelContent fitKey={`${draft.size.presetKey}|${draft.style.outerBorderPx}|${draft.printable.title}|${draft.printable.koreanName}|${draft.warnings.join("|")}|${JSON.stringify(draft.titleStyles ?? [])}`}><strong className={`${titleSizeClass} ${hasNameConfusion && ["외용제", "외용점안제", "팩제"].includes(displayCategory) ? "confusion-name" : ""}`}>
             {draft.titleStyles?.length ? renderEditableTitle(renderedDisplayTitle) : hasDoseHighlight && titleParts.dose ? <>{titleParts.before}<mark className="dose-highlight">{titleParts.dose}</mark>{titleParts.after}</> : renderedDisplayTitle}
           </strong>
             {!isCapLabel && !isExternalShelfLabel && !isCompactSyrupLabel && !isGeneralFluidLabel && <span>{draft.printable.koreanName}</span>}
             {isCapLabel && draft.doseUnit && draft.doseUnit !== "1T" && <b>{draft.doseUnit}</b>}
+            </PharmacyAutoFitLabelContent>
             {!isCapLabel && !isExternalShelfLabel && draft.atc && <small className="pharmacy-label-atc">ATC {draft.atc}</small>}
             {!isCapLabel && !isExternalShelfLabel && draft.location && <small className="pharmacy-label-location">{draft.location}</small>}
             {!isExternalShelfLabel && draft.printable.reconstitution && <em>{draft.printable.reconstitution}</em>}</div>

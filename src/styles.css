@@ -5630,6 +5630,19 @@ button {
   position: relative;
 }
 
+.pharmacy-label-auto-fit {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 100%;
+  text-align: inherit;
+}
+
+.pharmacy-label-auto-fit strong {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
 .pharmacy-label-main strong {
   display: block;
   max-width: 100%;
@@ -6087,7 +6100,7 @@ button {
   border-bottom: 0;
 }
 
-.pharmacy-label-main > span {
+.pharmacy-label-auto-fit > span {
   margin-top: 1mm;
   font-size: .48em;
 }
@@ -6200,7 +6213,7 @@ button {
   padding-bottom: 1mm;
 }
 
-.pharmacy-print-label.heparin-label .pharmacy-label-main > span {
+.pharmacy-print-label.heparin-label .pharmacy-label-auto-fit > span {
   max-width: 100%;
   font-size: .42em;
   line-height: 1.05;
