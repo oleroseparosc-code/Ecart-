@@ -122,7 +122,8 @@ export function buildCabinetLocationDraft(
 ) {
   const entries = rows
     .filter((row) => splitLocations(cabinetLocation(row, category)).includes(location))
-    .sort((left, right) => right.name.localeCompare(left.name, "en", { sensitivity: "base", numeric: true }))
+    .sort((left, right) => (category === "냉장주사" ? 1 : -1)
+      * left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true }))
     .map((row) => toEntry(row, category));
   const rowCount = Math.ceil(entries.length / 2) + 1;
   const draft = baseDraft(category, `pharmacy-cabinet-${category}-${location}`);

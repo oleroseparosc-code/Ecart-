@@ -125,7 +125,7 @@ describe("pharmacy cabinet label rules", () => {
       row("Vaccine", "백신 2", { drugType: "백신" }),
     ];
     expect(listCabinetLocations(rows, "냉장주사")).toEqual(["1번 냉장고", "2번 냉장고", "백색냉장고", "백신 냉장고"]);
-    expect(buildCabinetLocationDraft(rows, "냉장주사", "1번 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Bravo", "Alpha"]);
+    expect(buildCabinetLocationDraft(rows, "냉장주사", "1번 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Alpha", "Bravo"]);
   });
 
   it("uses one A4 page for nutrition fluids and keeps external cabinet locations", () => {
