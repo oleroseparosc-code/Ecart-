@@ -40,7 +40,8 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
   const showsLocation = isExternalList || ["경구 고가약", "앰플", "바이알", "영양수액"].includes(layout.category);
-  const columnCount = layout.category === "경구 고가약" ? 2 : layout.category === "영양수액" ? 4 : 3;
+  const compactListCategories = ["외용제", "외용점안제", "팩제", "시럽", "앰플", "바이알", "영양수액"];
+  const columnCount = layout.category === "경구 고가약" ? 2 : compactListCategories.includes(layout.category) ? 4 : 3;
   const rowCount = Math.max(1, Math.ceil(layout.entries.length / columnCount));
   const gridStyle = {
     "--cabinet-list-columns": columnCount,
@@ -49,13 +50,14 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   return <div className={`pharmacy-cabinet-full-list ${isAtc ? "atc-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
     <header><strong>{layout.title}</strong><span>{layout.page} / {layout.totalPages}</span></header>
     <div className="pharmacy-cabinet-full-list-grid" style={gridStyle}>
-      {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""}`} key={entry.code}>
+      {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""} ${showsLocation && !isAtc ? "with-category-details" : ""}`} key={entry.code}>
         {isAtc && <em>{entry.atc || "-"}</em>}
         <div><strong>{entry.name}</strong></div>
         {isAtc
           ? <section className="pharmacy-atc-detail">{entry.reference && <b>{entry.reference}</b>}<time>{formatPharmacyExpiry(entry.expiry) || "유효기간 미입력"}</time></section>
-          : <b>{entry.reference || "-"}</b>}
-        {showsLocation && <em className="cabinet-entry-location">{entry.location || "위치 미입력"}</em>}
+          : showsLocation
+            ? <div className="cabinet-entry-details"><b>주의: {entry.reference || "없음"}</b><em>위치: {entry.location || "미입력"}</em></div>
+            : <b>{entry.reference || "-"}</b>}
       </div>)}
     </div>
   </div>;

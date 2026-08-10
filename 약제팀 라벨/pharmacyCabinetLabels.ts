@@ -150,7 +150,8 @@ export function buildCabinetFullListDrafts(
       return left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true });
     })
     .map((row) => toEntry(row, category));
-  const columnCount = category === "경구 고가약" ? 2 : category === "영양수액" ? 4 : 3;
+  const compactListCategories = ["외용제", "외용점안제", "팩제", "시럽", "앰플", "바이알", "영양수액"];
+  const columnCount = category === "경구 고가약" ? 2 : compactListCategories.includes(category) ? 4 : 3;
   const maxRowsPerColumn = 40;
   const minimumPages = ["영양수액", "경구 고가약"].includes(category) ? 1 : 2;
   const totalPages = Math.max(minimumPages, Math.ceil(entries.length / (columnCount * maxRowsPerColumn)));
