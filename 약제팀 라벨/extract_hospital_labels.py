@@ -352,7 +352,7 @@ def main() -> None:
                 "ptpOpened": is_yes(raw[index["PTP깐거"]]),
                 "inpatientPowderPtp": is_yes(raw[index["입원산제용PTP 깐거"]]),
                 "threeTierHalf": is_yes(raw[index["3단반알"]]),
-                "expiry": read(raw, "유효기간"),
+                "expiry": read_optional(raw, "최신 유효기간") or read(raw, "유효기간"),
                 "location": read(raw, "위치"),
                 **({"pharmacyLabelTypes": [] if read_optional(raw, "약제팀 라벨 세부유형") == "없음" else [value.strip() for value in re.split(r"[,/\n]+", read_optional(raw, "약제팀 라벨 세부유형")) if value.strip()]}
                    if read_optional(raw, "약제팀 라벨 세부유형") else {}),

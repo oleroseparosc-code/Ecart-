@@ -161,6 +161,7 @@ export function getHospitalDrugStorageLabel(row: HospitalDrugLabelRow) {
 
 export function getHospitalDrugLabelWarnings(row: HospitalDrugLabelRow) {
   return [
+    row.hazardous ? "위해의약품" : "",
     row.doseCaution ? "용량주의" : "",
     row.similarSound ? "유사발음" : "",
     row.similarLook ? "유사모양" : "",

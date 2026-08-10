@@ -204,11 +204,11 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("선택 해제");
     expect(workspaceSource).toContain("pharmacy-title-style-dashboard");
     expect(workspaceSource).toContain("splitStyledPharmacyTitle");
-    expect(workspaceSource).toContain("textTransform: \"uppercase\"");
-    expect(workspaceSource).toContain("textTransform: \"lowercase\"");
-    expect(workspaceSource).toContain("크기 적용");
-    expect(workspaceSource).toContain("색상 적용");
-    expect(workspaceSource).toContain("fontWeight: 1000");
+    expect(workspaceSource).toContain('selectedTitleTransform === "uppercase"');
+    expect(workspaceSource).toContain('selectedTitleTransform === "lowercase"');
+    expect(workspaceSource).toContain("배경색");
+    expect(workspaceSource).toContain("선택 부분 수정 적용");
+    expect(workspaceSource).toContain("fontWeight: selectedTitleBold ? 1000 : undefined");
     expect(workspaceSource).toContain("if (end > start) setTitleSelection");
   });
 

@@ -39,8 +39,8 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   const isAtc = layout.category === "ATC";
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
-  const showsLocation = isExternalList || layout.category === "경구 고가약";
-  const columnCount = layout.category === "경구 고가약" ? 2 : 3;
+  const showsLocation = isExternalList || ["경구 고가약", "앰플", "바이알", "영양수액"].includes(layout.category);
+  const columnCount = layout.category === "경구 고가약" ? 2 : layout.category === "영양수액" ? 4 : 3;
   const rowCount = Math.max(1, Math.ceil(layout.entries.length / columnCount));
   const gridStyle = {
     "--cabinet-list-columns": columnCount,

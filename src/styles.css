@@ -6678,6 +6678,10 @@ button {
   border-bottom: 1px solid var(--line-soft);
 }
 
+.pharmacy-print-label.cap-label .pharmacy-label-main strong.medium-name { font-size: .5em; }
+.pharmacy-print-label.cap-label .pharmacy-label-main strong.long-name { font-size: .42em; }
+.pharmacy-print-label.cap-label .pharmacy-label-main strong.very-long-name { font-size: .34em; }
+
 .pharmacy-print-label.colored-cap-label,
 .pharmacy-print-label.colored-cap-label .pharmacy-label-main {
   background: var(--pharmacy-label-background, #fff);

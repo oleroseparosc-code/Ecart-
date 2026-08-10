@@ -910,6 +910,7 @@ function pharmacyRowFromDraft(draft: PharmacyLabelDraft): HospitalDrugLabelRow {
     doseCaution: warnings.has("용량주의"),
     doseCheck: warnings.has("용량확인"),
     highRisk: warnings.has("고위험의약품"),
+    hazardous: warnings.has("위해의약품"),
     highRiskCategory: warnings.has("고위험의약품") ? "고위험의약품" : "",
     atc: draft.atc,
     expiry: draft.expiry,
@@ -930,6 +931,7 @@ function applySharedPharmacyMasterFields(base: HospitalDrugLabelRow, master: Hos
     storage: master.storage,
     lightProtected: master.lightProtected,
     highCost: master.highCost,
+    hazardous: master.hazardous,
     narcotic: master.narcotic,
     psychotropic: master.psychotropic,
     anticancer: master.anticancer,
@@ -948,6 +950,7 @@ function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabel
   if (!master) return drug;
   const warning = [
     master.highRisk ? "고위험의약품" : "",
+    master.hazardous ? "위해의약품" : "",
     master.similarLook ? "유사모양" : "",
     master.similarSound ? "유사발음" : "",
     master.doseCaution ? "용량주의" : "",
@@ -1262,6 +1265,7 @@ export function App() {
   const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
   const [pdfDownload, setPdfDownload] = useState<PdfDownloadResult | null>(null);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [returnToPharmacyWorkspaceAfterPreview, setReturnToPharmacyWorkspaceAfterPreview] = useState(false);
   const [printPreviewMode, setPrintPreviewMode] = useState<PrintPreviewMode>("single");
   const reportRef = useRef<HTMLDivElement>(null);
   const printPreviewRef = useRef<HTMLDivElement>(null);
@@ -3246,6 +3250,7 @@ export function App() {
     setPdfStatus("idle");
     setPdfDownload(null);
     setIsPharmacyLabelWorkspaceOpen(false);
+    setReturnToPharmacyWorkspaceAfterPreview(true);
     setShowPrintPreview(true);
   }
 
@@ -3265,6 +3270,10 @@ export function App() {
   function closePrintPreview() {
     document.body.classList.remove("printing-preview");
     setShowPrintPreview(false);
+    if (returnToPharmacyWorkspaceAfterPreview) {
+      setIsPharmacyLabelWorkspaceOpen(true);
+      setReturnToPharmacyWorkspaceAfterPreview(false);
+    }
   }
 
   function printPreviewReport() {
@@ -3658,7 +3667,7 @@ export function App() {
     const isExternalShelfLabel = ["외용제", "외용점안제", "팩제", "시럽"].includes(draft.category) && draft.size.presetKey === "13.5x105";
     const hasDoseHighlight = draft.warnings.some((warning) => warning === "용량주의" || warning === "용량확인");
     const hasCautionWarning = draft.warnings.some((warning) =>
-      ["용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning)
+      ["위해의약품", "용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning)
         || warning.includes("반드시 희석 후 사용"),
     );
     const hasFrozenWarning = draft.warnings.includes("냉동");
@@ -3666,8 +3675,8 @@ export function App() {
     const coldWarningText = hasFrozenWarning ? "냉동" : "냉장";
     const hasLightWarning = draft.warnings.includes("차광");
     const cautionWarnings = draft.warnings.filter((warning) => !["냉장", "냉동", "차광"].includes(warning));
-    const sideCautionWarnings = draft.warnings.filter((warning) => ["용량주의", "유사발음", "유사모양", "이름주의", "용량확인"].includes(warning));
-    const externalCautionWarnings = draft.warnings.filter((warning) => ["용량주의", "용량확인", "유사발음", "유사모양", "이름주의"].includes(warning));
+    const sideCautionWarnings = draft.warnings.filter((warning) => ["위해의약품", "용량주의", "유사발음", "유사모양", "이름주의", "용량확인"].includes(warning));
+    const externalCautionWarnings = draft.warnings.filter((warning) => ["위해의약품", "용량주의", "용량확인", "유사발음", "유사모양", "이름주의"].includes(warning));
     const hasNameConfusion = draft.warnings.some((warning) => ["유사발음", "이름주의"].includes(warning));
     const externalStorageText = hasLightWarning ? "차광" : hasColdWarning ? coldWarningText : "";
     const externalHasFlags = externalCautionWarnings.length > 0 || Boolean(externalStorageText);
@@ -3711,6 +3720,7 @@ export function App() {
     const styledTitle = draft.titleStyles?.length
       ? splitStyledPharmacyTitle(renderedDisplayTitle, draft.titleStyles).map((part, index) => <span key={`${index}-${part.text}`} style={{
           color: part.style?.color,
+          backgroundColor: part.style?.backgroundColor,
           fontSize: part.style?.fontSizePt ? `${part.style.fontSizePt}pt` : undefined,
           fontWeight: part.style?.fontWeight,
         }}>{part.text}</span>)
@@ -3790,7 +3800,7 @@ export function App() {
           {!isCapLabel && !isExternalShelfLabel && draft.atc ? <small className="pharmacy-label-atc">ATC {draft.atc}</small> : null}
           {!isCapLabel && !isExternalShelfLabel && draft.location ? <small className="pharmacy-label-location">{draft.location}</small> : null}
         </div>
-        {!isExternalShelfLabel && draft.printable.footer.enabled ? <footer className={draft.category === "항암제" ? "anticancer-footer" : isHeparinLabel ? "heparin-footer" : ""}>{draft.category === "항암제" ? "항암제" : draft.printable.footer.text}</footer> : null}
+        {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) ? <footer className={draft.category === "항암제" ? "anticancer-footer" : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : draft.category === "항암제" ? "항암제" : draft.printable.footer.text}</footer> : null}
         </>}
       </article>
     );

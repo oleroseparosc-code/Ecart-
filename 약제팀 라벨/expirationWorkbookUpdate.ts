@@ -3,6 +3,7 @@ import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
 
 const ITEM_CODE_HEADERS = ["물품코드", "상품코드", "품목코드", "바코드"];
 const EXPIRY_HEADERS = ["유효기간", "사용기한", "유효기한", "만료일자", "유효기간일자"];
+const LATEST_EXPIRY_HEADER = "최신 유효기간";
 
 function compact(value: unknown) {
   return String(value ?? "").replace(/\s+/g, "").trim();
@@ -64,11 +65,29 @@ export async function applyExpirationWorkbook(
   const expiryIndex = headers.indexOf("유효기간");
   if (itemIndex < 0 || expiryIndex < 0) throw new Error("원내보유의약품리스트의 물품코드 또는 유효기간 열을 찾지 못했습니다.");
 
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
+  let latestExpiryIndex = headers.indexOf(LATEST_EXPIRY_HEADER);
+  if (latestExpiryIndex < 0) {
+    latestExpiryIndex = expiryIndex + 1;
+    for (let rowIndex = range.e.r; rowIndex >= 0; rowIndex -= 1) {
+      for (let columnIndex = range.e.c; columnIndex >= latestExpiryIndex; columnIndex -= 1) {
+        const from = XLSX.utils.encode_cell({ r: rowIndex, c: columnIndex });
+        const to = XLSX.utils.encode_cell({ r: rowIndex, c: columnIndex + 1 });
+        if (sheet[from]) sheet[to] = sheet[from];
+        else delete sheet[to];
+      }
+      delete sheet[XLSX.utils.encode_cell({ r: rowIndex, c: latestExpiryIndex })];
+    }
+    range.e.c += 1;
+    sheet["!ref"] = XLSX.utils.encode_range(range);
+    sheet[XLSX.utils.encode_cell({ r: 0, c: latestExpiryIndex })] = { t: "s", v: LATEST_EXPIRY_HEADER };
+  }
+
   let updatedCount = 0;
   for (let rowIndex = 1; rowIndex < values.length; rowIndex += 1) {
     const expiry = earliestByItemCode.get(compact(values[rowIndex]?.[itemIndex]));
     if (!expiry) continue;
-    const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: expiryIndex });
+    const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: latestExpiryIndex });
     sheet[cellAddress] = { t: "d", v: new Date(`${expiry}T00:00:00`), z: "yyyy-mm-dd" };
     updatedCount += 1;
   }

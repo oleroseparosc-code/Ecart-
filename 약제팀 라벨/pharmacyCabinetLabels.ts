@@ -150,7 +150,10 @@ export function buildCabinetFullListDrafts(
       return left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true });
     })
     .map((row) => toEntry(row, category));
-  const totalPages = ["영양수액", "경구 고가약"].includes(category) ? 1 : 2;
+  const columnCount = category === "경구 고가약" ? 2 : category === "영양수액" ? 4 : 3;
+  const maxRowsPerColumn = 40;
+  const minimumPages = ["영양수액", "경구 고가약"].includes(category) ? 1 : 2;
+  const totalPages = Math.max(minimumPages, Math.ceil(entries.length / (columnCount * maxRowsPerColumn)));
   const pageSize = Math.ceil(entries.length / totalPages);
   const pages = Array.from({ length: totalPages }, (_, index) => entries.slice(index * pageSize, (index + 1) * pageSize));
   return pages.map((pageEntries, index) => {
@@ -180,7 +183,12 @@ export function arrangeThreeTierEntriesByAlphabetColumns(entries: readonly Pharm
       result.set(key, [...(result.get(key) ?? []), entry]);
       return result;
     }, new Map());
-  const columns = [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "en")).map(([, values]) => values);
+  const maxRowsPerColumn = 10;
+  const columns = [...groups.entries()]
+    .sort(([left], [right]) => left.localeCompare(right, "en"))
+    .flatMap(([, values]) => Array.from({ length: Math.ceil(values.length / maxRowsPerColumn) }, (_, index) =>
+      values.slice(index * maxRowsPerColumn, (index + 1) * maxRowsPerColumn),
+    ));
   const arranged: Array<PharmacyCabinetEntry | undefined> = [];
   for (let index = 0; index < columns.length; index += 2) {
     const left = columns[index] ?? [];

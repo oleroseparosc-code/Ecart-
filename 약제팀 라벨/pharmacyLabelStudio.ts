@@ -43,6 +43,7 @@ export type PharmacyTitleStyle = {
   end: number;
   fontSizePt?: number;
   color?: string;
+  backgroundColor?: string;
   fontWeight?: number;
   textTransform?: "none" | "uppercase" | "lowercase";
 };
@@ -97,7 +98,7 @@ export const A4_PAPER: PharmacyLabelPaper = { key: "A4", widthMm: 210, heightMm:
 export const A3_PAPER: PharmacyLabelPaper = { key: "A3", widthMm: 297, heightMm: 420, marginMm: 10 };
 export const DEFAULT_PHARMACY_LABEL_SIZE: PharmacyLabelSize = { presetKey: "33x100", widthMm: 100, heightMm: 33 };
 export const PHARMACY_LABEL_REPOSITORY_KEY = "pharmacy-label-repository-v2";
-export const WARNING_OPTIONS = ["용량주의", "유사발음", "유사모양", "고위험의약품", "이름주의", "용량확인", "냉장", "냉동", "차광"] as const;
+export const WARNING_OPTIONS = ["위해의약품", "용량주의", "유사발음", "유사모양", "고위험의약품", "이름주의", "용량확인", "냉장", "냉동", "차광"] as const;
 export const DRUG_CATEGORIES: PharmacyLabelCategory[][] = [
   ["원병", "PTP", "ATC", "입원산제"],
   ["외용제", "외용점안제", "팩제", "시럽"],
@@ -122,7 +123,7 @@ const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   입원산제: sizes(["23*102", "10*27", "15*30"]),
   앰플: sizes(["33*100"]),
   바이알: sizes(["40*80", "42*80", "47*80", "52*80", "47*90"]),
-  PTP: sizes(["40*80", "42*80", "47*80", "52*80", "47*90"]),
+  PTP: sizes(["3.2*70", "40*80", "42*80", "47*80", "52*80", "47*90"]),
   냉장주사: sizes(["40*80", "42*80", "47*80", "52*80"]),
   영양수액: sizes(["15*110", "15*140"]),
   일반수액: sizes(["50*93", "55*93", "50*160"]),
