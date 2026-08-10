@@ -70,7 +70,7 @@ function toEntry(row: HospitalDrugLabelRow, category: PharmacyLabelCategory): Ph
     name: row.name,
     koreanName: row.koreanName,
     reference: cabinetReference(row),
-    location: cabinetLocation(row, category),
+    location: category === "냉장주사" ? row.location ?? "" : cabinetLocation(row, category),
     atc: formatCabinetAtcNumber(row.atc),
     expiry: row.expiry ?? "",
   };
@@ -149,7 +149,8 @@ export function buildCabinetFullListDrafts(
   rows: readonly HospitalDrugLabelRow[],
   category: PharmacyLabelCategory,
 ) {
-  const entries = [...rows]
+  const entries = rows
+    .filter((row) => category !== "냉장주사" || Boolean(row.location?.trim()))
     .sort((left, right) => {
       if (category === "ATC") {
         const leftAtc = Number.parseInt(formatCabinetAtcNumber(left.atc), 10);

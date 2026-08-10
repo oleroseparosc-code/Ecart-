@@ -6135,6 +6135,29 @@ button {
   font-style: normal;
 }
 
+.pharmacy-print-label.has-ampoule-holder {
+  grid-template-rows: auto minmax(0, 1fr) 8mm;
+}
+
+.pharmacy-print-label.has-ampoule-holder.no-warning .pharmacy-label-main {
+  grid-row: 1 / 3;
+}
+
+.pharmacy-print-label.has-ampoule-holder::after {
+  content: "앰플꽂이";
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #111827;
+  color: #111827;
+  background: #fff200;
+  font-size: 16pt;
+  font-weight: 1000;
+  line-height: 1;
+}
+
 .pharmacy-label-atc,
 .pharmacy-label-location {
   position: absolute;

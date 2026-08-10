@@ -128,6 +128,15 @@ describe("pharmacy cabinet label rules", () => {
     expect(buildCabinetLocationDraft(rows, "냉장주사", "1번 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Alpha", "Bravo"]);
   });
 
+  it("keeps the workbook location on refrigerated-injection full-list entries", () => {
+    const entries = buildCabinetFullListDrafts([
+      row("Cold injection", "1-L-1", { drugType: "냉장주사", doseCaution: true }),
+      row("Unassigned cold injection", "", { drugType: "냉장주사" }),
+    ], "냉장주사").flatMap((draft) => draft.cabinetLayout?.entries ?? []);
+    expect(entries).toMatchObject([{ name: "Cold injection", location: "1-L-1", reference: "용량주의" }]);
+    expect(entries).toHaveLength(1);
+  });
+
   it("uses one A4 page for nutrition fluids and keeps external cabinet locations", () => {
     expect(buildCabinetFullListDrafts([row("Nutrition", "N1", { drugType: "영양수액" })], "영양수액")).toHaveLength(1);
     const external = buildCabinetFullListDrafts([row("External", "", {
