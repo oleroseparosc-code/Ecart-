@@ -86,7 +86,7 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
   const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
   const index = new Map(headers.map((header, position) => [header, position]));
-  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형"]);
+  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형", "테두리", "테두리 색기호", "약제팀 라벨 설정"]);
   const codeIndex = index.get("약품코드");
   if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
   let appendedCount = 0;
@@ -106,8 +106,21 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
       보관법: draft.warnings.includes("냉동") ? "냉동" : draft.warnings.includes("냉장") ? "냉장" : "",
       원내보유: "Y",
       유효기간: draft.expiry,
-      테두리: draft.style.outerBorderPx >= 5 ? "Y" : "N",
+      테두리: draft.style.outerBorderPx > 0 ? "Y" : "N",
       "테두리 색기호": draft.style.outerBorderColor,
+      "약제팀 라벨 설정": JSON.stringify({
+        labelFamily: draft.labelFamily,
+        category: draft.category,
+        size: draft.size,
+        printable: draft.printable,
+        warnings: draft.warnings,
+        drugTypes: draft.drugTypes,
+        accessory: draft.accessory,
+        doseUnit: draft.doseUnit,
+        backgroundColor: draft.backgroundColor,
+        style: draft.style,
+        titleStyles: draft.titleStyles,
+      }),
     };
     for (const [warning, header] of Object.entries(WARNING_HEADERS)) {
       updates[header] = draft.warnings.includes(warning) ? "Y" : "N";
