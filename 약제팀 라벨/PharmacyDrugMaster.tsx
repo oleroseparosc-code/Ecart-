@@ -593,6 +593,11 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDele
               </label>;
             })}
           </div></div>
+          {pharmacyLabelTypesForRow(labelRow).includes("앰플") && <div className="pharmacy-master-subtype-field"><span>앰플 라벨</span><div className="pharmacy-master-check-grid">
+            <label className={marked(labelRow.ampouleHolder) ? "checked" : ""}>
+              <input type="checkbox" checked={marked(labelRow.ampouleHolder)} onChange={() => patchRow(labelRow.code, { ampouleHolder: marked(labelRow.ampouleHolder) ? "N" : "Y" })}/><span>앰플꽂이</span>
+            </label>
+          </div></div>}
           <label>약품장 위치<input value={labelRow.location ?? ""} onChange={(event) => patchRow(labelRow.code, { location: event.target.value })} placeholder="예: 가LU-1"/></label>
         </div>
         {pharmacyLabelTypesForRow(labelRow).some((type) => ["원병", "PTP"].includes(type)) && <>

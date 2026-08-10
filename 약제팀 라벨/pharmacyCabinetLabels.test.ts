@@ -116,6 +116,18 @@ describe("pharmacy cabinet label rules", () => {
     expect(buildCabinetLocationDraft([vaccine], "냉장주사", "백신 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Vaccine"]);
   });
 
+  it("groups refrigerated injections by refrigerator number and sorts each list alphabetically", () => {
+    const rows = [
+      row("Bravo", "1-R-2", { drugType: "냉장주사" }),
+      row("Alpha", "1-L-1", { drugType: "냉장주사" }),
+      row("Charlie", "2-L-1", { drugType: "냉장주사" }),
+      row("White", "백색 냉장고", { drugType: "냉장주사" }),
+      row("Vaccine", "백신 2", { drugType: "백신" }),
+    ];
+    expect(listCabinetLocations(rows, "냉장주사")).toEqual(["1번 냉장고", "2번 냉장고", "백색냉장고", "백신 냉장고"]);
+    expect(buildCabinetLocationDraft(rows, "냉장주사", "1번 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Bravo", "Alpha"]);
+  });
+
   it("uses one A4 page for nutrition fluids and keeps external cabinet locations", () => {
     expect(buildCabinetFullListDrafts([row("Nutrition", "N1", { drugType: "영양수액" })], "영양수액")).toHaveLength(1);
     const external = buildCabinetFullListDrafts([row("External", "", {

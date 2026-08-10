@@ -22,15 +22,25 @@ function cabinetLocation(row: HospitalDrugLabelRow, category?: PharmacyLabelCate
         ? row.cabinetExternalInfo?.location
         : row.cabinetOralInjectionInfo?.location;
   const workbookLocation = row.location || sourceLocation || "";
-  if (category === "냉장주사" && row.drugType.replace(/\s+/g, "") === "백신") {
-    return workbookLocation || "백신 냉장고";
+  if (category === "냉장주사") {
+    const location = workbookLocation.replace(/\s+/g, "");
+    if (row.drugType.replace(/\s+/g, "") === "백신" || location.startsWith("백신")) return "백신 냉장고";
+    if (location.startsWith("1-")) return "1번 냉장고";
+    if (location.startsWith("2-")) return "2번 냉장고";
+    if (location.startsWith("3-")) return "3번 냉장고";
+    if (location.startsWith("백색")) return "백색냉장고";
+    return "";
   }
   return workbookLocation;
 }
 
 export function listCabinetLocations(rows: readonly HospitalDrugLabelRow[], category?: PharmacyLabelCategory) {
-  return [...new Set(rows.flatMap((row) => splitLocations(cabinetLocation(row, category))))]
-    .sort((left, right) => left.localeCompare(right, "ko", { numeric: true }));
+  const locations = [...new Set(rows.flatMap((row) => splitLocations(cabinetLocation(row, category))))];
+  if (category === "냉장주사") {
+    const refrigeratorOrder = ["1번 냉장고", "2번 냉장고", "3번 냉장고", "백색냉장고", "백신 냉장고"];
+    return refrigeratorOrder.filter((location) => locations.includes(location));
+  }
+  return locations.sort((left, right) => left.localeCompare(right, "ko", { numeric: true }));
 }
 
 export function hasDedicatedHighCostLocation(row: HospitalDrugLabelRow, category?: PharmacyLabelCategory) {

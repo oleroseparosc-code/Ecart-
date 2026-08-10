@@ -75,7 +75,7 @@ export type PharmacyLabelDraft = {
   labelFamily: PharmacyLabelFamily;
   category: PharmacyLabelCategory;
   doseUnit?: "0.25T" | "0.5T" | "1T";
-  accessory?: "측면라벨" | "유색 측면라벨" | "병뚜껑" | "유색 병뚜껑" | "선반라벨";
+  accessory?: "측면라벨" | "유색 측면라벨" | "병뚜껑" | "유색 병뚜껑" | "선반라벨" | "앰플꽂이";
   location: string;
   atc: string;
   expiry: string;
@@ -274,7 +274,11 @@ export function createPharmacyLabelDraft(
     },
     warnings,
     drugTypes: row.drugType ? [row.drugType] : [],
-    accessory: labelFamily === "cabinet" && ["원병", "PTP"].includes(category) ? "선반라벨" : undefined,
+    accessory: labelFamily === "cabinet" && ["원병", "PTP"].includes(category)
+      ? "선반라벨"
+      : category === "앰플" && row.ampouleHolder?.trim().toUpperCase() === "Y"
+        ? "앰플꽂이"
+        : undefined,
     style: {
       outerBorderPx: hasWorkbookBorder || category === "고가약" ? 5 : 0.5,
       outerBorderColor: workbookBorderColor || "#111827",

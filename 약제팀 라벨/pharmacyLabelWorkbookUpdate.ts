@@ -21,7 +21,7 @@ const MASTER_BOOLEAN_HEADERS = [
   "마약", "향정", "항암제", "E-cart", "E-cart(NICU)", "측면라벨", "유색측면라벨",
   "병뚜껑", "유색병뚜껑", "정제용량 1T", "정제용량 0.5T", "정제용량 0.25T",
 ] as const;
-const MASTER_EXTRA_HEADERS = [...MASTER_BOOLEAN_HEADERS, "약제팀 라벨 세부유형", "위치"] as const;
+const MASTER_EXTRA_HEADERS = [...MASTER_BOOLEAN_HEADERS, "약제팀 라벨 세부유형", "위치", "앰플꽂이"] as const;
 
 function yes(value: boolean | undefined) {
   return value ? "Y" : "N";
@@ -236,7 +236,7 @@ function upsertHospitalDrugMasterRow(sheet: XLSX.WorkSheet, row: HospitalDrugLab
     약품코드: row.code, 물품코드: row.itemCode ?? "", 상용약품명: row.name, 한글약품명: row.koreanName,
     함량: row.strength, 약품유형: row.drugType,
     "약제팀 라벨 세부유형": row.pharmacyLabelTypes?.length ? row.pharmacyLabelTypes.join(", ") : "없음",
-    위치: row.location ?? "", 원내보유: yes(row.inHospital), 보관법: row.storage,
+    위치: row.location ?? "", 앰플꽂이: row.ampouleHolder ?? "", 원내보유: yes(row.inHospital), 보관법: row.storage,
     차광필요: row.lightProtected ? "차광" : "", 고가약: yes(row.highCost), 위해의약품: yes(row.hazardous), 고위험의약품: yes(row.highRisk),
     고위험의약품분류: row.highRiskCategory ?? "", 유사모양: yes(row.similarLook), 유사발음: yes(row.similarSound),
     용량주의: yes(row.doseCaution), 용량확인: yes(row.doseCheck), 이름주의: yes(row.nameCaution), 마약: yes(row.narcotic),

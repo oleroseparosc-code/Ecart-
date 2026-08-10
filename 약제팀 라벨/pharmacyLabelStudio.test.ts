@@ -69,6 +69,11 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "바이알" }, "경구 고가약", "주사", "cabinet")).toBe(false);
   });
 
+  it("uses the workbook ampoule-holder flag as the default ampoule label accessory", () => {
+    expect(createPharmacyLabelDraft({ ...row, drugType: "앰플", ampouleHolder: "Y" }, "앰플", "drug").accessory).toBe("앰플꽂이");
+    expect(createPharmacyLabelDraft({ ...row, drugType: "앰플", ampouleHolder: "N" }, "앰플", "drug").accessory).toBeUndefined();
+  });
+
   it("combines original-bottle and PTP rows for colored and side-label cabinet categories", () => {
     const original = { ...row, drugType: "원병", coloredSideLabel: "Y", sideLabel: true, sideLabelHalfT: "Y", sideLabelQuarterT: "Y" };
     const ptp = { ...row, drugType: "PTP", sideLabel: true, sideLabel1T: "Y" };

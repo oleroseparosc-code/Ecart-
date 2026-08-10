@@ -143,6 +143,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const isColoredCapLabel = draft?.accessory === "유색 병뚜껑";
   const isColoredSideLabel = draft?.accessory === "유색 측면라벨";
   const isSideLabel = draft?.accessory === "측면라벨" || isColoredSideLabel;
+  const isAmpouleHolder = draft?.accessory === "앰플꽂이";
   const hasCustomOuterBorderColor = Boolean(draft?.style.outerBorderPx && draft.style.outerBorderColor.toLowerCase() !== "#111827");
   const displayCategory = draft?.category ?? activeCategory;
   const isExternalShelfLabel = ["외용제", "외용점안제", "팩제", "시럽"].includes(displayCategory) && draft?.size.presetKey === "13.5x105";
@@ -513,6 +514,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
           </strong>
             {!isCapLabel && !isExternalShelfLabel && !isCompactSyrupLabel && !isGeneralFluidLabel && <span>{draft.printable.koreanName}</span>}
             {isCapLabel && draft.doseUnit && draft.doseUnit !== "1T" && <b>{draft.doseUnit}</b>}
+            {isAmpouleHolder && <em>앰플꽂이</em>}
             </PharmacyAutoFitLabelContent>
             {!isCapLabel && !isExternalShelfLabel && draft.atc && <small className="pharmacy-label-atc">ATC {draft.atc}</small>}
             {!isCapLabel && !isExternalShelfLabel && draft.location && <small className="pharmacy-label-location">{draft.location}</small>}
