@@ -6700,6 +6700,10 @@ button {
   background: var(--pharmacy-label-background, #fff);
 }
 
+.pharmacy-print-label.custom-outer-border[class] {
+  border-color: var(--pharmacy-label-border-color, #111827) !important;
+}
+
 .pharmacy-master-search-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

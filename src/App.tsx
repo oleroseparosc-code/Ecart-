@@ -3718,6 +3718,7 @@ export function App() {
       ? fluidLabelTone({ code: draft.code, genericName: draft.printable.koreanName, productName: draft.printable.title, spec: draft.printable.strength })
       : undefined;
     const isHeparinLabel = draft.printable.footer.text.trim() === "헤파린";
+    const hasCustomOuterBorderColor = draft.style.outerBorderPx > 0 && draft.style.outerBorderColor.toLowerCase() !== "#111827";
     const styledTitle = draft.titleStyles?.length
       ? splitStyledPharmacyTitle(renderedDisplayTitle, draft.titleStyles).map((part, index) => <span key={`${index}-${part.text}`} style={{
           color: part.style?.color,
@@ -3735,6 +3736,7 @@ export function App() {
           ? "none"
           : `${draft.style.outerBorderPx}mm solid ${draft.style.outerBorderColor}`,
       "--pharmacy-label-border-width": draft.style.outerBorderPx <= 0 ? "0mm" : `${draft.style.outerBorderPx}mm`,
+      "--pharmacy-label-border-color": draft.style.outerBorderColor,
       "--pharmacy-label-font-size": `${draft.style.fontSizePt}pt`,
       "--pharmacy-label-color": draft.style.fontColor,
       "--pharmacy-label-warning": draft.style.warningColor,
@@ -3746,7 +3748,7 @@ export function App() {
     } as CSSProperties;
 
     return (
-      <article className={`pharmacy-print-label print-label label-size-${draft.size.presetKey} ${draft.category === "항암제" ? "anticancer" : ""} ${draft.category === "고가약" ? "high-cost" : ""} ${draft.category === "마약/향정" ? "controlled-drug-label" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${draft.category === "시럽" ? "syrup-label" : ""} ${draft.category === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={style} key={key}>
+      <article className={`pharmacy-print-label print-label label-size-${draft.size.presetKey} ${draft.category === "항암제" ? "anticancer" : ""} ${draft.category === "고가약" ? "high-cost" : ""} ${draft.category === "마약/향정" ? "controlled-drug-label" : ""} ${hasCustomOuterBorderColor ? "custom-outer-border" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${draft.category === "시럽" ? "syrup-label" : ""} ${draft.category === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={style} key={key}>
         {draft.cabinetLayout ? <PharmacyCabinetLayoutView layout={draft.cabinetLayout}/> : isSideLabel ? <div className="pharmacy-side-label-form">
           <div className="pharmacy-side-label-photo">{imageUrl
             ? <img src={imageUrl} alt={`${draft.printable.koreanName} 식별사진`}/>
