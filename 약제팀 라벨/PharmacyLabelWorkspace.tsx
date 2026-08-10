@@ -132,24 +132,9 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
       const row = item.row;
       if (activeItem?.key === item.key && draft?.code === row.code) return draft;
       const rowCategory = categoryForRow(row);
-      const next = resolvePharmacyLabelDraft(row, savedLabels, rowCategory, family);
-      if (!draft) return next;
-      next.size = draft.size;
-      next.accessory = draft.accessory;
-      next.doseUnit = draft.doseUnit;
-      next.style = { ...next.style, ...draft.style };
-      const workbookBorderColor = extractHex(row.borderColor);
-      if (row.border || workbookBorderColor || rowCategory === "고가약") {
-        next.style.outerBorderPx = 5;
-      }
-      if (draft.accessory === "유색 측면라벨") {
-        next.backgroundColor = extractHex(row.coloredSideBackground) || draft.backgroundColor;
-      } else if (accessoryFilter === "유색 병뚜껑") {
-        next.backgroundColor = extractHex(row.coloredSideBackground) || extractHex(row.capBackground) || draft.backgroundColor;
-      }
-      return next;
+      return resolvePharmacyLabelDraft(row, savedLabels, rowCategory, family);
     }),
-    [accessoryFilter, activeItem?.key, categoryItems, selectedCodes, draft, savedLabels, category, categoryGroup, family],
+    [activeItem?.key, categoryItems, selectedCodes, draft, savedLabels, family],
   );
   const pages = groupPharmacyLabelsForPaper(selectedDrafts, paper === "A4" ? A4_PAPER : A3_PAPER);
   const allSelected = categoryItems.length > 0 && categoryItems.every((item) => selectedCodes.includes(item.key));

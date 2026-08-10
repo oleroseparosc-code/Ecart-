@@ -255,14 +255,15 @@ describe("pharmacy label workspace UI", () => {
     expect(cabinetSource).toContain("pharmacy-cabinet-location-label");
     expect(cabinetSource).toContain("pharmacy-cabinet-full-list-row");
     expect(workspaceSource).toContain("pharmacy-nutrition-label");
-    expect(workspaceSource).toContain("next.size = draft.size");
+    expect(workspaceSource).toContain("const selectedDrafts = useMemo");
+    expect(workspaceSource).not.toContain("next.style = { ...next.style, ...draft.style }");
     expect(workspaceSource).toContain("formatPharmacyExpiry");
     expect(workspaceSource).toContain("pharmacy-inline-border-choice");
     expect(workspaceSource).toContain("outerBorderPx: 0");
     expect(workspaceSource).toContain("pharmacy-list-dose-warning");
     expect(workspaceSource).toContain("size: preserveAccessory ? current.size : next.size");
-    expect(workspaceSource).toContain("workbookBorderColor");
-    expect(workspaceSource).not.toContain("next.style.outerBorderColor = workbookBorderColor");
+    expect(workspaceSource).toContain("return resolvePharmacyLabelDraft(row, savedLabels, rowCategory, family);");
+    expect(workspaceSource).not.toContain("next.style = { ...next.style, ...draft.style }");
     expect(workspaceSource).toContain("nutrition-fluid-label");
     expect(workspaceSource).toContain("splitNutritionDoseParts");
     expect(workspaceSource).toContain('join("\\n")');
