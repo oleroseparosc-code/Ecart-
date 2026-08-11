@@ -17,6 +17,9 @@ describe("release workflow", () => {
     expect(releaseScript).toContain('runNpm(["run", "publish"])');
     expect(releaseScript).toContain('pushRemote("origin", branch)');
     expect(releaseScript).toContain('pushRemote("backup", branch)');
+    expect(releaseScript).toContain("verifyPublicPharmacyLabelDeployment");
+    expect(releaseScript).toContain("Verified public pharmacy label editor deployment");
+    expect(releaseScript).toContain("publicDeployTimeoutMs = 12 * 60 * 1000");
     expect(releaseScript).toContain('GIT_TERMINAL_PROMPT: "0"');
     expect(releaseScript).toContain('"credential.helper="');
   });

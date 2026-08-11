@@ -7,6 +7,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const deployDir = join(root, ".deploy");
 const tokenPath = join(deployDir, "github-token");
 const askpassPath = join(deployDir, "git-askpass.cmd");
+const publicPharmacyLabelEditorUrl = "https://donggukpharm7992-star.github.io/Ecart-/pharmacy-label-editor/";
+const publicDeployTimeoutMs = 12 * 60 * 1000;
+const publicDeployPollMs = 15 * 1000;
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -97,17 +100,51 @@ function pushRemote(remote, branch) {
   git(sourceGitAuthArgs(["push", remote, branch]), { env: sourceGitEnv() });
 }
 
-function main() {
+function expectedPharmacyLabelAsset() {
+  const indexPath = join(root, "dist", "pharmacy-label-editor", "index.html");
+  const match = readFileSync(indexPath, "utf8").match(/assets\/(index-[^"']+\.js)/);
+  if (!match) throw new Error("Cannot find the pharmacy label editor asset to verify the public deployment.");
+  return match[1];
+}
+
+function wait(milliseconds) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
+}
+
+async function verifyPublicPharmacyLabelDeployment() {
+  const expectedAsset = expectedPharmacyLabelAsset();
+  const deadline = Date.now() + publicDeployTimeoutMs;
+  let lastAsset = "not fetched";
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(publicPharmacyLabelEditorUrl, { headers: { "Cache-Control": "no-cache" } });
+      const page = await response.text();
+      const match = page.match(/assets\/(index-[^"']+\.js)/);
+      lastAsset = match?.[1] ?? "missing";
+      if (response.ok && lastAsset === expectedAsset) {
+        console.log(`Verified public pharmacy label editor deployment: ${expectedAsset}`);
+        return;
+      }
+    } catch {
+      lastAsset = "unavailable";
+    }
+    await wait(publicDeployPollMs);
+  }
+  throw new Error(`GitHub Pages did not publish the latest pharmacy label editor asset within 12 minutes. Expected ${expectedAsset}; received ${lastAsset}.`);
+}
+
+async function main() {
   const branch = currentBranch();
   runNpm(["test"]);
   runNpm(["run", "publish"]);
   commitSourceChanges();
   pushRemote("origin", branch);
   pushRemote("backup", branch);
+  await verifyPublicPharmacyLabelDeployment();
 }
 
 try {
-  main();
+  await main();
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
