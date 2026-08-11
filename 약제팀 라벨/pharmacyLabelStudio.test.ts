@@ -121,6 +121,17 @@ describe("pharmacy label studio rules", () => {
     }
   });
 
+  it("uses corrected high-cost label sizes and upgrades saved sizes", () => {
+    expect(sizesForCategory("고가약", row).map((size) => size.presetKey)).toEqual(["43x80", "50x80"]);
+    for (const [legacySize, expectedSize] of [
+      [{ presetKey: "40x80", widthMm: 80, heightMm: 40 }, { presetKey: "43x80", widthMm: 80, heightMm: 43 }],
+      [{ presetKey: "55x80", widthMm: 80, heightMm: 55 }, { presetKey: "50x80", widthMm: 80, heightMm: 50 }],
+    ]) {
+      const saved = savePharmacyLabelDraft({ ...createPharmacyLabelDraft({ ...row, highCost: true }, "고가약", "drug"), size: legacySize });
+      expect(resolvePharmacyLabelDraft({ ...row, highCost: true }, [saved], "고가약", "drug").size).toEqual(expectedSize);
+    }
+  });
+
   it("uses corrected side and cap dimensions", () => {
     expect(sizesForCategory("원병", row).map((size) => size.presetKey)).toEqual(
       expect.arrayContaining(["23x102", "10x27", "15x30"]),

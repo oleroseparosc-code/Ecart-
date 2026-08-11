@@ -128,7 +128,7 @@ const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   영양수액: sizes(["15*110", "15*140"]),
   일반수액: sizes(["50*93", "55*93", "50*160"]),
   "마약/향정": sizes(["40*70"]),
-  고가약: sizes(["40*80", "55*80"]),
+  고가약: sizes(["43*80", "50*80"]),
   항암제: sizes(["46*80"]),
   원병: sizes(["33*100", "23*102", "10*27", "15*30"]),
 };
@@ -405,7 +405,11 @@ export function resolvePharmacyLabelDraft(
   if (!saved) return createPharmacyLabelDraft(row, category, family);
   const size = category === "바이알" && ["40x80", "42x80"].includes(saved.size.presetKey)
     ? { presetKey: "43x80", widthMm: 80, heightMm: 43 }
-    : saved.size;
+    : category === "고가약" && saved.size.presetKey === "40x80"
+      ? { presetKey: "43x80", widthMm: 80, heightMm: 43 }
+      : category === "고가약" && saved.size.presetKey === "55x80"
+        ? { presetKey: "50x80", widthMm: 80, heightMm: 50 }
+        : saved.size;
   const cabinetInfo = family === "cabinet" ? getCabinetInfoForCategory(row, category) : undefined;
   const sharedWarnings = new Set<string>(WARNING_OPTIONS);
   const warnings = [
