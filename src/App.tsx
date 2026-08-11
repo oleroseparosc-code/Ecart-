@@ -134,6 +134,7 @@ import {
   loadSavedPharmacyLabelsFromStorage,
   writeSavedPharmacyLabelsToStorage,
   formatPharmacyExpiry,
+  mergeDoseHighlightStyles,
   splitDoseText,
   splitNutritionDoseParts,
   splitNutritionDoseText,
@@ -3748,8 +3749,9 @@ export function App() {
       : undefined;
     const isHeparinLabel = draft.printable.footer.text.trim() === "헤파린";
     const hasCustomOuterBorderColor = draft.style.outerBorderPx > 0 && draft.style.outerBorderColor.toLowerCase() !== "#111827";
-    const styledTitle = draft.titleStyles?.length
-      ? splitStyledPharmacyTitle(renderedDisplayTitle, draft.titleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
+    const styledTitleStyles = mergeDoseHighlightStyles(renderedDisplayTitle, draft.titleStyles ?? [], hasDoseHighlight);
+    const styledTitle = styledTitleStyles.length
+      ? splitStyledPharmacyTitle(renderedDisplayTitle, styledTitleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
         color: part.style?.color,
         backgroundColor: part.style?.backgroundColor,
           fontSize: part.style?.fontSizePt ? `${part.style.fontSizePt}pt` : undefined,

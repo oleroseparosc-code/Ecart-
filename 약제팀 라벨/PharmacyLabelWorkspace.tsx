@@ -15,7 +15,7 @@ import {
   PHARMACY_CATEGORY_GROUP_NAMES, categoryForGroupedRow, groupPharmacyLabelsForPaper,
   resolvePharmacyLabelDraft, rowMatchesCategory, rowMatchesCategoryGroup, sizesForCategory,
   extractHex, formatPharmacyExpiry,
-  splitDoseText, splitNutritionDoseParts, splitNutritionDoseText, splitStyledPharmacyTitle,
+  mergeDoseHighlightStyles, splitDoseText, splitNutritionDoseParts, splitNutritionDoseText, splitStyledPharmacyTitle,
   type PharmacyLabelCategory, type PharmacyLabelDraft, type PharmacyLabelFamily, type PharmacySavedLabel,
   type PharmacyTitleStyle,
   type PharmacyHighCostRoute,
@@ -237,8 +237,9 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const isHeparinLabel = draft?.printable.footer.text.trim() === "헤파린";
 
   function renderEditableTitle(title: string) {
-    if (!draft?.titleStyles?.length) return title;
-    return splitStyledPharmacyTitle(title, draft.titleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
+    const titleStyles = mergeDoseHighlightStyles(title, draft?.titleStyles ?? [], hasDoseHighlight);
+    if (!titleStyles.length) return title;
+    return splitStyledPharmacyTitle(title, titleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
       color: part.style?.color,
       backgroundColor: part.style?.backgroundColor,
       fontSize: part.style?.fontSizePt ? `${part.style.fontSizePt}pt` : undefined,
@@ -512,7 +513,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
           </div>}
           {!hasCautionWarning && hasColdWarning && hasLightWarning && <b className="pharmacy-storage-circle cold">{coldWarningText}</b>}
           <div className="pharmacy-label-main"><PharmacyAutoFitLabelContent fitKey={`${draft.size.presetKey}|${draft.style.outerBorderPx}|${draft.printable.title}|${draft.printable.koreanName}|${draft.warnings.join("|")}|${JSON.stringify(draft.titleStyles ?? [])}`}><strong className={`${titleSizeClass} ${hasNameConfusion && ["외용제", "외용점안제", "팩제"].includes(displayCategory) ? "confusion-name" : ""}`}>
-            {draft.titleStyles?.length ? renderEditableTitle(renderedDisplayTitle) : hasDoseHighlight && titleParts.dose ? <>{titleParts.before}<mark className="dose-highlight">{titleParts.dose}</mark>{titleParts.after}</> : renderedDisplayTitle}
+            {renderEditableTitle(renderedDisplayTitle)}
           </strong>
             {!isCapLabel && !isExternalShelfLabel && !isCompactSyrupLabel && !isGeneralFluidLabel && <span>{draft.printable.koreanName}</span>}
             {isCapLabel && draft.doseUnit && draft.doseUnit !== "1T" && <b>{draft.doseUnit}</b>}

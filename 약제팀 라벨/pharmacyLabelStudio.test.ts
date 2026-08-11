@@ -4,6 +4,7 @@ import {
   categoryForGroupedRow,
   createPharmacyLabelDraft,
   groupPharmacyLabelsForPaper,
+  mergeDoseHighlightStyles,
   planPharmacyLabelsForPaper,
   rowMatchesCategory,
   rowMatchesCategoryGroup,
@@ -135,6 +136,12 @@ describe("pharmacy label studio rules", () => {
       { text: "PROPESS", style: expect.objectContaining({ color: "#ff0000", fontWeight: 1000, textTransform: "uppercase" }) },
       { text: " vaginal", style: undefined },
     ]);
+  });
+
+  it("keeps partial title formatting while applying a dose-warning highlight", () => {
+    const styles = mergeDoseHighlightStyles("Test 20mg inj", [{ start: 0, end: 13, fontSizePt: 30, color: "#155eef", backgroundColor: "#dcfce7" }], true);
+    const dose = splitStyledPharmacyTitle("Test 20mg inj", styles).find((part) => part.text === "20");
+    expect(dose?.style).toEqual(expect.objectContaining({ fontSizePt: 30, color: "#d92d20", backgroundColor: "#fff200" }));
   });
 
   it("highlights only the numeric dose inside the common name", () => {

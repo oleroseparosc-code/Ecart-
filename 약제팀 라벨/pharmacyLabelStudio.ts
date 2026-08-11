@@ -334,6 +334,14 @@ export function splitNutritionDoseParts(title: string) {
   return parts;
 }
 
+export function mergeDoseHighlightStyles(title: string, styles: PharmacyTitleStyle[] = [], enabled = false) {
+  if (!enabled) return styles;
+  const { before, dose } = splitDoseText(title);
+  return dose
+    ? [...styles, { start: before.length, end: before.length + dose.length, color: "#d92d20", backgroundColor: "#fff200" }]
+    : styles;
+}
+
 export function splitStyledPharmacyTitle(title: string, styles: PharmacyTitleStyle[] = []) {
   const valid = styles
     .map((style) => ({ ...style, start: Math.max(0, style.start), end: Math.min(title.length, style.end) }))

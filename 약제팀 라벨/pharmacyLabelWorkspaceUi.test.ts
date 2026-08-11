@@ -154,6 +154,8 @@ describe("pharmacy label workspace UI", () => {
 
   it("applies dose and storage conditions to the label canvas", () => {
     expect(workspaceSource).toContain("dose-highlight");
+    expect(workspaceSource).toContain("mergeDoseHighlightStyles");
+    expect(appSource).toContain("mergeDoseHighlightStyles");
     expect(workspaceSource).toContain("pharmacy-storage-badge light");
     expect(workspaceSource).toContain("pharmacy-storage-badge cold");
     expect(workspaceSource).toContain("storageOnlyClass");
