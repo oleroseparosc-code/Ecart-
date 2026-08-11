@@ -1,4 +1,4 @@
-const CACHE_NAME = "hospital-inventory-app-v31";
+const CACHE_NAME = "hospital-inventory-app-v32";
 const APP_SHELL = [
   "/Ecart-/",
   "/Ecart-/viewer/",
