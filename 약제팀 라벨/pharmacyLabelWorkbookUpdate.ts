@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import { buildPharmacyLabelWorkbookApiUrl } from "../src/serverSync";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
-import type { PharmacyLabelDraft } from "./pharmacyLabelStudio";
+import type { PharmacyLabelDraft, PharmacySavedLabel } from "./pharmacyLabelStudio";
 
 const WARNING_HEADERS: Record<string, string> = {
   용량주의: "용량주의",
@@ -120,6 +120,7 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
         backgroundColor: draft.backgroundColor,
         style: draft.style,
         titleStyles: draft.titleStyles,
+        savedAt: draft.savedAt ?? new Date().toISOString(),
       }),
     };
     for (const [warning, header] of Object.entries(WARNING_HEADERS)) {
@@ -180,6 +181,50 @@ async function loadPharmacyWorkbook(workbookUrl: string) {
   response ??= await fetch(workbookUrl);
   if (!response.ok) throw new Error("원내보유의약품리스트 원본을 불러오지 못했습니다.");
   return XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true });
+}
+
+export async function loadSavedPharmacyLabelsFromWorkbook(workbookUrl: string): Promise<PharmacySavedLabel[]> {
+  const workbook = await loadPharmacyWorkbook(workbookUrl);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
+  const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
+  const codeIndex = headers.indexOf("약품코드");
+  const settingsIndex = headers.indexOf("약제팀 라벨 설정");
+  if (codeIndex < 0 || settingsIndex < 0) return [];
+
+  return rows.slice(1).flatMap((row) => {
+    const code = String(row[codeIndex] ?? "").trim();
+    const rawSettings = String(row[settingsIndex] ?? "").trim();
+    if (!code || !rawSettings) return [];
+    try {
+      const saved = JSON.parse(rawSettings) as Partial<PharmacyLabelDraft>;
+      if (
+        (saved.labelFamily !== "drug" && saved.labelFamily !== "cabinet")
+        || !saved.category
+        || !saved.size
+        || !saved.printable
+        || !saved.style
+      ) return [];
+      return [{
+        ...saved,
+        id: saved.id || `pharmacy-label-${saved.labelFamily}-${saved.category}-${code}`,
+        code,
+        itemCode: saved.itemCode ?? "",
+        location: saved.location ?? "",
+        atc: saved.atc ?? "",
+        expiry: saved.expiry ?? "",
+        imagePath: saved.imagePath ?? "",
+        imageSourceUrl: saved.imageSourceUrl ?? "",
+        backgroundColor: saved.backgroundColor ?? "#ffffff",
+        warnings: Array.isArray(saved.warnings) ? saved.warnings : [],
+        drugTypes: Array.isArray(saved.drugTypes) ? saved.drugTypes : [],
+        sourceType: "manual" as const,
+        savedAt: saved.savedAt || new Date().toISOString(),
+      } as PharmacySavedLabel];
+    } catch {
+      return [];
+    }
+  });
 }
 
 async function persistPharmacyWorkbook(workbook: XLSX.WorkBook) {

@@ -7,6 +7,7 @@ import {
   deleteHospitalDrugMasterRowsFromWorkbook,
   saveHospitalDrugMasterRowToWorkbook,
   saveHospitalDrugMasterRowsToWorkbook,
+  loadSavedPharmacyLabelsFromWorkbook,
 } from "./pharmacyLabelWorkbookUpdate";
 
 const source = readFileSync(new URL("./pharmacyLabelWorkbookUpdate.ts", import.meta.url), "utf8");
@@ -151,11 +152,42 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain('"테두리 색기호": draft.style.outerBorderColor');
     expect(source).toContain('draft.style.outerBorderPx > 0 ? "Y" : "N"');
     expect(source).toContain('"약제팀 라벨 설정": JSON.stringify');
+    expect(source).toContain("loadSavedPharmacyLabelsFromWorkbook");
+    expect(source).toContain("savedAt: draft.savedAt");
     expect(source).toContain("showSaveFilePicker");
     expect(source).toContain("createWritable");
     expect(source).toContain('XLSX.writeFile(workbook, "원내보유의약품리스트.xlsx"');
     expect(source).toContain('window.location.hostname.endsWith(".github.io")');
     expect(source).toContain("클라우드 저장에 실패했습니다.");
+  });
+
+  it("restores saved border and partial-title settings from the workbook", async () => {
+    const settings = {
+      labelFamily: "drug",
+      category: "PTP",
+      size: { presetKey: "40x80", widthMm: 80, heightMm: 40 },
+      printable: { title: "Test", koreanName: "테스트", strength: "10mg", warning: "", topBanner: "", footer: { enabled: false, text: "" }, reconstitution: "" },
+      style: { outerBorderPx: 0.5, outerBorderColor: "#ff69b4", textOutlinePx: 0, textOutlineColor: "#ffffff", fontFamily: "sans-serif", fontSizePt: 18, fontColor: "#111827", warningColor: "#d92d20" },
+      titleStyles: [{ start: 0, end: 4, color: "#ff0000" }],
+      savedAt: "2026-08-10T10:00:00.000Z",
+    };
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+      ["약품코드", "약제팀 라벨 설정"],
+      ["RESTORE-1", JSON.stringify(settings)],
+    ]), "약품조회");
+    const sourceData = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(sourceData, {
+      status: 200,
+      headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+    }));
+    try {
+      const restored = await loadSavedPharmacyLabelsFromWorkbook("/source.xlsx");
+      expect(restored[0]?.style.outerBorderColor).toBe("#ff69b4");
+      expect(restored[0]?.titleStyles?.[0]?.color).toBe("#ff0000");
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("updates the current app row and local final-label repository after workbook save", () => {

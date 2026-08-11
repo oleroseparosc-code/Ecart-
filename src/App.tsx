@@ -124,6 +124,7 @@ import {
   saveHospitalDrugMasterRowToWorkbook,
   saveHospitalDrugMasterRowsToWorkbook,
   savePharmacyLabelDraftsToWorkbook,
+  loadSavedPharmacyLabelsFromWorkbook,
 } from "../약제팀 라벨/pharmacyLabelWorkbookUpdate";
 import { loadPharmacyLabelMatchRows, type PharmacyLabelMatchRow } from "../약제팀 라벨/pharmacyLabelMatches";
 import {
@@ -1224,6 +1225,7 @@ export function App() {
       initialDeletedPharmacyDrugCodeSet,
     ),
   );
+  const restoredWorkbookLabelSettingsRef = useRef(false);
   const deletedPharmacyDrugCodeSet = useMemo(
     () => new Set(normalizeDeletedPharmacyDrugCodes(deletedPharmacyDrugCodes)),
     [deletedPharmacyDrugCodes],
@@ -1785,6 +1787,24 @@ export function App() {
         setIsPharmacyLabelMatchesLoading(false);
       });
   }, [deletedPharmacyDrugCodeSet, isPharmacyLabelMatchesLoading, isPharmacyLabelWorkspaceOpen, pharmacyAdditionalRows, pharmacyLabelMatchRows.length, savedPharmacyLabels]);
+
+  useEffect(() => {
+    if (!(isPharmacyEditor || isPharmacyLabelWorkspaceOpen) || restoredWorkbookLabelSettingsRef.current) return;
+    restoredWorkbookLabelSettingsRef.current = true;
+    void refreshRuntimeSyncBaseUrl()
+      .then(() => loadSavedPharmacyLabelsFromWorkbook(hospitalDrugWorkbookUrl))
+      .then((restored) => {
+        if (restored.length === 0) return;
+        setSavedPharmacyLabels((previous) => {
+          const restoredKeys = new Set(restored.map((label) => `${label.labelFamily}|${label.category}|${label.code.trim().toUpperCase()}`));
+          const next = [...previous.filter((label) => !restoredKeys.has(`${label.labelFamily}|${label.category}|${label.code.trim().toUpperCase()}`)), ...restored];
+          writeSavedPharmacyLabelsToStorage(window.localStorage, next);
+          return next;
+        });
+        setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, pharmacyRowsFromSavedLabels(restored)));
+      })
+      .catch((error) => console.warn("Unable to restore pharmacy label settings from workbook", error));
+  }, [isPharmacyEditor, isPharmacyLabelWorkspaceOpen]);
 
   const syncStatusText = useMemo(() => {
     if (syncStatus.lastSyncedAt) {
@@ -3126,9 +3146,9 @@ export function App() {
   async function savePharmacyStudioLabels(drafts: PharmacyLabelDraft[]) {
     if (typeof window === "undefined") return "";
     if (drafts.some((draft) => !draft.code.trim())) throw new Error("새 라벨은 약품코드를 입력해야 저장할 수 있습니다.");
-    const workbookSaveMode = await savePharmacyLabelDraftsToWorkbook(drafts, hospitalDrugWorkbookUrl);
     const savedAt = new Date().toISOString();
     const saved = drafts.map((draft) => ({ ...draft, sourceType: "manual" as const, savedAt }));
+    const workbookSaveMode = await savePharmacyLabelDraftsToWorkbook(saved, hospitalDrugWorkbookUrl);
     setSavedPharmacyLabels((previous) => {
       const savedKeys = new Set(saved.map((label) => `${label.labelFamily}|${label.category}|${label.code.trim().toUpperCase()}`));
       const next = [...previous.filter((label) => !savedKeys.has(`${label.labelFamily}|${label.category}|${label.code.trim().toUpperCase()}`)), ...saved];
