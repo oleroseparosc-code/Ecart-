@@ -241,10 +241,10 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     if (!titleStyles.length) return title;
     return splitStyledPharmacyTitle(title, titleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
       color: part.style?.color,
-      backgroundColor: part.style?.backgroundColor,
+      "--pharmacy-title-highlight-background": part.style?.backgroundColor,
       fontSize: part.style?.fontSizePt ? `${part.style.fontSizePt}pt` : undefined,
       fontWeight: part.style?.fontWeight,
-    }}>{part.text}</span>);
+    } as CSSProperties}>{part.text}</span>);
   }
 
   function applyTitleStyle(style: { fontSizePt?: number; color?: string; backgroundColor?: string; fontWeight?: number; textTransform?: "none" | "uppercase" | "lowercase" }) {

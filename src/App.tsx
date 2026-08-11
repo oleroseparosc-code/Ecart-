@@ -3753,10 +3753,10 @@ export function App() {
     const styledTitle = styledTitleStyles.length
       ? splitStyledPharmacyTitle(renderedDisplayTitle, styledTitleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
         color: part.style?.color,
-        backgroundColor: part.style?.backgroundColor,
+        "--pharmacy-title-highlight-background": part.style?.backgroundColor,
           fontSize: part.style?.fontSizePt ? `${part.style.fontSizePt}pt` : undefined,
           fontWeight: part.style?.fontWeight,
-        }}>{part.text}</span>)
+        } as CSSProperties}>{part.text}</span>)
       : null;
     const style = {
       "--pharmacy-label-width-mm": draft.size.widthMm,

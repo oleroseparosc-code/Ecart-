@@ -208,6 +208,9 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("splitStyledPharmacyTitle");
     expect(workspaceSource).toContain("pharmacy-editable-title-highlight");
     expect(appSource).toContain("pharmacy-editable-title-highlight");
+    expect(workspaceSource).toContain('"--pharmacy-title-highlight-background"');
+    expect(appSource).toContain('"--pharmacy-title-highlight-background"');
+    expect(stylesSource).toContain(".pharmacy-editable-title-highlight::before");
     expect(workspaceSource).toContain('selectedTitleTransform === "uppercase"');
     expect(workspaceSource).toContain('selectedTitleTransform === "lowercase"');
     expect(workspaceSource).toContain("배경색");
