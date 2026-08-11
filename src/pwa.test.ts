@@ -121,7 +121,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v27"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v28"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
