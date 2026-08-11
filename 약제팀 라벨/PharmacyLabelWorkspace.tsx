@@ -376,6 +376,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
       activeRow.koreanName !== draft.printable.koreanName ? `한글약품명: ${activeRow.koreanName} → ${draft.printable.koreanName}` : "",
       activeRow.location !== draft.location ? `위치: ${activeRow.location || "-"} → ${draft.location || "-"}` : "",
       activeRow.atc !== draft.atc ? `ATC: ${activeRow.atc || "-"} → ${draft.atc || "-"}` : "",
+      `최종 라벨 크기: ${draft.size.heightMm} × ${draft.size.widthMm} mm`,
       addedWarnings.length ? `주의 조건 추가: ${addedWarnings.join(", ")}` : "",
       removedWarnings.length ? `주의 조건 해제: ${removedWarnings.join(", ")}` : "",
       `테두리: ${draft.style.outerBorderPx}mm / ${draft.style.outerBorderColor}`,

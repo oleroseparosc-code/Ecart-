@@ -13,6 +13,7 @@ const WARNING_HEADERS: Record<string, string> = {
 };
 const LABEL_SETTINGS_HEADER = "약제팀 라벨 설정";
 const FINAL_LABEL_SETTINGS_HEADER = "약제팀 최종 라벨 설정";
+const FINAL_LABEL_SIZE_HEADER = "최종 라벨 크기";
 
 function compact(value: unknown) {
   return String(value ?? "").replace(/\s+/g, "").trim();
@@ -88,7 +89,7 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
   const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
   const index = new Map(headers.map((header, position) => [header, position]));
-  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형", "테두리", "테두리 색기호", LABEL_SETTINGS_HEADER, FINAL_LABEL_SETTINGS_HEADER]);
+  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형", "테두리", "테두리 색기호", FINAL_LABEL_SIZE_HEADER, LABEL_SETTINGS_HEADER, FINAL_LABEL_SETTINGS_HEADER]);
   const codeIndex = index.get("약품코드");
   if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
   let appendedCount = 0;
@@ -110,6 +111,7 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
       유효기간: draft.expiry,
       테두리: draft.style.outerBorderPx > 0 ? "Y" : "N",
       "테두리 색기호": draft.style.outerBorderColor,
+      [FINAL_LABEL_SIZE_HEADER]: `${draft.size.heightMm} × ${draft.size.widthMm} mm`,
       [LABEL_SETTINGS_HEADER]: JSON.stringify({
         labelFamily: draft.labelFamily,
         category: draft.category,
@@ -171,7 +173,8 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
         return !saved
           || JSON.stringify(saved.style) !== JSON.stringify(draft.style)
           || JSON.stringify(saved.titleStyles ?? []) !== JSON.stringify(draft.titleStyles ?? [])
-          || JSON.stringify(saved.printable) !== JSON.stringify(draft.printable);
+          || JSON.stringify(saved.printable) !== JSON.stringify(draft.printable)
+          || JSON.stringify(saved.size) !== JSON.stringify(draft.size);
       });
       if (notPersisted) {
         throw new Error(`[${notPersisted.code}] 최종 라벨 설정이 엑셀에 확인되지 않았습니다. 저장이 완료되지 않았습니다.`);
