@@ -109,6 +109,17 @@ describe("pharmacy label studio rules", () => {
     expect(sizesForCategory("바이알", row).every((size) => size.heightMm > 40)).toBe(true);
   });
 
+  it("uses 43×80mm for vial labels and upgrades legacy vial sizes", () => {
+    expect(sizesForCategory("바이알", { ...row, border: false }).map((size) => size.presetKey)).toEqual(["43x80", "47x80", "52x80", "47x90"]);
+    for (const legacySize of [
+      { presetKey: "40x80", widthMm: 80, heightMm: 40 },
+      { presetKey: "42x80", widthMm: 80, heightMm: 42 },
+    ]) {
+      const saved = savePharmacyLabelDraft({ ...createPharmacyLabelDraft(row, "바이알", "drug"), size: legacySize });
+      expect(resolvePharmacyLabelDraft(row, [saved], "바이알", "drug").size).toEqual({ presetKey: "43x80", widthMm: 80, heightMm: 43 });
+    }
+  });
+
   it("uses corrected side and cap dimensions", () => {
     expect(sizesForCategory("원병", row).map((size) => size.presetKey)).toEqual(
       expect.arrayContaining(["23x102", "10x27", "15x30"]),

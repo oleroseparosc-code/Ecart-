@@ -122,7 +122,7 @@ const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   시럽: sizes(["48*94", "15*90"]),
   입원산제: sizes(["23*102", "10*27", "15*30"]),
   앰플: sizes(["33*100"]),
-  바이알: sizes(["40*80", "42*80", "47*80", "52*80", "47*90"]),
+  바이알: sizes(["43*80", "47*80", "52*80", "47*90"]),
   PTP: sizes(["32*70", "40*80", "42*80", "47*80", "52*80", "47*90"]),
   냉장주사: sizes(["40*80", "42*80", "47*80", "52*80"]),
   영양수액: sizes(["15*110", "15*140"]),
@@ -395,6 +395,9 @@ export function resolvePharmacyLabelDraft(
     .sort((a, b) => a.savedAt.localeCompare(b.savedAt))
     .pop();
   if (!saved) return createPharmacyLabelDraft(row, category, family);
+  const size = category === "바이알" && ["40x80", "42x80"].includes(saved.size.presetKey)
+    ? { presetKey: "43x80", widthMm: 80, heightMm: 43 }
+    : saved.size;
   const cabinetInfo = family === "cabinet" ? getCabinetInfoForCategory(row, category) : undefined;
   const sharedWarnings = new Set<string>(WARNING_OPTIONS);
   const warnings = [
@@ -411,6 +414,7 @@ export function resolvePharmacyLabelDraft(
   const hasWorkbookBorder = row.border || Boolean(workbookBorderColor);
   return {
     ...saved,
+    size,
     accessory,
     itemCode: saved.itemCode,
     location: saved.location,

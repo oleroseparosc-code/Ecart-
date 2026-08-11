@@ -6311,6 +6311,20 @@ button {
   font-weight: 900;
 }
 
+.pharmacy-cabinet-list-row,
+.pharmacy-cabinet-location-label,
+.pharmacy-cabinet-full-list,
+.pharmacy-three-tier-label {
+  font-weight: 1000;
+}
+
+.pharmacy-cabinet-list-row :is(strong, span, b, em),
+.pharmacy-cabinet-location-label :is(strong, span),
+.pharmacy-cabinet-full-list :is(strong, small, b, em, time),
+.pharmacy-three-tier-label :is(strong, b) {
+  font-weight: 1000;
+}
+
 .pharmacy-nutrition-label {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

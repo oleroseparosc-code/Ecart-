@@ -256,6 +256,7 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain("PharmacyCabinetLabelCanvas");
     expect(cabinetSource).toContain("pharmacy-cabinet-location-label");
     expect(cabinetSource).toContain("pharmacy-cabinet-full-list-row");
+    expect(stylesSource).toContain(".pharmacy-cabinet-full-list :is(strong, small, b, em, time)");
     expect(workspaceSource).toContain("pharmacy-nutrition-label");
     expect(workspaceSource).toContain("const selectedDrafts = useMemo");
     expect(workspaceSource).not.toContain("next.style = { ...next.style, ...draft.style }");
