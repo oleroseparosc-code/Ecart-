@@ -238,7 +238,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
 
   function renderEditableTitle(title: string) {
     if (!draft?.titleStyles?.length) return title;
-    return splitStyledPharmacyTitle(title, draft.titleStyles).map((part, index) => <span key={`${index}-${part.text}`} style={{
+    return splitStyledPharmacyTitle(title, draft.titleStyles).map((part, index) => <span className={part.style?.backgroundColor && part.style.backgroundColor !== "transparent" ? "pharmacy-editable-title-highlight" : undefined} key={`${index}-${part.text}`} style={{
       color: part.style?.color,
       backgroundColor: part.style?.backgroundColor,
       fontSize: part.style?.fontSizePt ? `${part.style.fontSizePt}pt` : undefined,

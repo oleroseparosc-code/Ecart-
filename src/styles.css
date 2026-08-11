@@ -5651,6 +5651,16 @@ button {
   overflow-wrap: normal;
 }
 
+.pharmacy-editable-title-highlight {
+  display: inline;
+  padding: 0;
+  line-height: 1;
+  vertical-align: baseline;
+  background-clip: padding-box;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .pharmacy-label-main strong.medium-name {
   font-size: .86em;
 }
