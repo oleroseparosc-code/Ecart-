@@ -151,9 +151,13 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain('이름주의: "이름주의"');
     expect(source).toContain('"테두리 색기호": draft.style.outerBorderColor');
     expect(source).toContain('draft.style.outerBorderPx > 0 ? "Y" : "N"');
-    expect(source).toContain('"약제팀 라벨 설정": JSON.stringify');
+    expect(source).toContain('[LABEL_SETTINGS_HEADER]: JSON.stringify');
+    expect(source).toContain('FINAL_LABEL_SETTINGS_HEADER');
+    expect(source).toContain('version: 1');
     expect(source).toContain("loadSavedPharmacyLabelsFromWorkbook");
     expect(source).toContain("savedAt: draft.savedAt");
+    expect(source).toContain("최종 라벨 설정이 엑셀에 확인되지 않았습니다");
+    expect(source).toContain("JSON.stringify(saved.titleStyles ?? [])");
     expect(source).toContain("showSaveFilePicker");
     expect(source).toContain("createWritable");
     expect(source).toContain('XLSX.writeFile(workbook, "원내보유의약품리스트.xlsx"');
