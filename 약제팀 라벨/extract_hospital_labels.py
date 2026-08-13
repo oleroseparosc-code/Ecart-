@@ -5,6 +5,7 @@ import hashlib
 import mimetypes
 import re
 import time
+from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode, urljoin
 from urllib.request import Request, urlopen
@@ -27,6 +28,10 @@ HEALTH_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Apple
 def clean(value: object) -> str:
     if value is None:
         return ""
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
     return str(value).replace("_x000D_", "").strip()
 
 
