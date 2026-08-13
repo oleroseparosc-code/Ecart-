@@ -7594,6 +7594,8 @@ button {
 }
 
 .pharmacy-cabinet-full-list {
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -7605,6 +7607,7 @@ button {
 
 .pharmacy-cabinet-full-list > header {
   display: flex;
+  flex: 0 0 9mm;
   height: 9mm;
   align-items: center;
   justify-content: space-between;
@@ -7617,11 +7620,13 @@ button {
   grid-template-columns: repeat(var(--cabinet-list-columns, 3), minmax(0, 1fr));
   grid-template-rows: repeat(var(--cabinet-list-rows, 1), minmax(0, 1fr));
   grid-auto-flow: column;
-  height: calc(100% - 9mm);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
 }
 
 .pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-grid {
-  height: calc(100% - 14mm);
+  height: auto;
 }
 
 .pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-row {
@@ -7679,6 +7684,7 @@ button {
 }
 
 .pharmacy-cabinet-full-list-print-date {
+  flex: 0 0 5mm;
   height: 5mm;
   display: flex;
   align-items: end;
