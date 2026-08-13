@@ -39,6 +39,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   const isAtc = layout.category === "ATC";
   const printedOn = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const isRefrigeratedList = layout.category === "냉장주사";
+  const isPtpList = layout.category === "PTP";
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
   const showsLocation = isExternalList || ["원병", "PTP", "경구 고가약", "앰플", "바이알", "냉장주사", "영양수액"].includes(layout.category);
@@ -50,7 +51,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
     "--cabinet-list-columns": columnCount,
     "--cabinet-list-rows": rowCount,
   } as CSSProperties;
-  return <div className={`pharmacy-cabinet-full-list full-list-${layout.paperKey ?? "A4"} ${isAtc ? "atc-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isInlineLocationList ? "location-inline-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
+  return <div className={`pharmacy-cabinet-full-list full-list-${layout.paperKey ?? "A4"} ${isAtc ? "atc-list" : ""} ${isPtpList ? "ptp-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isInlineLocationList ? "location-inline-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
     <header><strong>{layout.title}</strong><span>{layout.page} / {layout.totalPages}</span></header>
     <div className="pharmacy-cabinet-full-list-grid" style={gridStyle}>
       {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""} ${showsLocation && !isAtc ? "with-category-details" : ""}`} key={entry.code}>
@@ -61,7 +62,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
           : isRefrigeratedList
             ? <><em className="cabinet-entry-location">위치: {entry.location}</em><b className="cabinet-entry-warning">주의: {entry.reference || "없음"}</b></>
           : showsLocation
-            ? <div className="cabinet-entry-details"><b>주의: {entry.reference || "없음"}</b><em>위치: {entry.location || "미입력"}</em></div>
+            ? <div className="cabinet-entry-details"><b className={entry.reference.length > 10 ? "cabinet-warning-long" : undefined}>{isPtpList ? entry.reference || "없음" : `주의: ${entry.reference || "없음"}`}</b><em>위치: {entry.location || "미입력"}</em></div>
             : <b>{entry.reference || "-"}</b>}
       </div>)}
     </div>

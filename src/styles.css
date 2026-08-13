@@ -7838,6 +7838,24 @@ button {
   font-size: 4.8pt;
 }
 
+.pharmacy-cabinet-full-list.ptp-list .cabinet-entry-details b {
+  font-size: 4.2pt;
+  letter-spacing: -.08mm;
+}
+
+.pharmacy-cabinet-full-list.ptp-list .cabinet-entry-details b.cabinet-warning-long {
+  font-size: 3.2pt;
+  letter-spacing: -.12mm;
+}
+
+.pharmacy-cabinet-full-list.ptp-list.full-list-A3 .cabinet-entry-details b {
+  font-size: 5.4pt;
+}
+
+.pharmacy-cabinet-full-list.ptp-list.full-list-A3 .cabinet-entry-details b.cabinet-warning-long {
+  font-size: 4.2pt;
+}
+
 .pharmacy-cabinet-full-list.nutrition-list .pharmacy-cabinet-full-list-grid {
   grid-auto-rows: 10mm;
   grid-template-rows: repeat(var(--cabinet-list-rows, 1), 10mm);
