@@ -37,18 +37,19 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
     </div>;
   }
   const isAtc = layout.category === "ATC";
+  const printedOn = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const isRefrigeratedList = layout.category === "냉장주사";
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
   const showsLocation = isExternalList || ["경구 고가약", "앰플", "바이알", "냉장주사", "영양수액"].includes(layout.category);
   const compactListCategories = ["외용제", "외용점안제", "팩제", "시럽", "앰플", "바이알", "영양수액"];
-  const columnCount = layout.category === "경구 고가약" ? 2 : compactListCategories.includes(layout.category) ? 4 : 3;
+  const columnCount = layout.columnCount ?? (layout.category === "경구 고가약" ? 2 : compactListCategories.includes(layout.category) ? 4 : 3);
   const rowCount = Math.max(1, Math.ceil(layout.entries.length / columnCount));
   const gridStyle = {
     "--cabinet-list-columns": columnCount,
     "--cabinet-list-rows": rowCount,
   } as CSSProperties;
-  return <div className={`pharmacy-cabinet-full-list ${isAtc ? "atc-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
+  return <div className={`pharmacy-cabinet-full-list full-list-${layout.paperKey ?? "A4"} ${isAtc ? "atc-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
     <header><strong>{layout.title}</strong><span>{layout.page} / {layout.totalPages}</span></header>
     <div className="pharmacy-cabinet-full-list-grid" style={gridStyle}>
       {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""} ${showsLocation && !isAtc ? "with-category-details" : ""}`} key={entry.code}>
@@ -63,6 +64,7 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
             : <b>{entry.reference || "-"}</b>}
       </div>)}
     </div>
+    <footer className="pharmacy-cabinet-full-list-print-date">출력일: {printedOn}</footer>
   </div>;
 }
 
@@ -73,6 +75,7 @@ export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
   const locations = useMemo(() => listCabinetLocations(cabinetRows, category), [cabinetRows, category]);
   const [location, setLocation] = useState("");
   const [paper, setPaper] = useState<"A4" | "A3">("A4");
+  const [fullListPaper, setFullListPaper] = useState<"A4" | "A3">("A4");
   const allLocationsValue = "__ALL_LOCATIONS__";
   useEffect(() => setLocation((current) => current === allLocationsValue || locations.includes(current) ? current : locations[0] ?? ""), [category, locations]);
   const locationDrafts = useMemo(
@@ -81,7 +84,7 @@ export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
     [cabinetRows, category, location],
   );
   const locationDraft = locationDrafts[0];
-  const fullListDrafts = useMemo(() => buildCabinetFullListDrafts(cabinetRows, category), [cabinetRows, category]);
+  const fullListDrafts = useMemo(() => buildCabinetFullListDrafts(cabinetRows, category, fullListPaper), [cabinetRows, category, fullListPaper]);
   const locationEnabled = ["원병", "PTP", "냉장주사"].includes(category);
   const fullListCount = fullListDrafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).length;
   const fullListPageCount = fullListDrafts.length;
@@ -121,9 +124,10 @@ export function PharmacyCabinetLabelCanvas({ category, rows, onPrint }: Props) {
         {fullListDrafts.map((draft) => draft.cabinetLayout && <div key={draft.id}><PharmacyCabinetLayoutView layout={draft.cabinetLayout}/></div>)}
       </div>
       <div className="pharmacy-save-row">
-        <span>{fullListCount.toLocaleString("ko-KR")}개 약품 · A4 {fullListPageCount}페이지</span>
-        <button type="button" className="secondary-button" disabled={fullListCount === 0} onClick={() => onPrint(fullListDrafts, "A4")}><FileDown size={16}/>PDF 미리보기</button>
-        <button type="button" className="print-button" disabled={fullListCount === 0} onClick={() => onPrint(fullListDrafts, "A4")}><Printer size={16}/>전체 리스트 출력</button>
+        <span>{fullListCount.toLocaleString("ko-KR")}개 약품 · {fullListPaper} {fullListPageCount}페이지</span>
+        <div className="pharmacy-paper-mini"><button type="button" className={fullListPaper === "A4" ? "active" : ""} onClick={() => setFullListPaper("A4")}>A4</button><button type="button" className={fullListPaper === "A3" ? "active" : ""} onClick={() => setFullListPaper("A3")}>A3</button></div>
+        <button type="button" className="secondary-button" disabled={fullListCount === 0} onClick={() => onPrint(fullListDrafts, fullListPaper)}><FileDown size={16}/>PDF 미리보기</button>
+        <button type="button" className="print-button" disabled={fullListCount === 0} onClick={() => onPrint(fullListDrafts, fullListPaper)}><Printer size={16}/>전체 리스트 출력</button>
       </div>
     </section>
   </section>;

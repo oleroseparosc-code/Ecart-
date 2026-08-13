@@ -148,6 +148,7 @@ export function buildCabinetLocationDraft(
 export function buildCabinetFullListDrafts(
   rows: readonly HospitalDrugLabelRow[],
   category: PharmacyLabelCategory,
+  paperKey: "A4" | "A3" = "A4",
 ) {
   const entries = rows
     .filter((row) => category !== "냉장주사" || Boolean(row.location?.trim()))
@@ -163,8 +164,16 @@ export function buildCabinetFullListDrafts(
     })
     .map((row) => toEntry(row, category));
   const compactListCategories = ["외용제", "외용점안제", "팩제", "시럽", "앰플", "바이알", "영양수액"];
-  const columnCount = category === "경구 고가약" ? 2 : compactListCategories.includes(category) ? 4 : 3;
-  const maxRowsPerColumn = 40;
+  const isAtc = category === "ATC";
+  const isA3 = paperKey === "A3";
+  const columnCount = isAtc
+    ? (isA3 ? 3 : 2)
+    : category === "경구 고가약"
+      ? 2
+      : compactListCategories.includes(category)
+        ? (isA3 ? 4 : 3)
+        : (isA3 ? 3 : 2);
+  const maxRowsPerColumn = isA3 ? 40 : 30;
   const minimumPages = ["영양수액", "경구 고가약"].includes(category) ? 1 : 2;
   const totalPages = Math.max(minimumPages, Math.ceil(entries.length / (columnCount * maxRowsPerColumn)));
   const pageSize = Math.ceil(entries.length / totalPages);
@@ -175,11 +184,13 @@ export function buildCabinetFullListDrafts(
     return {
       ...draft,
       code: `CABINET-FULL-${category}-${index + 1}`,
-      size: { presetKey: "cabinet-full-list", widthMm: 190, heightMm: 277 },
+      size: { presetKey: "cabinet-full-list", widthMm: isA3 ? 277 : 190, heightMm: isA3 ? 400 : 277 },
       printable: { ...draft.printable, title },
       cabinetLayout: {
         kind: "full-list" as const,
         category,
+        paperKey,
+        columnCount,
         title,
         entries: pageEntries,
         page: index + 1,

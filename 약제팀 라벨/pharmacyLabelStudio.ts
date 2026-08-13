@@ -61,6 +61,8 @@ export type PharmacyCabinetEntry = {
 export type PharmacyCabinetLayout = {
   kind: "location" | "full-list" | "three-tier";
   category: PharmacyLabelCategory;
+  paperKey?: "A4" | "A3";
+  columnCount?: number;
   listKind?: "standard" | "high-cost";
   title: string;
   entries: PharmacyCabinetEntry[];

@@ -7587,6 +7587,12 @@ button {
   zoom: .38;
 }
 
+.pharmacy-cabinet-page-thumbnails .pharmacy-cabinet-full-list.full-list-A3 {
+  width: 277mm;
+  height: 400mm;
+  zoom: .27;
+}
+
 .pharmacy-cabinet-full-list {
   box-sizing: border-box;
   width: 100%;
@@ -7612,6 +7618,87 @@ button {
   grid-template-rows: repeat(var(--cabinet-list-rows, 1), minmax(0, 1fr));
   grid-auto-flow: column;
   height: calc(100% - 9mm);
+}
+
+.pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-grid {
+  height: calc(100% - 14mm);
+}
+
+.pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-row {
+  padding: .55mm 1mm;
+  font-size: 7.5pt;
+}
+
+.pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-row b {
+  font-size: 6.2pt;
+}
+
+.pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-row em,
+.pharmacy-cabinet-full-list .pharmacy-cabinet-full-list-row time {
+  font-size: 6.2pt;
+}
+
+.pharmacy-cabinet-full-list .cabinet-entry-details b,
+.pharmacy-cabinet-full-list .cabinet-entry-details em,
+.pharmacy-cabinet-full-list.refrigerated-list .cabinet-entry-warning {
+  font-size: 5.8pt;
+}
+
+.pharmacy-cabinet-full-list.refrigerated-list .cabinet-entry-location {
+  font-size: 7.2pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row {
+  padding: .55mm 1mm;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row {
+  grid-template-columns: 12mm minmax(0, 1fr) 32mm;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > em {
+  font-size: 9pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > div strong {
+  font-size: 8.4pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail b,
+.pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail time {
+  font-size: 6.8pt;
+}
+
+.pharmacy-cabinet-full-list-print-date {
+  height: 5mm;
+  display: flex;
+  align-items: end;
+  justify-content: end;
+  color: #4b5563;
+  font-size: 6pt;
+}
+
+.pharmacy-cabinet-full-list.full-list-A3 > header {
+  font-size: 15pt;
+}
+
+.pharmacy-cabinet-full-list.full-list-A3 .pharmacy-cabinet-full-list-row {
+  padding: .8mm 1.3mm;
+  font-size: 9pt;
+}
+
+.pharmacy-cabinet-full-list.full-list-A3 .pharmacy-cabinet-full-list-row b,
+.pharmacy-cabinet-full-list.full-list-A3 .pharmacy-cabinet-full-list-row em,
+.pharmacy-cabinet-full-list.full-list-A3 .pharmacy-cabinet-full-list-row time,
+.pharmacy-cabinet-full-list.full-list-A3 .cabinet-entry-details b,
+.pharmacy-cabinet-full-list.full-list-A3 .cabinet-entry-details em,
+.pharmacy-cabinet-full-list.full-list-A3.refrigerated-list .cabinet-entry-location,
+.pharmacy-cabinet-full-list.full-list-A3.refrigerated-list .cabinet-entry-warning {
+  font-size: 7.2pt;
+}
+
+.pharmacy-cabinet-full-list.full-list-A3 .pharmacy-cabinet-full-list-print-date {
+  font-size: 7pt;
 }
 
 .pharmacy-cabinet-full-list-row {
