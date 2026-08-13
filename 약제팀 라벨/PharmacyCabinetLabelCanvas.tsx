@@ -41,7 +41,8 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
   const isRefrigeratedList = layout.category === "냉장주사";
   const isExternalList = ["외용제", "외용점안제", "팩제", "시럽"].includes(layout.category);
   const isNutritionList = layout.category === "영양수액";
-  const showsLocation = isExternalList || ["경구 고가약", "앰플", "바이알", "냉장주사", "영양수액"].includes(layout.category);
+  const showsLocation = isExternalList || ["원병", "PTP", "경구 고가약", "앰플", "바이알", "냉장주사", "영양수액"].includes(layout.category);
+  const isInlineLocationList = ["원병", "PTP"].includes(layout.category);
   const compactListCategories = ["외용제", "외용점안제", "팩제", "시럽", "앰플", "바이알", "영양수액"];
   const columnCount = layout.columnCount ?? (layout.category === "경구 고가약" ? 2 : compactListCategories.includes(layout.category) ? 4 : 3);
   const rowCount = Math.max(1, Math.ceil(layout.entries.length / columnCount));
@@ -49,14 +50,14 @@ export function PharmacyCabinetLayoutView({ layout }: { layout: PharmacyCabinetL
     "--cabinet-list-columns": columnCount,
     "--cabinet-list-rows": rowCount,
   } as CSSProperties;
-  return <div className={`pharmacy-cabinet-full-list full-list-${layout.paperKey ?? "A4"} ${isAtc ? "atc-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
+  return <div className={`pharmacy-cabinet-full-list full-list-${layout.paperKey ?? "A4"} ${isAtc ? "atc-list" : ""} ${isRefrigeratedList ? "refrigerated-list" : ""} ${isInlineLocationList ? "location-inline-list" : ""} ${isExternalList ? "external-list" : ""} ${isNutritionList ? "nutrition-list" : ""}`}>
     <header><strong>{layout.title}</strong><span>{layout.page} / {layout.totalPages}</span></header>
     <div className="pharmacy-cabinet-full-list-grid" style={gridStyle}>
       {layout.entries.map((entry) => <div className={`pharmacy-cabinet-full-list-row ${isAtc ? "atc-row" : ""} ${showsLocation && !isAtc ? "with-category-details" : ""}`} key={entry.code}>
         {isAtc && <em>{entry.atc || "-"}</em>}
-        <div><strong>{entry.name}</strong></div>
+        <div><strong className={isAtc && entry.name.length > 24 ? "atc-name-long" : undefined}>{entry.name}</strong></div>
         {isAtc
-          ? <section className="pharmacy-atc-detail">{entry.reference && <b>{entry.reference}</b>}<time>{formatPharmacyExpiry(entry.expiry) || "유효기간 미입력"}</time></section>
+          ? <section className="pharmacy-atc-detail">{entry.reference && <b className={entry.reference.includes(" · ") ? "multiple-warnings" : undefined}>{entry.reference}</b>}<time>{formatPharmacyExpiry(entry.expiry) || "유효기간 미입력"}</time></section>
           : isRefrigeratedList
             ? <><em className="cabinet-entry-location">위치: {entry.location}</em><b className="cabinet-entry-warning">주의: {entry.reference || "없음"}</b></>
           : showsLocation

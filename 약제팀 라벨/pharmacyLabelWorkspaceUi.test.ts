@@ -123,7 +123,7 @@ describe("pharmacy label workspace UI", () => {
     expect(cabinetSource).toContain("fullListPageCount");
     expect(cabinetSource).not.toContain("entry.koreanName");
     expect(cabinetSource.indexOf('isAtc && <em>{entry.atc')).toBeLessThan(
-      cabinetSource.indexOf("<div><strong>{entry.name}</strong></div>"),
+      cabinetSource.indexOf('className={isAtc && entry.name.length > 24 ? "atc-name-long" : undefined}'),
     );
     expect(cabinetSource).toContain("pharmacy-atc-detail");
     expect(cabinetSource).not.toContain("주의 없음");

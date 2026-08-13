@@ -142,6 +142,21 @@ describe("pharmacy cabinet label rules", () => {
     }
   });
 
+  it("shows original-bottle and PTP locations beside the full-list drug entries", () => {
+    for (const category of ["원병", "PTP"] as const) {
+      const entries = buildCabinetFullListDrafts([row(`${category} 약품`, "A-01", { drugType: category })], category)
+        .flatMap((draft) => draft.cabinetLayout?.entries ?? []);
+      expect(entries).toMatchObject([{ name: `${category} 약품`, location: "A-01" }]);
+    }
+  });
+
+  it("keeps original-bottle and refrigerated-injection full lists within two or three pages", () => {
+    const originalRows = Array.from({ length: 376 }, (_, index) => row(`Original ${index + 1}`, "A"));
+    const refrigeratedRows = Array.from({ length: 216 }, (_, index) => row(`Cold ${index + 1}`, "1-L-1", { drugType: "냉장주사" }));
+    expect(buildCabinetFullListDrafts(originalRows, "원병")).toHaveLength(3);
+    expect(buildCabinetFullListDrafts(refrigeratedRows, "냉장주사")).toHaveLength(3);
+  });
+
   it("keeps the workbook location on refrigerated-injection full-list entries", () => {
     const entries = buildCabinetFullListDrafts([
       row("Cold injection", "1-L-1", { drugType: "냉장주사", doseCaution: true }),

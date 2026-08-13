@@ -170,7 +170,7 @@ export function buildCabinetFullListDrafts(
     ? 3
     : category === "경구 고가약"
       ? 2
-      : category === "PTP"
+      : ["원병", "PTP", "냉장주사"].includes(category)
         ? 3
       : compactListCategories.includes(category)
         ? (isA3 ? 4 : 3)
@@ -179,6 +179,8 @@ export function buildCabinetFullListDrafts(
   const minimumPages = ["영양수액", "경구 고가약"].includes(category) ? 1 : 2;
   const totalPages = ["ATC", "PTP"].includes(category)
     ? 2
+    : ["원병", "냉장주사"].includes(category)
+      ? Math.min(3, Math.max(2, Math.ceil(entries.length / (columnCount * maxRowsPerColumn))))
     : Math.max(minimumPages, Math.ceil(entries.length / (columnCount * maxRowsPerColumn)));
   const pageSize = Math.ceil(entries.length / totalPages);
   const pages = Array.from({ length: totalPages }, (_, index) => entries.slice(index * pageSize, (index + 1) * pageSize));

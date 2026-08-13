@@ -7575,7 +7575,7 @@ button {
 }
 
 .pharmacy-cabinet-page-thumbnails > div {
-  height: 310px;
+  height: 420px;
   overflow: hidden;
   border: 1px solid #cfd5dc;
   background: #eef1f4;
@@ -7653,20 +7653,29 @@ button {
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row {
-  grid-template-columns: 10mm minmax(0, 1fr) 23mm;
+  grid-template-columns: 7mm minmax(0, 1fr) 16mm;
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > em {
-  font-size: 7.4pt;
+  font-size: 6.2pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > div strong {
-  font-size: 7.8pt;
+  font-size: 6.4pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > div strong.atc-name-long {
+  font-size: 5.6pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail b,
 .pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail time {
-  font-size: 5.6pt;
+  font-size: 4.8pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail b.multiple-warnings {
+  font-size: 3.8pt;
+  letter-spacing: -.1mm;
 }
 
 .pharmacy-cabinet-full-list-print-date {
@@ -7702,16 +7711,24 @@ button {
 }
 
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-cabinet-full-list-row.atc-row > em {
-  font-size: 8.6pt;
+  font-size: 7.4pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-cabinet-full-list-row.atc-row > div strong {
-  font-size: 9.2pt;
+  font-size: 8pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-cabinet-full-list-row.atc-row > div strong.atc-name-long {
+  font-size: 7.2pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-atc-detail b,
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-atc-detail time {
-  font-size: 6.8pt;
+  font-size: 5.8pt;
+}
+
+.pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-atc-detail b.multiple-warnings {
+  font-size: 4.8pt;
 }
 
 .pharmacy-cabinet-full-list-row {
@@ -7780,6 +7797,62 @@ button {
   display: flex;
   min-width: 0;
   align-items: end;
+}
+
+.pharmacy-cabinet-full-list.location-inline-list .pharmacy-cabinet-full-list-row.with-category-details {
+  grid-template-columns: minmax(0, 1fr) 20mm;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.pharmacy-cabinet-full-list.location-inline-list .pharmacy-cabinet-full-list-row.with-category-details > div:first-of-type {
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+}
+
+.pharmacy-cabinet-full-list.location-inline-list .cabinet-entry-details {
+  grid-column: 2;
+  grid-row: 1;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  height: 100%;
+  padding: 0;
+  border-top: 0;
+  border-left: .15mm solid #d0d5dd;
+}
+
+.pharmacy-cabinet-full-list.location-inline-list .cabinet-entry-details b,
+.pharmacy-cabinet-full-list.location-inline-list .cabinet-entry-details em {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  padding: 0 .5mm;
+  font-size: 4.8pt;
+}
+
+.pharmacy-cabinet-full-list.nutrition-list .pharmacy-cabinet-full-list-grid {
+  grid-auto-rows: 10mm;
+  grid-template-rows: repeat(var(--cabinet-list-rows, 1), 10mm);
+  align-content: start;
+}
+
+.pharmacy-cabinet-full-list.nutrition-list .pharmacy-cabinet-full-list-row.with-category-details {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.pharmacy-cabinet-full-list.nutrition-list .pharmacy-cabinet-full-list-row.with-category-details > div:first-of-type {
+  align-items: center;
+}
+
+.pharmacy-cabinet-full-list.nutrition-list .pharmacy-cabinet-full-list-row strong {
+  font-size: 7.2pt;
+}
+
+.pharmacy-cabinet-full-list.nutrition-list .cabinet-entry-details b,
+.pharmacy-cabinet-full-list.nutrition-list .cabinet-entry-details em {
+  font-size: 5pt;
 }
 
 .pharmacy-cabinet-full-list.refrigerated-list .pharmacy-cabinet-full-list-row {
