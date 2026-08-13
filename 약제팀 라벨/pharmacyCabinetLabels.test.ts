@@ -38,17 +38,21 @@ describe("pharmacy cabinet label rules", () => {
     expect(buildCabinetLocationDraft([row("A", "A"), row("B", "A")], "PTP", "A").size.heightMm).toBe(10);
   });
 
-  it("builds exactly two ATC pages in ATC-number ascending order with expiry data", () => {
-    const drafts = buildCabinetFullListDrafts([
+  it("splits the ATC full list evenly across two pages with three readable columns", () => {
+    const sourceRows = [
       row("B", "A", { atc: "ATC20", expiry: "2027-01-31", doseCaution: true, highCost: true }),
       row("A", "B", { atc: "3", oralAnticancer: true }),
       row("C", "C", { atc: "100", hazardous: true }),
-    ], "ATC");
-    expect(drafts).toHaveLength(2);
-    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.atc)).toEqual(["3", "20", "100"]);
+    ];
+    for (const paperKey of ["A4", "A3"] as const) {
+      const drafts = buildCabinetFullListDrafts(sourceRows, "ATC", paperKey);
+      expect(drafts).toHaveLength(2);
+      expect(drafts[0].cabinetLayout).toMatchObject({ paperKey, columnCount: 3, totalPages: 2 });
+      expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).map((entry) => entry.atc)).toEqual(["3", "20", "100"]);
+    }
     expect(formatCabinetAtcNumber("ATC 191")).toBe("191");
-    expect(drafts[0].size).toEqual({ presetKey: "cabinet-full-list", widthMm: 190, heightMm: 277 });
-    expect(drafts.flatMap((draft) => draft.cabinetLayout?.entries ?? []).find((entry) => entry.name === "B")).toMatchObject({
+    expect(buildCabinetFullListDrafts(sourceRows, "ATC")[0].size).toEqual({ presetKey: "cabinet-full-list", widthMm: 190, heightMm: 277 });
+    expect(buildCabinetFullListDrafts(sourceRows, "ATC").flatMap((draft) => draft.cabinetLayout?.entries ?? []).find((entry) => entry.name === "B")).toMatchObject({
       atc: "20",
       expiry: "2027-01-31",
       reference: "용량주의 · 고가약",
@@ -126,6 +130,16 @@ describe("pharmacy cabinet label rules", () => {
     ];
     expect(listCabinetLocations(rows, "냉장주사")).toEqual(["1번 냉장고", "2번 냉장고", "백색냉장고", "백신 냉장고"]);
     expect(buildCabinetLocationDraft(rows, "냉장주사", "1번 냉장고").cabinetLayout?.entries.map((entry) => entry.name)).toEqual(["Alpha", "Bravo"]);
+  });
+
+  it("splits the PTP full list evenly across two pages for both A4 and A3", () => {
+    const rows = Array.from({ length: 7 }, (_, index) => row(`PTP ${index + 1}`, "A", { drugType: "PTP" }));
+    for (const paperKey of ["A4", "A3"] as const) {
+      const drafts = buildCabinetFullListDrafts(rows, "PTP", paperKey);
+      expect(drafts).toHaveLength(2);
+      expect(drafts.map((draft) => draft.cabinetLayout?.entries.length)).toEqual([4, 3]);
+      expect(drafts[0].cabinetLayout).toMatchObject({ paperKey, columnCount: 3, totalPages: 2 });
+    }
   });
 
   it("keeps the workbook location on refrigerated-injection full-list entries", () => {
