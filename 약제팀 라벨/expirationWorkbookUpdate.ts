@@ -66,7 +66,7 @@ export async function applyExpirationWorkbook(
   if (itemIndex < 0 || expiryIndex < 0) throw new Error("원내보유의약품리스트의 물품코드 또는 유효기간 열을 찾지 못했습니다.");
 
   const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
-  let latestExpiryIndex = headers.indexOf(LATEST_EXPIRY_HEADER);
+  let latestExpiryIndex = headers.indexOf(compact(LATEST_EXPIRY_HEADER));
   if (latestExpiryIndex < 0) {
     latestExpiryIndex = expiryIndex + 1;
     for (let rowIndex = range.e.r; rowIndex >= 0; rowIndex -= 1) {

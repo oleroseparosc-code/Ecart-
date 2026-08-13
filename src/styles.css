@@ -7653,20 +7653,20 @@ button {
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row {
-  grid-template-columns: 12mm minmax(0, 1fr) 32mm;
+  grid-template-columns: 10mm minmax(0, 1fr) 23mm;
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > em {
-  font-size: 9pt;
+  font-size: 7.4pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-cabinet-full-list-row.atc-row > div strong {
-  font-size: 8.4pt;
+  font-size: 7.8pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail b,
 .pharmacy-cabinet-full-list.atc-list .pharmacy-atc-detail time {
-  font-size: 6.8pt;
+  font-size: 5.6pt;
 }
 
 .pharmacy-cabinet-full-list-print-date {
@@ -7702,16 +7702,16 @@ button {
 }
 
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-cabinet-full-list-row.atc-row > em {
-  font-size: 10pt;
+  font-size: 8.6pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-cabinet-full-list-row.atc-row > div strong {
-  font-size: 10.5pt;
+  font-size: 9.2pt;
 }
 
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-atc-detail b,
 .pharmacy-cabinet-full-list.atc-list.full-list-A3 .pharmacy-atc-detail time {
-  font-size: 8pt;
+  font-size: 6.8pt;
 }
 
 .pharmacy-cabinet-full-list-row {
