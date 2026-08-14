@@ -12,7 +12,7 @@ export type PharmacyLabelFamily = "drug" | "cabinet";
 export type PharmacyLabelCategory =
   | "원병" | "PTP" | "ATC" | "입원산제" | "경구 고가약" | "유색라벨" | "측면라벨"
   | "외용제" | "외용점안제" | "팩제" | "시럽"
-  | "앰플" | "바이알" | "냉장주사" | "영양수액" | "일반수액"
+  | "앰플" | "바이알" | "냉장주사" | "백신" | "영양수액" | "일반수액"
   | "마약/향정" | "고가약" | "항암제";
 export type PharmacyHighCostRoute = "주사" | "경구";
 export type PharmacyLabelSizePresetKey = string;
@@ -104,14 +104,14 @@ export const WARNING_OPTIONS = ["위해의약품", "용량주의", "유사발음
 export const DRUG_CATEGORIES: PharmacyLabelCategory[][] = [
   ["원병", "PTP", "ATC", "입원산제"],
   ["외용제", "외용점안제", "팩제", "시럽"],
-  ["앰플", "바이알", "냉장주사", "영양수액", "일반수액"],
+  ["앰플", "바이알", "냉장주사", "백신", "영양수액", "일반수액"],
   ["마약/향정"],
   ["고가약"],
   ["항암제"],
 ];
 export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = [
   ["원병", "PTP", "ATC", "입원산제", "경구 고가약", "유색라벨", "측면라벨"],
-  ...DRUG_CATEGORIES.slice(1, 3),
+  ...DRUG_CATEGORIES.slice(1, 3).map((group) => group.filter((category) => category !== "백신")),
 ];
 export const PHARMACY_CATEGORY_GROUP_NAMES = ["경구", "외용", "주사"] as const;
 export type PharmacyCategoryGroupName = (typeof PHARMACY_CATEGORY_GROUP_NAMES)[number];
@@ -127,6 +127,7 @@ const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   바이알: sizes(["43*80", "47*80", "52*80", "47*90"]),
   PTP: sizes(["32*70", "40*80", "42*80", "47*80", "52*80", "47*90"]),
   냉장주사: sizes(["40*80", "42*80", "47*80", "52*80"]),
+  백신: sizes(["40*80", "42*80", "47*80", "52*80"]),
   영양수액: sizes(["15*110", "15*140"]),
   일반수액: sizes(["50*93", "55*93", "50*160"]),
   "마약/향정": sizes(["40*70"]),
@@ -145,7 +146,7 @@ function sizes(values: string[]) {
 export function sizesForCategory(category: PharmacyLabelCategory, row?: HospitalDrugLabelRow) {
   const available = SIZE_MAP[category] ?? [DEFAULT_PHARMACY_LABEL_SIZE];
   if (category === "영양수액") return [row && getHospitalDrugLabelWarnings(row).length > 0 ? available[1] : available[0]];
-  if (row?.border && ["PTP", "바이알", "냉장주사"].includes(category)) return available.filter((size) => size.heightMm > 40);
+  if (row?.border && ["PTP", "바이알", "냉장주사", "백신"].includes(category)) return available.filter((size) => size.heightMm > 40);
   return available;
 }
 

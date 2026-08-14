@@ -168,7 +168,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
   const hasNameConfusion = draft?.warnings.some((warning) => ["유사발음", "이름주의"].includes(warning)) ?? false;
   const externalStorageText = hasLightWarning ? "차광" : hasColdWarning ? coldWarningText : "";
   const externalHasFlags = externalCautionWarnings.length > 0 || Boolean(externalStorageText);
-  const isInjectionLabel = ["앰플", "바이알", "냉장주사"].includes(displayCategory);
+  const isInjectionLabel = ["앰플", "바이알", "냉장주사", "백신"].includes(displayCategory);
   const isAmpouleVial = ["앰플", "바이알"].includes(displayCategory);
   const showStorageBanner = isInjectionLabel && (hasLightWarning || hasColdWarning);
   const showTopBanner = Boolean(draft?.printable.topBanner) || hasCautionWarning || showStorageBanner;

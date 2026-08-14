@@ -41,7 +41,7 @@ const BULK_UPLOAD_HEADERS = ["약품코드", "물품코드", "상용약품명", 
 const ROUTE_GROUPS = {
   경구: ["원병", "PTP", "ATC", "입원산제"],
   외용: ["외용제", "외용점안제", "팩제", "시럽"],
-  주사: ["앰플", "바이알", "냉장주사", "영양수액", "일반수액"],
+  주사: ["앰플", "바이알", "냉장주사", "백신", "영양수액", "일반수액"],
 } as const;
 
 const INJECTABLE_SOURCE_TYPE_DEFAULTS: Record<string, (typeof ROUTE_GROUPS)["주사"][number]> = {
@@ -111,7 +111,7 @@ export function normalizePharmacyLabelMasterRow(row: HospitalDrugLabelRow): Hosp
 
 function pharmacyLabelTypesForRow(row: HospitalDrugLabelRow) {
   if (row.pharmacyLabelTypes) return row.pharmacyLabelTypes;
-  const types = [subtypeForType(row.drugType)];
+  const types = row.drugType === "백신" ? ["백신", "냉장주사"] : [subtypeForType(row.drugType)];
   if (row.atc) types.push("ATC");
   if (row.ptpOpened) types.push("PTP");
   if (row.inpatientPowderPtp) types.push("입원산제");

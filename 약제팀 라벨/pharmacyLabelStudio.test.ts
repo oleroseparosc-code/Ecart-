@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   A4_PAPER,
+  DRUG_CATEGORIES,
   categoryForGroupedRow,
   createPharmacyLabelDraft,
   groupPharmacyLabelsForPaper,
@@ -52,6 +53,8 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory(row, "PTP")).toBe(false);
     expect(rowMatchesCategory({ ...row, code: "XACETATE", drugType: "제로관리약", storage: "실온" }, "냉장주사")).toBe(true);
     expect(rowMatchesCategory({ ...row, code: "XVACCINE", drugType: "백신", storage: "냉장" }, "냉장주사", "주사", "cabinet")).toBe(true);
+    expect(rowMatchesCategory({ ...row, code: "XVACCINE", drugType: "백신", storage: "냉장" }, "백신")).toBe(true);
+    expect(DRUG_CATEGORIES[2]).toContain("백신");
   });
 
   it("uses independently checked pharmacy label subtypes for drug and cabinet lists", () => {

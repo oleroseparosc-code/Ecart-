@@ -86,8 +86,8 @@ describe("pharmacy label workspace UI", () => {
       inHospital: true,
     });
     expect(normalizePharmacyLabelMasterRow({ ...base, drugType: "백신" })).toMatchObject({
-      drugType: "냉장주사",
-      pharmacyLabelTypes: ["냉장주사"],
+      drugType: "백신",
+      pharmacyLabelTypes: ["백신", "냉장주사"],
       inHospital: true,
     });
     expect(appSource).toContain("state.pharmacyAdditionalRows.map(normalizePharmacyLabelMasterRow)");
