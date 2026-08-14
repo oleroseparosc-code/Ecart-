@@ -121,7 +121,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v35"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v36"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
@@ -175,8 +175,8 @@ describe("PWA install metadata", () => {
     expect(manifest.short_name).toBe("비품점검");
     expect(manifest.display).toBe("standalone");
     expect(manifest.id).toBe("/Ecart-/");
-    expect(manifest.start_url).toBe("/Ecart-/");
-    expect(manifest.scope).toBe("/Ecart-/");
+    expect(manifest.start_url).toBe("/Ecart-/inventory/");
+    expect(manifest.scope).toBe("/Ecart-/inventory/");
     expect(manifest.background_color).toBe("#f97316");
     expect(manifest.theme_color).toBe("#f97316");
     expect(manifest.icons).toEqual(
@@ -272,8 +272,8 @@ describe("PWA install metadata", () => {
     expect(manifest.start_url).toBe("/Ecart-/pharmacy-drug-locator/");
     expect(manifest.scope).toBe("/Ecart-/pharmacy-drug-locator/");
     expect(manifest.icons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814a", sizes: "192x192", type: "image/png", purpose: "any" }),
-      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814a", sizes: "512x512", type: "image/png", purpose: "any" }),
+      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814b", sizes: "192x192", type: "image/png", purpose: "any" }),
+      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814b", sizes: "512x512", type: "image/png", purpose: "any" }),
     ]));
     expect(readPngSize("public/icons/pharmacy-drug-locator-icon-192.png")).toEqual({ width: 192, height: 192 });
     expect(readPngSize("public/icons/pharmacy-drug-locator-icon-512.png")).toEqual({ width: 512, height: 512 });

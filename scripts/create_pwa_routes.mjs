@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 const distDir = path.resolve("dist");
 const indexPath = path.join(distDir, "index.html");
 const appStatePath = path.resolve("app-state", "shared-state.json");
-const routes = ["viewer", "pharmacy-viewer", "pharmacy-label-editor", "pharmacy-drug-locator", "narcotic-viewer"];
+const routes = ["inventory", "viewer", "pharmacy-viewer", "pharmacy-label-editor", "pharmacy-drug-locator", "narcotic-viewer"];
 const assetVersion = "20260810b";
 
 export function versionAssetLinks(html, version = assetVersion) {
