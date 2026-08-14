@@ -991,7 +991,15 @@ function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabel
 
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
-  for (const row of additional) byCode.set(row.code, { ...(byCode.get(row.code) ?? {}), ...row });
+  for (const row of additional) {
+    const sourceRow = byCode.get(row.code);
+    const isSourceVaccine = sourceRow?.drugType.trim() === "백신";
+    byCode.set(row.code, {
+      ...(sourceRow ?? {}),
+      ...row,
+      ...(isSourceVaccine ? { drugType: "백신", inHospital: true } : {}),
+    });
+  }
   return [...byCode.values()];
 }
 
