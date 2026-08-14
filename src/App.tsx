@@ -474,6 +474,10 @@ function filterDeletedDrugRows<T extends { code: string }>(rows: T[], deletedCod
   return rows.filter((row) => !deletedCodes.has(row.code.trim().toUpperCase()));
 }
 
+function filterDeletedPharmacyLabelRows<T extends HospitalDrugLabelRow>(rows: T[], deletedCodes: ReadonlySet<string>) {
+  return rows.filter((row) => row.drugType.trim() === "백신" || !deletedCodes.has(row.code.trim().toUpperCase()));
+}
+
 function filterDeletedDrugAllocations(allocations: StockAllocation[], deletedCodes: ReadonlySet<string>) {
   return allocations.filter((allocation) => !deletedCodes.has(allocation.drugCode.trim().toUpperCase()));
 }
@@ -1351,7 +1355,7 @@ export function App() {
   function removePharmacyDrugsFromApp(codes: string[]) {
     const deletedCodes = new Set(normalizeDeletedPharmacyDrugCodes(codes));
     if (deletedCodes.size === 0) return;
-    setPharmacyHospitalDrugLabelRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
+    setPharmacyHospitalDrugLabelRows((previous) => filterDeletedPharmacyLabelRows(previous, deletedCodes));
     setHospitalDrugLabelRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
     setPharmacyAdditionalRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
     setPharmacyLabelMatchRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
@@ -1758,7 +1762,9 @@ export function App() {
     const loadRows = labelMode === "pharmacy" ? loadPharmacyHospitalDrugLabelRows : loadWardHospitalDrugLabelRows;
     void loadRows()
       .then((rows) => {
-        const visibleRows = filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
+        const visibleRows = labelMode === "pharmacy"
+          ? filterDeletedPharmacyLabelRows(rows, deletedPharmacyDrugCodeSet)
+          : filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
         if (labelMode === "pharmacy") {
           setPharmacyHospitalDrugLabelRows(
             mergePharmacyRows(mergePharmacyRows(visibleRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
@@ -1778,7 +1784,7 @@ export function App() {
     if (!isPharmacyLocator || pharmacyHospitalDrugLabelRows.length > 0) return;
     setIsHospitalDrugLabelsLoading(true);
     void loadPharmacyHospitalDrugLabelRows()
-      .then((rows) => setPharmacyHospitalDrugLabelRows(filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)))
+      .then((rows) => setPharmacyHospitalDrugLabelRows(filterDeletedPharmacyLabelRows(rows, deletedPharmacyDrugCodeSet)))
       .catch((error) => console.error(error))
       .finally(() => setIsHospitalDrugLabelsLoading(false));
   }, [deletedPharmacyDrugCodeSet, isPharmacyLocator, pharmacyHospitalDrugLabelRows.length]);
@@ -1788,7 +1794,7 @@ export function App() {
     setIsPharmacyLabelMatchesLoading(true);
     void Promise.all([loadPharmacyLabelMatchRows(), loadPharmacyHospitalDrugLabelRows()])
       .then(([matchRows, hospitalRows]) => {
-        const visibleHospitalRows = filterDeletedDrugRows(hospitalRows, deletedPharmacyDrugCodeSet);
+        const visibleHospitalRows = filterDeletedPharmacyLabelRows(hospitalRows, deletedPharmacyDrugCodeSet);
         setPharmacyHospitalDrugLabelRows(
           mergePharmacyRows(mergePharmacyRows(visibleHospitalRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
         );
