@@ -26,7 +26,7 @@ export function getPwaMetadata(pathname = "/"): PwaMetadata {
   }
 
   const isPharmacyViewer = normalizedPath.endsWith("/pharmacy-viewer");
-  const isPharmacyEditor = normalizedPath.endsWith("/pharmacy-label-editor");
+  const isPharmacyEditor = normalizedPath.includes("/pharmacy-label-editor");
   const isPharmacyLocator = normalizedPath.endsWith("/pharmacy-drug-locator");
   if (isPharmacyLocator) {
     return {

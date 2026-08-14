@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 const distDir = path.resolve("dist");
 const indexPath = path.join(distDir, "index.html");
 const appStatePath = path.resolve("app-state", "shared-state.json");
-const routes = ["inventory", "viewer", "pharmacy-viewer", "pharmacy-label-editor", "pharmacy-drug-locator", "narcotic-viewer"];
+const routes = ["inventory", "viewer", "pharmacy-viewer", "pharmacy-label-editor", "pharmacy-label-editor/v2", "pharmacy-drug-locator", "narcotic-viewer"];
 const assetVersion = "20260810b";
 const routeInstallMetadata = {
   "pharmacy-drug-locator": {
@@ -15,8 +15,8 @@ const routeInstallMetadata = {
   },
   "pharmacy-label-editor": {
     title: "약제팀 라벨 편집기",
-    manifestPath: "pharmacy-label-editor.webmanifest?v=20260814e",
-    iconPath: "icons/pharmacy-label-editor-icon-192.png?v=20260814e",
+    manifestPath: "pharmacy-label-editor.webmanifest?v=20260814f",
+    iconPath: "icons/pharmacy-label-editor-icon-192.png?v=20260814f",
   },
 };
 
@@ -25,7 +25,7 @@ export function versionAssetLinks(html, version = assetVersion) {
 }
 
 export function addRouteInstallMetadata(html, route) {
-  const metadata = routeInstallMetadata[route];
+  const metadata = route.startsWith("pharmacy-label-editor") ? routeInstallMetadata["pharmacy-label-editor"] : routeInstallMetadata[route];
   if (!metadata) return html;
 
   return html

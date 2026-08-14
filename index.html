@@ -14,7 +14,7 @@
         const normalizedPath = window.location.pathname.replace(/\/+$/, "");
         const isNarcoticViewer = normalizedPath.endsWith("/narcotic-viewer");
         const isPharmacyLocator = normalizedPath.endsWith("/pharmacy-drug-locator");
-        const isPharmacyLabelEditor = normalizedPath.endsWith("/pharmacy-label-editor");
+        const isPharmacyLabelEditor = normalizedPath.includes("/pharmacy-label-editor");
         const isPharmacyViewer = normalizedPath.endsWith("/pharmacy-viewer");
         const isViewer = normalizedPath.endsWith("/viewer");
         const metadata = isNarcoticViewer

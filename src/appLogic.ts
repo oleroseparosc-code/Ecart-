@@ -1279,7 +1279,7 @@ export function buildReportFileName({
 
 export function getInitialAppMode(pathname = window.location.pathname, search = window.location.search): AppMode {
   const params = new URLSearchParams(search);
-  if (params.get("view") === "pharmacy-editor" || pathname.replace(/\/+$/, "").endsWith("/pharmacy-label-editor")) {
+  if (params.get("view") === "pharmacy-editor" || pathname.replace(/\/+$/, "").includes("/pharmacy-label-editor")) {
     return "pharmacy-editor";
   }
   if (params.get("view") === "pharmacy-locator" || pathname.replace(/\/+$/, "").endsWith("/pharmacy-drug-locator")) {
