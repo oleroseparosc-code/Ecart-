@@ -26,6 +26,12 @@ function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }
 
+function resolveImageUrl(imagePath?: string) {
+  if (!imagePath) return "";
+  if (/^(https?:|data:)/i.test(imagePath)) return imagePath;
+  return `${import.meta.env.BASE_URL}${imagePath.replace(/^\.?\//, "")}`;
+}
+
 function warningLabels(row: LocatorDrug) {
   const storage = compact(row.storage);
   return [
@@ -59,6 +65,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
   const selected = matches.find((row) => row.code === selectedCode) ?? matches[0];
   const warnings = selected ? warningLabels(selected) : [];
   const locationParts = (selected?.location ?? "").split("-").map((part) => part.trim()).filter(Boolean);
+  const imageUrl = resolveImageUrl(selected?.imagePath);
 
   useEffect(() => {
     if (!stream || !videoRef.current) return;
@@ -141,7 +148,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
         {matches.length > 1 ? <div style={{ display: "grid", gap: 8, marginTop: 12 }}>{matches.map((row) => <button key={row.code} type="button" onClick={() => setSelectedCode(row.code)} style={{ textAlign: "left", border: row.code === selected?.code ? "2px solid #E8843C" : "1px solid #ddd", borderRadius: 10, background: "#fff", padding: 12, color: "#3D3833" }}><strong>{row.name}</strong><br /><small>{row.code} · {row.location || "위치 미등록"}</small></button>)}</div> : null}
         {selected ? <article style={{ marginTop: 20, background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 4px 18px rgba(61,56,51,0.1)" }}>
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-            {selected.imagePath ? <img src={selected.imagePath} alt={`${selected.name} 약품 이미지`} style={{ width: 96, height: 96, objectFit: "contain", background: "#F5F5F0", borderRadius: 10 }} /> : null}
+            {imageUrl ? <img src={imageUrl} alt={`${selected.name} 약품 이미지`} style={{ width: 96, height: 96, objectFit: "contain", background: "#F5F5F0", borderRadius: 10 }} /> : null}
             <div><p style={{ margin: 0, color: "#8C7A6B", fontSize: 13 }}>{selected.code}</p><h2 style={{ margin: "4px 0", fontSize: 22 }}>{selected.name}</h2><p style={{ margin: 0, color: "#8C7A6B" }}>{[selected.koreanName, selected.strength, selected.drugType].filter(Boolean).join(" · ")}</p></div>
           </div>
           <section style={{ marginTop: 20, padding: 16, background: "#FFF6EF", borderRadius: 12 }}><p style={{ margin: 0, color: "#8C7A6B", fontWeight: 700, fontSize: 13 }}>현재 약품 위치</p><strong style={{ display: "block", marginTop: 4, color: "#E8843C", fontSize: 24 }}>{selected.location || "위치 미등록"}</strong><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 14 }}>보관 조건: {selected.storage || "마스터 미등록"}</p></section>
