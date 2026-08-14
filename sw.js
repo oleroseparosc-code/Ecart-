@@ -9,7 +9,7 @@ const APP_SHELL = [
   "/Ecart-/manifest.webmanifest?v=20260713a",
   "/Ecart-/viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-viewer.webmanifest?v=20260713a",
-  "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814e",
+  "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814d",
   "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814b",
   "/Ecart-/narcotic-viewer.webmanifest?v=20260713a",
   "/Ecart-/icons/app-icon-192.png?v=20260713a",
@@ -20,8 +20,8 @@ const APP_SHELL = [
   "/Ecart-/icons/narcotic-icon-desktop-512.png?v=20260713a",
   "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814b",
   "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814b",
-  "/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814e",
-  "/Ecart-/icons/pharmacy-label-editor-icon-512.png?v=20260814e",
+  "/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814d",
+  "/Ecart-/icons/pharmacy-label-editor-icon-512.png?v=20260814d",
 ];
 
 self.addEventListener("install", (event) => {
