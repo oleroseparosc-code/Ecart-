@@ -13,7 +13,7 @@ export type MainCategory = "stock" | "ecart" | "narcotic";
 export type EcartTab = "general" | "nicu";
 export type CheckStatus = "" | "good" | "bad";
 export type PrintPreviewMode = "single" | "all-stock" | "all-ecart" | "all-narcotic" | "round-summary" | "drug-labels";
-export type AppMode = "admin" | "master-viewer" | "pharmacy-viewer" | "pharmacy-editor" | "narcotic-viewer";
+export type AppMode = "admin" | "master-viewer" | "pharmacy-viewer" | "pharmacy-editor" | "pharmacy-locator" | "narcotic-viewer";
 export type DrugLabelMode = "stock" | "ecart" | "ecart-nicu" | "fluid" | "narcotic" | "pharmacy";
 export type DrugLabelSizeKey = "10x70" | "15x95" | "40x70" | "55x95" | "35x100";
 
@@ -1281,6 +1281,9 @@ export function getInitialAppMode(pathname = window.location.pathname, search = 
   const params = new URLSearchParams(search);
   if (params.get("view") === "pharmacy-editor" || pathname.replace(/\/+$/, "").endsWith("/pharmacy-label-editor")) {
     return "pharmacy-editor";
+  }
+  if (params.get("view") === "pharmacy-locator" || pathname.replace(/\/+$/, "").endsWith("/pharmacy-drug-locator")) {
+    return "pharmacy-locator";
   }
   if (params.get("view") === "narcotic" || pathname.replace(/\/+$/, "").endsWith("/narcotic-viewer")) {
     return "narcotic-viewer";

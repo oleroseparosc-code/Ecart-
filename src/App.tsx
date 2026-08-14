@@ -28,6 +28,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { PharmacyDrugLocator } from "./PharmacyDrugLocator";
 import rawInventory from "./data/inventory.generated.json";
 import { getPolicyCautionLabels, isHighRiskDrug, normalizeDrugWarning, type DrugRuleFields } from "./drugRules";
 import { shouldApplyRemoteState, shouldMarkLocalChange, shouldPushLocalState, type RemoteStateEnvelope } from "./githubSync";
@@ -224,7 +225,7 @@ type EcartTab = "general" | "nicu";
 type CheckStatus = "" | "good" | "bad";
 type PrintPreviewMode = "single" | "all-stock" | "all-ecart" | "all-narcotic" | "round-summary" | "drug-labels";
 type RoundSummaryMode = "ward" | "narcotic";
-type AppMode = "admin" | "master-viewer" | "pharmacy-viewer" | "pharmacy-editor" | "narcotic-viewer";
+type AppMode = "admin" | "master-viewer" | "pharmacy-viewer" | "pharmacy-editor" | "pharmacy-locator" | "narcotic-viewer";
 type DrugLabelMode = "stock" | "ecart" | "ecart-nicu" | "fluid" | "narcotic" | "pharmacy";
 type DrugLabelSizeKey = "10x70" | "15x95" | "40x70" | "55x95" | "35x100";
 
@@ -1130,6 +1131,7 @@ export function App() {
   const isReadOnlyViewer = appMode === "master-viewer" || appMode === "pharmacy-viewer";
   const isPharmacyViewer = appMode === "pharmacy-viewer";
   const isPharmacyEditor = appMode === "pharmacy-editor";
+  const isPharmacyLocator = appMode === "pharmacy-locator";
   const isNarcoticViewer = appMode === "narcotic-viewer";
   const canEditMaster = canEditMasterAssignments(appMode);
   const defaultNewDrugCategory: NewDrugForm["category"] = isNarcoticViewer ? "향정" : "stock";
@@ -1766,6 +1768,15 @@ export function App() {
         setIsHospitalDrugLabelsLoading(false);
       });
   }, [deletedPharmacyDrugCodeSet, hospitalDrugLabelRows.length, isDrugLabelPanelOpen, labelMode, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows.length, savedPharmacyLabels]);
+
+  useEffect(() => {
+    if (!isPharmacyLocator || pharmacyHospitalDrugLabelRows.length > 0) return;
+    setIsHospitalDrugLabelsLoading(true);
+    void loadPharmacyHospitalDrugLabelRows()
+      .then((rows) => setPharmacyHospitalDrugLabelRows(filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)))
+      .catch((error) => console.error(error))
+      .finally(() => setIsHospitalDrugLabelsLoading(false));
+  }, [deletedPharmacyDrugCodeSet, isPharmacyLocator, pharmacyHospitalDrugLabelRows.length]);
 
   useEffect(() => {
     if (pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
@@ -3997,6 +4008,10 @@ export function App() {
         </section>
       </section>
     );
+  }
+
+  if (isPharmacyLocator) {
+    return <PharmacyDrugLocator rows={pharmacyHospitalDrugLabelRows} isLoading={isHospitalDrugLabelsLoading} />;
   }
 
   if ((isPharmacyEditor || isPharmacyLabelWorkspaceOpen) && !showPrintPreview) {
