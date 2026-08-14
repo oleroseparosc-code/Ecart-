@@ -121,7 +121,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v36"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v37"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
@@ -134,6 +134,17 @@ describe("PWA install metadata", () => {
 
     expect(versionAssetLinks(html, "20260720a")).toContain('/Ecart-/assets/index-demo.js?v=20260720a');
     expect(versionAssetLinks(html, "20260720a")).toContain('/Ecart-/assets/index-demo.css?v=20260720a');
+  });
+
+  it("writes static install metadata for the pharmacy label editor route", async () => {
+    // @ts-ignore build script is plain JavaScript.
+    const { addRouteInstallMetadata } = await import("../scripts/create_pwa_routes.mjs");
+    const html = '<head><meta name="apple-mobile-web-app-title" content="비품점검" /><title>비품점검</title></head>';
+    const routeHtml = addRouteInstallMetadata(html, "pharmacy-label-editor");
+
+    expect(routeHtml).toContain('content="약제팀 라벨 편집기"');
+    expect(routeHtml).toContain('href="/Ecart-/pharmacy-label-editor.webmanifest?v=20260814d"');
+    expect(routeHtml).toContain('href="/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814d"');
   });
 
   it("selects separate install metadata for the master viewer route", () => {
