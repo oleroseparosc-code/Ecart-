@@ -32,8 +32,8 @@ export function getPwaMetadata(pathname = "/"): PwaMetadata {
     return {
       manifestPath: "pharmacy-drug-locator.webmanifest",
       iconPath: "icons/pharmacy-drug-locator-icon-192.png",
-      documentTitle: "약품 위치 찾기",
-      appleTitle: "약품 위치 찾기",
+      documentTitle: "약품 라벨 스캔",
+      appleTitle: "약품 라벨 스캔",
       themeColor: "#E8843C",
     };
   }
@@ -88,7 +88,7 @@ function setMetaContent(selector: string, content: string) {
 
 export function applyPwaMetadata() {
   if (typeof window === "undefined") return;
-  const version = "20260814e";
+  const version = "20260814f";
   const metadata = getPwaMetadata(window.location.pathname);
   const manifestHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.manifestPath}?v=${version}`);
   const iconHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.iconPath}?v=${version}`);
@@ -112,7 +112,7 @@ export function registerAppServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
   window.addEventListener("load", () => {
-    const serviceWorkerUrl = buildPwaAssetUrl(import.meta.env.BASE_URL, "sw.js?v=20260814e");
+    const serviceWorkerUrl = buildPwaAssetUrl(import.meta.env.BASE_URL, "sw.js?v=20260814f");
     const wasControlled = Boolean(navigator.serviceWorker.controller);
     let isReloading = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {

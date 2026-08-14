@@ -112,7 +112,7 @@ describe("PWA install metadata", () => {
   });
 
   it("registers a versioned service worker URL to bypass stale CDN responses", () => {
-    expect(readFileSync("src/pwa.ts", "utf8")).toContain('"sw.js?v=20260814e"');
+    expect(readFileSync("src/pwa.ts", "utf8")).toContain('"sw.js?v=20260814f"');
   });
 
   it("keeps runtime sync config out of the service worker cache", () => {
@@ -125,7 +125,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v39"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v40"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
@@ -156,8 +156,8 @@ describe("PWA install metadata", () => {
     expect(getPwaMetadata("/Ecart-/pharmacy-drug-locator")).toEqual({
       manifestPath: "pharmacy-drug-locator.webmanifest",
       iconPath: "icons/pharmacy-drug-locator-icon-192.png",
-      documentTitle: "약품 위치 찾기",
-      appleTitle: "약품 위치 찾기",
+      documentTitle: "약품 라벨 스캔",
+      appleTitle: "약품 라벨 스캔",
       themeColor: "#E8843C",
     });
     expect(getPwaMetadata("/Ecart-/pharmacy-label-editor")).toEqual({
@@ -288,8 +288,8 @@ describe("PWA install metadata", () => {
   it("defines a separate installable manifest and icon set for the drug locator", () => {
     const manifest = JSON.parse(readFileSync("public/pharmacy-drug-locator.webmanifest", "utf8"));
 
-    expect(manifest.name).toBe("약품 위치 찾기");
-    expect(manifest.short_name).toBe("약품 위치 찾기");
+    expect(manifest.name).toBe("약품 라벨 스캔");
+    expect(manifest.short_name).toBe("약품 라벨 스캔");
     expect(manifest.id).toBe("/Ecart-/pharmacy-drug-locator");
     expect(manifest.start_url).toBe("/Ecart-/pharmacy-drug-locator/");
     expect(manifest.scope).toBe("/Ecart-/pharmacy-drug-locator/");

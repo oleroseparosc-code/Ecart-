@@ -38,6 +38,13 @@ const PREPARATION_NOTES_BY_CODE: Record<string, string[]> = {
   XRAMOSET: ["니들 필요"],
 };
 
+const LOCATOR_IMAGE_OVERRIDES: Record<string, string> = {
+  XRAMOSET: "ward-drug-images/health-a11aggggg5333-324c72e30d05a52a.jpg",
+  EDOXA1: "ward-drug-images/health-2015082600012-63dafded3c5477a8.jpg",
+  EDOXA3: "ward-drug-images/health-2015082600012-63dafded3c5477a8.jpg",
+  EDOXA6: "ward-drug-images/health-2015082600012-63dafded3c5477a8.jpg",
+};
+
 function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }
@@ -82,7 +89,8 @@ export function findRecognizedDrug(rows: LocatorDrug[], recognizedText: string) 
     .sort((left, right) => right.score - left.score)[0]?.row;
 }
 
-function resolveImageUrl(imagePath?: string) {
+function resolveImageUrl(row?: Pick<LocatorDrug, "code" | "imagePath">) {
+  const imagePath = row?.imagePath || LOCATOR_IMAGE_OVERRIDES[row?.code.trim().toUpperCase() ?? ""];
   if (!imagePath) return "";
   if (/^(https?:|data:)/i.test(imagePath)) return imagePath;
   return `${import.meta.env.BASE_URL}${imagePath.replace(/^\.?\//, "")}`;
@@ -124,7 +132,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
   const warnings = selected ? warningBadges(selected) : [];
   const selectedPreparationNotes = selected ? preparationNotes(selected) : [];
   const locationParts = (selected?.location ?? "").split("-").map((part) => part.trim()).filter(Boolean);
-  const imageUrl = resolveImageUrl(selected?.imagePath);
+  const imageUrl = resolveImageUrl(selected);
 
   useEffect(() => {
     if (!stream || !videoRef.current) return;

@@ -8,6 +8,11 @@ const appStatePath = path.resolve("app-state", "shared-state.json");
 const routes = ["inventory", "viewer", "pharmacy-viewer", "pharmacy-label-editor", "pharmacy-drug-locator", "narcotic-viewer"];
 const assetVersion = "20260810b";
 const routeInstallMetadata = {
+  "pharmacy-drug-locator": {
+    title: "약품 라벨 스캔",
+    manifestPath: "pharmacy-drug-locator.webmanifest?v=20260814f",
+    iconPath: "icons/pharmacy-drug-locator-icon-192.png?v=20260814b",
+  },
   "pharmacy-label-editor": {
     title: "약제팀 라벨 편집기",
     manifestPath: "pharmacy-label-editor.webmanifest?v=20260814e",
