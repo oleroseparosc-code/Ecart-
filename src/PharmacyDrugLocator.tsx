@@ -39,7 +39,8 @@ const PREPARATION_NOTES_BY_CODE: Record<string, string[]> = {
 };
 
 const LOCATOR_IMAGE_OVERRIDES: Record<string, string> = {
-  XRAMOSET: "ward-drug-images/health-a11aggggg5333-324c72e30d05a52a.jpg",
+  RAMOSET: "ward-drug-images/health-a11aggggg5333-324c72e30d05a52a.jpg",
+  XRAMOSET: "ward-drug-images/health-a11aggggg5334-4979210fd5ac1e56.jpg",
   EDOXA1: "ward-drug-images/health-2015082600012-63dafded3c5477a8.jpg",
   EDOXA3: "ward-drug-images/health-2015082600012-63dafded3c5477a8.jpg",
   EDOXA6: "ward-drug-images/health-2015082600012-63dafded3c5477a8.jpg",
@@ -69,8 +70,32 @@ function nameTokens(value: string) {
     .filter((token) => token.length >= 3 && !["inj", "tab", "cap", "syr", "soln"].includes(token));
 }
 
+function isOneCharacterOcrDifference(left: string, right: string) {
+  if (Math.abs(left.length - right.length) > 1) return false;
+  let leftIndex = 0;
+  let rightIndex = 0;
+  let differences = 0;
+  while (leftIndex < left.length && rightIndex < right.length) {
+    if (left[leftIndex] === right[rightIndex]) {
+      leftIndex += 1;
+      rightIndex += 1;
+      continue;
+    }
+    differences += 1;
+    if (differences > 1) return false;
+    if (left.length > right.length) leftIndex += 1;
+    else if (right.length > left.length) rightIndex += 1;
+    else {
+      leftIndex += 1;
+      rightIndex += 1;
+    }
+  }
+  return true;
+}
+
 export function findRecognizedDrug(rows: LocatorDrug[], recognizedText: string) {
   const recognizedName = compactName(recognizedText);
+  const recognizedTokens = nameTokens(recognizedText);
   if (!recognizedName) return undefined;
   const exact = rows.find((row) => [row.name, row.koreanName].some((name) => {
     const candidate = compactName(name);
@@ -82,7 +107,7 @@ export function findRecognizedDrug(rows: LocatorDrug[], recognizedText: string) 
     .map((row) => ({
       row,
       score: [...new Set([row.name, row.koreanName].flatMap(nameTokens))]
-        .filter((token) => recognizedName.includes(token))
+        .filter((token) => recognizedName.includes(token) || recognizedTokens.some((recognizedToken) => token.length >= 5 && isOneCharacterOcrDifference(token, recognizedToken)))
         .reduce((total, token) => total + token.length, 0),
     }))
     .filter(({ score }) => score >= 5)
@@ -192,7 +217,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
     try {
       const { createWorker, PSM } = await import("tesseract.js");
       worker = await createWorker(["kor", "eng"]);
-      await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK });
+      await worker.setParameters({ tessedit_pageseg_mode: PSM.SPARSE_TEXT, preserve_interword_spaces: "1" });
       let matched: LocatorDrug | undefined;
       const recognizedTexts: string[] = [];
       for (const crop of crops) {
