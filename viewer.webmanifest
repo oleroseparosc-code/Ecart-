@@ -1,0 +1,26 @@
+{
+  "id": "/Ecart-/viewer",
+  "name": "병동 약품 라벨 마스터관리",
+  "short_name": "병동 라벨 마스터",
+  "description": "전체 비품약 마스터 현황을 조회하는 전용 뷰어입니다.",
+  "start_url": "/Ecart-/viewer/",
+  "scope": "/Ecart-/viewer/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f97316",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/Ecart-/icons/viewer-icon-192.png?v=20260720a",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Ecart-/icons/viewer-icon-desktop-512.png?v=20260720a",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
