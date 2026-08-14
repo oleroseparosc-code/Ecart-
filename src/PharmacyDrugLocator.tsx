@@ -30,8 +30,50 @@ const WARNING_COLORS: Record<WarningTone, string> = {
   cold: "#4BA3D8",
 };
 
+const PREPARATION_NOTES_BY_CODE: Record<string, string[]> = {
+  XMMR2: ["용해액 필요"],
+  XMMR2W: ["용해액 필요"],
+  XMMR2G: ["용해액 필요"],
+  XRAMOSET: ["니들 필요"],
+};
+
 function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
+}
+
+export function preparationNotes(row: Pick<LocatorDrug, "code">) {
+  return PREPARATION_NOTES_BY_CODE[row.code.trim().toUpperCase()] ?? [];
+}
+
+function compactName(value: string) {
+  return compact(value).replace(/[^0-9a-z가-힣]/g, "");
+}
+
+function nameTokens(value: string) {
+  return compact(value)
+    .split(/[^0-9a-z가-힣.]+/)
+    .map(compactName)
+    .filter((token) => token.length >= 3 && !["inj", "tab", "cap", "syr", "soln"].includes(token));
+}
+
+export function findRecognizedDrug(rows: LocatorDrug[], recognizedText: string) {
+  const recognizedName = compactName(recognizedText);
+  if (!recognizedName) return undefined;
+  const exact = rows.find((row) => [row.name, row.koreanName].some((name) => {
+    const candidate = compactName(name);
+    return candidate.length >= 4 && recognizedName.includes(candidate);
+  }));
+  if (exact) return exact;
+
+  return rows
+    .map((row) => ({
+      row,
+      score: [...new Set([row.name, row.koreanName].flatMap(nameTokens))]
+        .filter((token) => recognizedName.includes(token))
+        .reduce((total, token) => total + token.length, 0),
+    }))
+    .filter(({ score }) => score >= 5)
+    .sort((left, right) => right.score - left.score)[0]?.row;
 }
 
 function resolveImageUrl(imagePath?: string) {
@@ -62,6 +104,8 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
   const [selectedCode, setSelectedCode] = useState("");
   const [cameraState, setCameraState] = useState<"idle" | "ready" | "error">("idle");
   const [cameraMessage, setCameraMessage] = useState("카메라를 연결하면 라벨 인식 영역이 표시됩니다.");
+  const [scannedDrug, setScannedDrug] = useState<LocatorDrug | null>(null);
+  const [isRecognizing, setIsRecognizing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -72,6 +116,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
   }, [query, rows]);
   const selected = matches.find((row) => row.code === selectedCode) ?? matches[0];
   const warnings = selected ? warningBadges(selected) : [];
+  const selectedPreparationNotes = selected ? preparationNotes(selected) : [];
   const locationParts = (selected?.location ?? "").split("-").map((part) => part.trim()).filter(Boolean);
   const imageUrl = resolveImageUrl(selected?.imagePath);
 
@@ -91,6 +136,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
     }
     try {
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      setScannedDrug(null);
       const nextStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
       streamRef.current = nextStream;
       setStream(nextStream);
@@ -110,6 +156,49 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
     setCameraMessage("카메라 연결이 종료되었습니다.");
   }
 
+  async function recognizeLabelText() {
+    const video = videoRef.current;
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+      setCameraMessage("카메라 영상이 준비된 후 다시 시도해 주세요.");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    const nameAreaHeight = Math.round(video.videoHeight * 0.35);
+    canvas.height = nameAreaHeight;
+    canvas.getContext("2d")?.drawImage(video, 0, video.videoHeight - nameAreaHeight, video.videoWidth, nameAreaHeight, 0, 0, canvas.width, canvas.height);
+    setIsRecognizing(true);
+    setScannedDrug(null);
+    setCameraMessage("라벨의 상용명 문자를 읽는 중입니다.");
+    let worker: Awaited<ReturnType<(typeof import("tesseract.js"))["createWorker"]>> | undefined;
+    try {
+      const { createWorker, PSM } = await import("tesseract.js");
+      worker = await createWorker(["kor", "eng"]);
+      await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK });
+      const { data } = await worker.recognize(canvas);
+      const matched = findRecognizedDrug(rows, data.text);
+      if (!matched) {
+        setCameraMessage("상용명 문자를 읽었지만 등록 약품과 일치하지 않습니다. 라벨 전체가 선명하게 보이도록 다시 촬영해 주세요.");
+        return;
+      }
+      setScannedDrug(matched);
+      setCameraMessage(`${matched.name} 라벨을 인식했습니다.`);
+    } catch {
+      setCameraMessage("라벨 문자 인식에 실패했습니다. 네트워크 연결과 카메라 초점을 확인한 후 다시 시도해 주세요.");
+    } finally {
+      await worker?.terminate();
+      setIsRecognizing(false);
+    }
+  }
+
+  function openScannedDrug() {
+    if (!scannedDrug) return;
+    stopCamera();
+    setQuery(scannedDrug.code);
+    setSelectedCode(scannedDrug.code);
+    setScreen("search");
+  }
+
   if (screen === "scan") {
     return (
       <main style={{ minHeight: "100vh", background: "#161514", color: "#fff", display: "flex", justifyContent: "center" }}>
@@ -123,17 +212,19 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
             {stream ? <video ref={videoRef} autoPlay playsInline muted style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} /> : null}
             <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", padding: 20 }}>
               <div style={{ width: "92%", aspectRatio: "100 / 61", position: "relative", border: "3px solid #E8843C", borderRadius: 14, boxShadow: "0 0 0 999px rgba(0,0,0,0.28)", overflow: "hidden" }}>
-                <div style={{ position: "absolute", left: 0, top: 0, width: "35%", height: "20%", background: "rgba(169,181,192,0.48)", borderRight: "1px dashed #fff", borderBottom: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>분류 인식 영역</div>
-                <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: "30%", background: "rgba(232,132,60,0.38)", borderTop: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>경구약 상용명 영역</div>
+                <div style={{ position: "absolute", left: 0, top: 0, width: "35%", height: "20%", background: "rgba(169,181,192,0.48)", borderRight: "1px dashed #fff", borderBottom: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>분류 참고 영역</div>
+                <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: "30%", background: "rgba(232,132,60,0.38)", borderTop: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>상용명 문자 인식 영역</div>
                 <div style={{ position: "absolute", left: "44%", top: "31%", width: 44, height: 44, borderRadius: "50%", background: "#E8843C", display: "grid", placeItems: "center", boxShadow: "0 0 0 6px rgba(232,132,60,0.24)" }}>⌁</div>
               </div>
             </div>
+            {scannedDrug ? <button type="button" onClick={openScannedDrug} style={{ position: "absolute", left: 20, right: 20, top: 20, border: "2px solid #fff", borderRadius: 14, padding: 14, background: "#1F7A4D", color: "#fff", textAlign: "left", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}><strong style={{ display: "block", fontSize: 16 }}>라벨 인식 완료</strong><span style={{ display: "block", marginTop: 4 }}>{scannedDrug.name}</span><small style={{ display: "block", marginTop: 4 }}>{scannedDrug.code} · 결과 보기</small></button> : null}
             <div style={{ position: "absolute", left: 16, right: 16, bottom: 18, padding: 14, borderRadius: 12, background: "rgba(0,0,0,0.65)", fontSize: 14 }}>{cameraMessage}</div>
           </div>
           <footer style={{ padding: "18px 20px 28px", background: "#A9B5C0", display: "grid", gap: 10 }}>
             <button type="button" onClick={cameraState === "ready" ? stopCamera : startCamera} style={{ border: 0, borderRadius: 14, padding: "16px", background: "#E8843C", color: "#fff", fontSize: 17, fontWeight: 700 }}>{cameraState === "ready" ? "카메라 종료" : "카메라 연결"}</button>
+            {cameraState === "ready" ? <button type="button" onClick={() => void recognizeLabelText()} disabled={isRecognizing} style={{ border: "2px solid #fff", borderRadius: 14, padding: "13px", background: isRecognizing ? "rgba(255,255,255,0.35)" : "#1F7A4D", color: "#fff", fontSize: 15, fontWeight: 700 }}>{isRecognizing ? "상용명 문자 인식 중…" : "라벨 상용명 문자 인식"}</button> : null}
             <button type="button" onClick={() => { stopCamera(); setScreen("search"); }} style={{ border: "2px solid #fff", borderRadius: 14, padding: "13px", background: "transparent", color: "#fff", fontSize: 15, fontWeight: 700 }}>약품명 또는 위치 코드로 검색</button>
-            <p style={{ margin: 0, color: "#3D3833", fontSize: 12, textAlign: "center" }}>자동 OCR 매칭은 Expo 네이티브 앱에서 연결되며, 이 웹 화면은 휴대폰 카메라 프레임을 제공합니다.</p>
+            <p style={{ margin: 0, color: "#3D3833", fontSize: 12, textAlign: "center" }}>라벨의 상용명이 선명하게 보이도록 맞춘 뒤 문자 인식을 누르면 등록 약품을 표시합니다.</p>
           </footer>
         </section>
       </main>
@@ -159,7 +250,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
             {imageUrl ? <img src={imageUrl} alt={`${selected.name} 약품 이미지`} style={{ width: 96, height: 96, objectFit: "contain", background: "#F5F5F0", borderRadius: 10 }} /> : null}
             <div><p style={{ margin: 0, color: "#8C7A6B", fontSize: 13 }}>{selected.code}</p><h2 style={{ margin: "4px 0", fontSize: 22 }}>{selected.name}</h2><p style={{ margin: 0, color: "#8C7A6B" }}>{[selected.koreanName, selected.strength, selected.drugType].filter(Boolean).join(" · ")}</p></div>
           </div>
-          {warnings.length ? <section style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>주의사항</p><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{warnings.map((warning) => <span key={warning.label} style={{ borderRadius: 999, padding: "6px 10px", background: WARNING_COLORS[warning.tone], color: "#fff", fontSize: 13, fontWeight: 700 }}>{warning.label}</span>)}</div></section> : null}
+          {warnings.length || selectedPreparationNotes.length ? <section style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>주의사항</p>{warnings.length ? <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{warnings.map((warning) => <span key={warning.label} style={{ borderRadius: 999, padding: "6px 10px", background: WARNING_COLORS[warning.tone], color: "#fff", fontSize: 13, fontWeight: 700 }}>{warning.label}</span>)}</div> : null}{selectedPreparationNotes.length ? <div style={{ marginTop: 10, borderLeft: "4px solid #E8843C", borderRadius: 8, padding: "10px 12px", background: "#FFF6EF", color: "#5D4037" }}><strong style={{ display: "block", fontSize: 13 }}>준비물·조제 안내</strong>{selectedPreparationNotes.map((note) => <span key={note} style={{ display: "block", marginTop: 4 }}>{note}</span>)}</div> : null}</section> : null}
           <section style={{ marginTop: 20, padding: 16, background: "#FFF6EF", borderRadius: 12 }}><p style={{ margin: 0, color: "#8C7A6B", fontWeight: 700, fontSize: 13 }}>현재 약품 위치</p><strong style={{ display: "block", marginTop: 4, color: "#E8843C", fontSize: 24 }}>{selected.location || "위치 미등록"}</strong><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 14 }}>보관 조건: {selected.storage || "마스터 미등록"}</p></section>
           <section aria-label="3D 위치 안내" style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>3D 위치 안내</p><div style={{ position: "relative", height: 148, borderRadius: 14, overflow: "hidden", background: "linear-gradient(145deg, #A9B5C0, #7D8D9B)", perspective: 500 }}><div style={{ position: "absolute", inset: "28px 20px 16px", transform: "rotateX(58deg) rotateZ(-28deg)", transformStyle: "preserve-3d" }}>{[0, 1, 2].map((shelf) => <div key={shelf} style={{ position: "absolute", left: 0, right: 0, top: shelf * 31, height: 21, background: "#F5F5F0", border: "2px solid #8C7A6B", boxShadow: "0 10px 0 rgba(61,56,51,0.22)" }} />)}<div style={{ position: "absolute", left: "52%", top: 31, width: 38, height: 21, background: "#E8843C", border: "2px solid #fff", boxShadow: "0 0 0 4px rgba(232,132,60,0.28)" }} /></div><span style={{ position: "absolute", left: 14, bottom: 12, color: "#fff", fontWeight: 700 }}>{locationParts.length ? locationParts.join(" › ") : "좌표 도면 미등록"}</span></div><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 12 }}>위치 코드를 기준으로 표시한 선반 안내입니다. 실제 도면 좌표를 등록하면 병동·약품장별 3D 지도와 연결할 수 있습니다.</p></section>
         </article> : null}
