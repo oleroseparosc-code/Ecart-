@@ -159,6 +159,8 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
   const selectedPreparationNotes = selected ? preparationNotes(selected) : [];
   const locationParts = (selected?.location ?? "").split("-").map((part) => part.trim()).filter(Boolean);
   const imageUrl = resolveImageUrl(selected);
+  const scannedWarnings = scannedDrug ? warningBadges(scannedDrug) : [];
+  const scannedPreparationNotes = scannedDrug ? preparationNotes(scannedDrug) : [];
 
   useEffect(() => {
     if (!stream || !videoRef.current) return;
@@ -269,7 +271,14 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
                 <div style={{ position: "absolute", left: "44%", top: "31%", width: 44, height: 44, borderRadius: "50%", background: "#E8843C", display: "grid", placeItems: "center", boxShadow: "0 0 0 6px rgba(232,132,60,0.24)" }}>⌁</div>
               </div>
             </div>
-            {scannedDrug ? <button type="button" onClick={openScannedDrug} style={{ position: "absolute", left: 20, right: 20, top: 20, border: "2px solid #fff", borderRadius: 14, padding: 14, background: "#1F7A4D", color: "#fff", textAlign: "left", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}><strong style={{ display: "block", fontSize: 16 }}>라벨 인식 완료</strong><span style={{ display: "block", marginTop: 4 }}>{scannedDrug.name}</span><small style={{ display: "block", marginTop: 4 }}>{scannedDrug.code} · 결과 보기</small></button> : null}
+            {scannedDrug ? <button type="button" onClick={openScannedDrug} style={{ position: "absolute", left: 20, right: 20, top: 20, border: "2px solid #fff", borderRadius: 14, padding: 14, background: "#1F7A4D", color: "#fff", textAlign: "left", boxShadow: "0 4px 14px rgba(0,0,0,0.3)" }}>
+              <strong style={{ display: "block", fontSize: 16 }}>라벨 인식 완료</strong>
+              <span style={{ display: "block", marginTop: 4, fontSize: 17, fontWeight: 700 }}>{scannedDrug.name}</span>
+              <small style={{ display: "block", marginTop: 3, opacity: 0.9 }}>{[scannedDrug.koreanName, scannedDrug.strength, scannedDrug.drugType].filter(Boolean).join(" · ")}</small>
+              <span style={{ display: "block", marginTop: 9, paddingTop: 9, borderTop: "1px solid rgba(255,255,255,0.35)", fontSize: 14 }}><strong>위치</strong> {scannedDrug.location || "위치 미등록"}</span>
+              {scannedWarnings.length > 0 || scannedPreparationNotes.length > 0 ? <span style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>{[...scannedWarnings.map((warning) => warning.label), ...scannedPreparationNotes].map((label) => <span key={label} style={{ borderRadius: 999, padding: "4px 8px", background: "rgba(255,255,255,0.2)", fontSize: 12, fontWeight: 700 }}>{label}</span>)}</span> : null}
+              <small style={{ display: "block", marginTop: 9, textDecoration: "underline" }}>상세 결과 보기</small>
+            </button> : null}
             <div style={{ position: "absolute", left: 16, right: 16, bottom: 18, padding: 14, borderRadius: 12, background: "rgba(0,0,0,0.65)", fontSize: 14 }}>{cameraMessage}</div>
           </div>
           <footer style={{ padding: "18px 20px 28px", background: "#A9B5C0", display: "grid", gap: 10 }}>
