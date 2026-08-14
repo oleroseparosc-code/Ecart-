@@ -625,7 +625,6 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDele
           </div>
         </>}
         {(routeForType(labelRow.drugType) === "주사" || pharmacyLabelTypesForRow(labelRow).some((type) => (ROUTE_GROUPS.주사 as readonly string[]).includes(type))) && <div className="pharmacy-master-subtype-field">
-          <h3>주사 준비물</h3>
           <div className="pharmacy-master-check-grid">
             {[
               { key: "needsDiluent" as const, label: "<용해액 필요>" },
