@@ -598,14 +598,6 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDele
               <input type="checkbox" checked={marked(labelRow.ampouleHolder)} onChange={() => patchRow(labelRow.code, { ampouleHolder: marked(labelRow.ampouleHolder) ? "N" : "Y" })}/><span>앰플꽂이</span>
             </label>
           </div></div>}
-          {routeForType(labelRow.drugType) === "주사" && <div className="pharmacy-master-subtype-field"><span>주사 준비물</span><div className="pharmacy-master-check-grid">
-            {[
-              { key: "needsDiluent" as const, label: "<용해액 필요>" },
-              { key: "needsNeedle" as const, label: "<니들 필요>" },
-            ].map((option) => <label key={option.key} className={labelRow[option.key] ? "checked" : ""}>
-              <input type="checkbox" checked={Boolean(labelRow[option.key])} onChange={() => patchRow(labelRow.code, { [option.key]: !labelRow[option.key] })}/><span>{option.label}</span>
-            </label>)}
-          </div></div>}
           <label>약품장 위치<input value={labelRow.location ?? ""} onChange={(event) => patchRow(labelRow.code, { location: event.target.value })} placeholder="예: 가LU-1"/></label>
         </div>
         {pharmacyLabelTypesForRow(labelRow).some((type) => ["원병", "PTP"].includes(type)) && <>
@@ -632,6 +624,17 @@ export function PharmacyDrugMaster({ rows, isLoading, onSave, onSaveMany, onDele
             </label>)}
           </div>
         </>}
+        {(routeForType(labelRow.drugType) === "주사" || pharmacyLabelTypesForRow(labelRow).some((type) => (ROUTE_GROUPS.주사 as readonly string[]).includes(type))) && <div className="pharmacy-master-subtype-field">
+          <h3>주사 준비물</h3>
+          <div className="pharmacy-master-check-grid">
+            {[
+              { key: "needsDiluent" as const, label: "<용해액 필요>" },
+              { key: "needsNeedle" as const, label: "<니들 필요>" },
+            ].map((option) => <label key={option.key} className={labelRow[option.key] ? "checked" : ""}>
+              <input type="checkbox" checked={Boolean(labelRow[option.key])} onChange={() => patchRow(labelRow.code, { [option.key]: !labelRow[option.key] })}/><span>{option.label}</span>
+            </label>)}
+          </div>
+        </div>}
         <button type="button" className="print-button pharmacy-master-save" onClick={() => void saveRow(normalizePharmacyLabelMasterRow(labelRow), setLabelStatus)}>약제팀 라벨에 저장</button>
         <div className="pharmacy-master-batch-save">
           <span>일괄 저장 선택 {labelBatchCodes.length.toLocaleString("ko-KR")}개</span>
