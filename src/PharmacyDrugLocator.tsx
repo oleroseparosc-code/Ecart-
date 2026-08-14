@@ -21,6 +21,14 @@ export type LocatorDrug = {
 };
 
 type Props = { rows: LocatorDrug[]; isLoading: boolean };
+type WarningTone = "caution" | "light" | "cold";
+type WarningBadge = { label: string; tone: WarningTone };
+
+const WARNING_COLORS: Record<WarningTone, string> = {
+  caution: "#C62828",
+  light: "#2E7D32",
+  cold: "#4BA3D8",
+};
 
 function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
@@ -32,20 +40,20 @@ function resolveImageUrl(imagePath?: string) {
   return `${import.meta.env.BASE_URL}${imagePath.replace(/^\.?\//, "")}`;
 }
 
-function warningLabels(row: LocatorDrug) {
+function warningBadges(row: LocatorDrug): WarningBadge[] {
   const storage = compact(row.storage);
   return [
-    row.hazardous ? "위해의약품" : "",
-    row.highRisk ? "고위험의약품" : "",
-    row.doseCaution ? "용량주의" : "",
-    row.doseCheck ? "용량확인" : "",
-    row.similarSound ? "유사발음" : "",
-    row.similarLook ? "유사모양" : "",
-    row.nameCaution ? "이름주의" : "",
-    row.lightProtected || storage.includes("차광") ? "차광" : "",
-    storage.includes("냉동") ? "냉동 보관" : "",
-    storage.includes("냉장") || /2[-~]?8/.test(storage) ? "냉장 보관" : "",
-  ].filter(Boolean);
+    row.hazardous ? { label: "위해의약품", tone: "caution" } : null,
+    row.highRisk ? { label: "고위험의약품", tone: "caution" } : null,
+    row.doseCaution ? { label: "용량주의", tone: "caution" } : null,
+    row.doseCheck ? { label: "용량확인", tone: "caution" } : null,
+    row.similarSound ? { label: "유사발음", tone: "caution" } : null,
+    row.similarLook ? { label: "유사모양", tone: "caution" } : null,
+    row.nameCaution ? { label: "이름주의", tone: "caution" } : null,
+    row.lightProtected || storage.includes("차광") ? { label: "차광", tone: "light" } : null,
+    storage.includes("냉동") ? { label: "냉동 보관", tone: "cold" } : null,
+    storage.includes("냉장") || /2[-~]?8/.test(storage) ? { label: "냉장 보관", tone: "cold" } : null,
+  ].filter((badge): badge is WarningBadge => badge !== null);
 }
 
 export function PharmacyDrugLocator({ rows, isLoading }: Props) {
@@ -63,7 +71,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
     return rows.filter((row) => compact([row.code, row.itemCode ?? "", row.name, row.koreanName, row.strength, row.location ?? ""].join(" ")).includes(keyword)).slice(0, 12);
   }, [query, rows]);
   const selected = matches.find((row) => row.code === selectedCode) ?? matches[0];
-  const warnings = selected ? warningLabels(selected) : [];
+  const warnings = selected ? warningBadges(selected) : [];
   const locationParts = (selected?.location ?? "").split("-").map((part) => part.trim()).filter(Boolean);
   const imageUrl = resolveImageUrl(selected?.imagePath);
 
@@ -151,9 +159,9 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
             {imageUrl ? <img src={imageUrl} alt={`${selected.name} 약품 이미지`} style={{ width: 96, height: 96, objectFit: "contain", background: "#F5F5F0", borderRadius: 10 }} /> : null}
             <div><p style={{ margin: 0, color: "#8C7A6B", fontSize: 13 }}>{selected.code}</p><h2 style={{ margin: "4px 0", fontSize: 22 }}>{selected.name}</h2><p style={{ margin: 0, color: "#8C7A6B" }}>{[selected.koreanName, selected.strength, selected.drugType].filter(Boolean).join(" · ")}</p></div>
           </div>
+          {warnings.length ? <section style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>주의사항</p><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{warnings.map((warning) => <span key={warning.label} style={{ borderRadius: 999, padding: "6px 10px", background: WARNING_COLORS[warning.tone], color: "#fff", fontSize: 13, fontWeight: 700 }}>{warning.label}</span>)}</div></section> : null}
           <section style={{ marginTop: 20, padding: 16, background: "#FFF6EF", borderRadius: 12 }}><p style={{ margin: 0, color: "#8C7A6B", fontWeight: 700, fontSize: 13 }}>현재 약품 위치</p><strong style={{ display: "block", marginTop: 4, color: "#E8843C", fontSize: 24 }}>{selected.location || "위치 미등록"}</strong><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 14 }}>보관 조건: {selected.storage || "마스터 미등록"}</p></section>
           <section aria-label="3D 위치 안내" style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>3D 위치 안내</p><div style={{ position: "relative", height: 148, borderRadius: 14, overflow: "hidden", background: "linear-gradient(145deg, #A9B5C0, #7D8D9B)", perspective: 500 }}><div style={{ position: "absolute", inset: "28px 20px 16px", transform: "rotateX(58deg) rotateZ(-28deg)", transformStyle: "preserve-3d" }}>{[0, 1, 2].map((shelf) => <div key={shelf} style={{ position: "absolute", left: 0, right: 0, top: shelf * 31, height: 21, background: "#F5F5F0", border: "2px solid #8C7A6B", boxShadow: "0 10px 0 rgba(61,56,51,0.22)" }} />)}<div style={{ position: "absolute", left: "52%", top: 31, width: 38, height: 21, background: "#E8843C", border: "2px solid #fff", boxShadow: "0 0 0 4px rgba(232,132,60,0.28)" }} /></div><span style={{ position: "absolute", left: 14, bottom: 12, color: "#fff", fontWeight: 700 }}>{locationParts.length ? locationParts.join(" › ") : "좌표 도면 미등록"}</span></div><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 12 }}>위치 코드를 기준으로 표시한 선반 안내입니다. 실제 도면 좌표를 등록하면 병동·약품장별 3D 지도와 연결할 수 있습니다.</p></section>
-          {warnings.length ? <section style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>주의사항</p><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{warnings.map((warning) => <span key={warning} style={{ borderRadius: 999, padding: "6px 10px", background: "#E8843C", color: "#fff", fontSize: 13, fontWeight: 700 }}>{warning}</span>)}</div></section> : null}
         </article> : null}
       </section>
     </main>

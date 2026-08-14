@@ -1,0 +1,26 @@
+{
+  "id": "/Ecart-/pharmacy-drug-locator",
+  "name": "약품 위치 찾기",
+  "short_name": "약품 위치 찾기",
+  "description": "약품명·약품코드·위치 코드로 원내 의약품 위치를 확인합니다.",
+  "start_url": "/Ecart-/pharmacy-drug-locator/",
+  "scope": "/Ecart-/pharmacy-drug-locator/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f97316",
+  "theme_color": "#E8843C",
+  "icons": [
+    {
+      "src": "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814a",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814a",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
