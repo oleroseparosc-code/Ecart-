@@ -18,6 +18,7 @@ export type LocatorDrug = {
   doseCheck?: boolean;
   nameCaution?: boolean;
   lightProtected?: boolean;
+  ampouleHolder?: string;
 };
 
 type Props = { rows: LocatorDrug[]; isLoading: boolean };
@@ -41,8 +42,11 @@ function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }
 
-export function preparationNotes(row: Pick<LocatorDrug, "code">) {
-  return PREPARATION_NOTES_BY_CODE[row.code.trim().toUpperCase()] ?? [];
+export function preparationNotes(row: Pick<LocatorDrug, "code" | "ampouleHolder">) {
+  return [
+    ...(PREPARATION_NOTES_BY_CODE[row.code.trim().toUpperCase()] ?? []),
+    row.ampouleHolder?.trim().toUpperCase() === "Y" ? "앰플꽂이 필요" : "",
+  ].filter(Boolean);
 }
 
 function compactName(value: string) {
@@ -244,7 +248,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
         </label>
         {isLoading ? <p style={{ color: "#8C7A6B" }}>약품 마스터를 불러오는 중입니다.</p> : null}
         {!isLoading && query && matches.length === 0 ? <p style={{ color: "#8C7A6B" }}>일치하는 약품이 없습니다.</p> : null}
-        {matches.length > 1 ? <div style={{ display: "grid", gap: 8, marginTop: 12 }}>{matches.map((row) => <button key={row.code} type="button" onClick={() => setSelectedCode(row.code)} style={{ textAlign: "left", border: row.code === selected?.code ? "2px solid #E8843C" : "1px solid #ddd", borderRadius: 10, background: "#fff", padding: 12, color: "#3D3833" }}><strong>{row.name}</strong><br /><small>{row.code} · {row.location || "위치 미등록"}</small></button>)}</div> : null}
+        {matches.length > 1 ? <div style={{ display: "grid", gap: 8, marginTop: 12 }}>{matches.map((row) => <button key={row.code} type="button" onClick={() => setSelectedCode(row.code)} style={{ textAlign: "left", border: row.code === selected?.code ? "2px solid #E8843C" : "1px solid #ddd", borderRadius: 10, background: "#fff", padding: 12, color: "#3D3833" }}><strong>{row.name}</strong><br /><small>{row.code} · {row.location || "위치 미등록"}{row.ampouleHolder?.trim().toUpperCase() === "Y" ? " · 앰플꽂이 필요" : ""}</small></button>)}</div> : null}
         {selected ? <article style={{ marginTop: 20, background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 4px 18px rgba(61,56,51,0.1)" }}>
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             {imageUrl ? <img src={imageUrl} alt={`${selected.name} 약품 이미지`} style={{ width: 96, height: 96, objectFit: "contain", background: "#F5F5F0", borderRadius: 10 }} /> : null}
