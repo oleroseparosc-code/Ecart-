@@ -89,6 +89,11 @@ export function findRecognizedDrug(rows: LocatorDrug[], recognizedText: string) 
     .sort((left, right) => right.score - left.score)[0]?.row;
 }
 
+export function selectDefaultDrug(rows: LocatorDrug[], selectedCode: string) {
+  const normalizedSelectedCode = selectedCode.trim().toUpperCase();
+  return rows.find((row) => row.code.trim().toUpperCase() === normalizedSelectedCode) ?? rows[0];
+}
+
 function resolveImageUrl(row?: Pick<LocatorDrug, "code" | "imagePath">) {
   const imagePath = row?.imagePath || LOCATOR_IMAGE_OVERRIDES[row?.code.trim().toUpperCase() ?? ""];
   if (!imagePath) return "";
@@ -128,7 +133,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
     if (!keyword) return [];
     return rows.filter((row) => compact([row.code, row.itemCode ?? "", row.name, row.koreanName, row.strength, row.location ?? ""].join(" ")).includes(keyword)).slice(0, 12);
   }, [query, rows]);
-  const selected = matches.find((row) => row.code === selectedCode) ?? matches[0];
+  const selected = selectDefaultDrug(matches, selectedCode);
   const warnings = selected ? warningBadges(selected) : [];
   const selectedPreparationNotes = selected ? preparationNotes(selected) : [];
   const locationParts = (selected?.location ?? "").split("-").map((part) => part.trim()).filter(Boolean);

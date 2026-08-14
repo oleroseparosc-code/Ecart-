@@ -10,7 +10,7 @@ const assetVersion = "20260810b";
 const routeInstallMetadata = {
   "pharmacy-drug-locator": {
     title: "약품 라벨 스캔",
-    manifestPath: "pharmacy-drug-locator.webmanifest?v=20260814f",
+    manifestPath: "pharmacy-drug-locator.webmanifest?v=20260814g",
     iconPath: "icons/pharmacy-drug-locator-icon-192.png?v=20260814b",
   },
   "pharmacy-label-editor": {
