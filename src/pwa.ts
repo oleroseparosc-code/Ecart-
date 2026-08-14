@@ -112,7 +112,7 @@ export function registerAppServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
   window.addEventListener("load", () => {
-    const serviceWorkerUrl = buildPwaAssetUrl(import.meta.env.BASE_URL, "sw.js");
+    const serviceWorkerUrl = buildPwaAssetUrl(import.meta.env.BASE_URL, "sw.js?v=20260814e");
     const wasControlled = Boolean(navigator.serviceWorker.controller);
     let isReloading = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {

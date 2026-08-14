@@ -111,6 +111,10 @@ describe("PWA install metadata", () => {
     expect(shouldReloadAfterServiceWorkerUpdate({ wasControlled: true, isReloading: true })).toBe(false);
   });
 
+  it("registers a versioned service worker URL to bypass stale CDN responses", () => {
+    expect(readFileSync("src/pwa.ts", "utf8")).toContain('"sw.js?v=20260814e"');
+  });
+
   it("keeps runtime sync config out of the service worker cache", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
