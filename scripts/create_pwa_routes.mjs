@@ -10,8 +10,8 @@ const assetVersion = "20260810b";
 const routeInstallMetadata = {
   "pharmacy-label-editor": {
     title: "약제팀 라벨 편집기",
-    manifestPath: "pharmacy-label-editor.webmanifest?v=20260814d",
-    iconPath: "icons/pharmacy-label-editor-icon-192.png?v=20260814d",
+    manifestPath: "pharmacy-label-editor.webmanifest?v=20260814e",
+    iconPath: "icons/pharmacy-label-editor-icon-192.png?v=20260814e",
   },
 };
 
@@ -27,8 +27,8 @@ export function addRouteInstallMetadata(html, route) {
     .replace(/<meta name="apple-mobile-web-app-title" content="[^"]*"\s*\/>/, `<meta name="apple-mobile-web-app-title" content="${metadata.title}" />`)
     .replace(/<title>[^<]*<\/title>/, `<title>${metadata.title}</title>`)
     .replace(
-      "</head>",
-      `    <link rel="manifest" href="/Ecart-/${metadata.manifestPath}" />\n    <link rel="icon" type="image/png" href="/Ecart-/${metadata.iconPath}" />\n    <link rel="apple-touch-icon" href="/Ecart-/${metadata.iconPath}" />\n  </head>`,
+      /(\s*<script>)/,
+      `\n    <link rel="manifest" href="/Ecart-/${metadata.manifestPath}" />\n    <link rel="icon" type="image/png" href="/Ecart-/${metadata.iconPath}" />\n    <link rel="apple-touch-icon" href="/Ecart-/${metadata.iconPath}" />\n$1`,
     );
 }
 

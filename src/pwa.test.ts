@@ -143,12 +143,12 @@ describe("PWA install metadata", () => {
   it("writes static install metadata for the pharmacy label editor route", async () => {
     // @ts-ignore build script is plain JavaScript.
     const { addRouteInstallMetadata } = await import("../scripts/create_pwa_routes.mjs");
-    const html = '<head><meta name="apple-mobile-web-app-title" content="비품점검" /><title>비품점검</title></head>';
+    const html = '<head><meta name="apple-mobile-web-app-title" content="비품점검" /><script></script><title>비품점검</title></head>';
     const routeHtml = addRouteInstallMetadata(html, "pharmacy-label-editor");
 
     expect(routeHtml).toContain('content="약제팀 라벨 편집기"');
-    expect(routeHtml).toContain('href="/Ecart-/pharmacy-label-editor.webmanifest?v=20260814d"');
-    expect(routeHtml).toContain('href="/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814d"');
+    expect(routeHtml).toContain('href="/Ecart-/pharmacy-label-editor.webmanifest?v=20260814e"');
+    expect(routeHtml).toContain('href="/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814e"');
   });
 
   it("selects separate install metadata for the master viewer route", () => {
@@ -159,6 +159,13 @@ describe("PWA install metadata", () => {
       documentTitle: "약품 위치 찾기",
       appleTitle: "약품 위치 찾기",
       themeColor: "#E8843C",
+    });
+    expect(getPwaMetadata("/Ecart-/pharmacy-label-editor")).toEqual({
+      manifestPath: "pharmacy-label-editor.webmanifest",
+      iconPath: "icons/pharmacy-label-editor-icon-192.png",
+      documentTitle: "약제팀 라벨 편집기",
+      appleTitle: "약제팀 라벨 편집기",
+      themeColor: "#f97316",
     });
     expect(getPwaMetadata("/Ecart-/viewer")).toEqual({
       manifestPath: "viewer.webmanifest",
