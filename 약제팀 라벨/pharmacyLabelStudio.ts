@@ -163,6 +163,8 @@ export function rowMatchesCategory(
   const isInjection = ["앰플", "바이알", "냉장주사", "주사", "영양수액", "일반수액", "항암제", "백신", "제로관리약"].some((value) => type.includes(value));
   if (["유색라벨", "측면라벨"].includes(category)) return family === "cabinet" && threeTierDoseUnitsForCategory(row, category).length > 0;
   if (category === "경구 고가약") return family === "cabinet" && Boolean(row.highCost) && isOralHighCost;
+  if (category === "백신") return type === "백신" || pharmacyTypes.includes("백신");
+  if (category === "냉장주사" && type === "백신") return true;
   if (row.pharmacyLabelTypes && PHARMACY_TYPE_CATEGORIES.has(category)) {
     return pharmacyTypes.includes(category.replace(/\s+/g, ""));
   }
