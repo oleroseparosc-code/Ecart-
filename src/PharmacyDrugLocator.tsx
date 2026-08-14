@@ -18,6 +18,8 @@ export type LocatorDrug = {
   doseCheck?: boolean;
   nameCaution?: boolean;
   lightProtected?: boolean;
+  needsDiluent?: boolean;
+  needsNeedle?: boolean;
   ampouleHolder?: string;
 };
 
@@ -29,13 +31,6 @@ const WARNING_COLORS: Record<WarningTone, string> = {
   caution: "#C62828",
   light: "#2E7D32",
   cold: "#4BA3D8",
-};
-
-const PREPARATION_NOTES_BY_CODE: Record<string, string[]> = {
-  XMMR2: ["용해액 필요"],
-  XMMR2W: ["용해액 필요"],
-  XMMR2G: ["용해액 필요"],
-  XRAMOSET: ["니들 필요"],
 };
 
 const LOCATOR_IMAGE_OVERRIDES: Record<string, string> = {
@@ -50,9 +45,10 @@ function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }
 
-export function preparationNotes(row: Pick<LocatorDrug, "code" | "ampouleHolder">) {
+export function preparationNotes(row: Pick<LocatorDrug, "needsDiluent" | "needsNeedle" | "ampouleHolder">) {
   return [
-    ...(PREPARATION_NOTES_BY_CODE[row.code.trim().toUpperCase()] ?? []),
+    row.needsDiluent ? "용해액 필요" : "",
+    row.needsNeedle ? "니들 필요" : "",
     row.ampouleHolder?.trim().toUpperCase() === "Y" ? "앰플꽂이 필요" : "",
   ].filter(Boolean);
 }

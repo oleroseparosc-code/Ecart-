@@ -4,6 +4,7 @@ import json
 import hashlib
 import mimetypes
 import re
+import sys
 import time
 from datetime import date, datetime
 from pathlib import Path
@@ -23,6 +24,7 @@ RULE_SHEET_NAMES = ["라벨 생성규칙", "경구 주사 리스트", "영양수
 HEALTH_SEARCH_URL = "https://health.kr/searchDrug/search_detail.asp"
 HEALTH_POPUP_URL = "https://health.kr/searchDrug/ajax/ajax_result_pop.asp"
 HEALTH_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+FETCH_HEALTH_IMAGES = "--fetch-health-images" in sys.argv
 
 
 def clean(value: object) -> str:
@@ -213,7 +215,15 @@ def health_search_terms(korean_name: str, common_name: str) -> list[str]:
     return [term for term in terms if clean(term)]
 
 
-def find_health_drug_code(korean_name: str, common_name: str) -> str:
+def find_health_drug_code(korean_name: str, common_name: str, source_url: str = "") -> str:
+    if source_url:
+        try:
+            html = health_request(source_url).decode("utf-8", errors="ignore")
+            match = re.search(r"drug_detailHref\('([^']+)'\)", html)
+            if match:
+                return match.group(1)
+        except Exception:
+            pass
     for term in health_search_terms(korean_name, common_name):
         body = urlencode({"search_detail": "Y", "input_drug_nm": term, "movefrom": "drug"}).encode("utf-8")
         html = health_request(HEALTH_SEARCH_URL, body).decode("utf-8", errors="ignore")
@@ -241,9 +251,9 @@ def health_image_url_candidates(url: str) -> list[str]:
     return list(dict.fromkeys(candidates))
 
 
-def fetch_health_image(korean_name: str, common_name: str) -> tuple[str, str]:
+def fetch_health_image(korean_name: str, common_name: str, source_url: str = "") -> tuple[str, str]:
     try:
-        drug_code = find_health_drug_code(korean_name, common_name)
+        drug_code = find_health_drug_code(korean_name, common_name, source_url)
         if not drug_code:
             return "", f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
         popup_url = f"{HEALTH_POPUP_URL}?drug_cd={quote(drug_code)}"
@@ -315,8 +325,9 @@ def main() -> None:
         syrup_info = syrup_entries.get(code)
         image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name)
         image_source_url = read_optional(raw, "식별사진출처")
-        if not image_path and is_yes(raw[index["3단장 유색 반티통 측면라벨"]]):
-            image_path, image_source_url = fetch_health_image(korean_name, name)
+        needs_colored_side_label_image = is_yes(read_optional(raw, "유색측면라벨"))
+        if (FETCH_HEALTH_IMAGES or needs_colored_side_label_image) and not image_path and image_source_url:
+            image_path, image_source_url = fetch_health_image(korean_name, name, image_source_url)
         if not image_source_url:
             image_source_url = f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
         drug_type = read(raw, "약품유형")

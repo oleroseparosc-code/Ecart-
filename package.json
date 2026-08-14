@@ -6,6 +6,7 @@
   "scripts": {
     "generate:data": "node scripts/run_python.mjs scripts/extract_inventory.py",
     "generate:labels": "node scripts/run_python.mjs \"약제팀 라벨/extract_hospital_labels.py\"",
+    "sync:preparation-flags": "node scripts/sync_preparation_flags.mjs",
     "generate:ward-labels": "node scripts/run_python.mjs \"병동라벨/extract_hospital_labels.py\"",
     "generate:label-matches": "node scripts/run_python.mjs \"약제팀 라벨/extract_pharmacy_label_matches.py\"",
     "generate:narcotic-labels": "node scripts/run_python.mjs scripts/extract_narcotic_labels.py",
