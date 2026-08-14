@@ -846,6 +846,7 @@ function buildEcartLabelData(
   suffix: string,
   kind: Extract<DrugLabelMode, "ecart" | "ecart-nicu"> = "ecart",
   fluidTone?: string,
+  hospitalRow?: HospitalDrugLabelRow,
 ): DrugLabelData {
   const fields = drugRuleFieldsFromEcartItem(item);
   return {
@@ -859,8 +860,8 @@ function buildEcartLabelData(
     storage: "E-cart",
     totalQuantity,
     quantityLabel: "수량",
-    cautionLabels: getPolicyCautionLabels(fields),
-    highRisk: isHighRiskDrug(fields),
+    cautionLabels: [...new Set([...getPolicyCautionLabels(fields), ...(hospitalRow ? getHospitalDrugLabelWarnings(hospitalRow) : [])])],
+    highRisk: Boolean(hospitalRow?.highRisk) || isHighRiskDrug(fields),
     fluidTone,
   };
 }
@@ -945,6 +946,8 @@ function applySharedPharmacyMasterFields(base: HospitalDrugLabelRow, master: Hos
     similarSound: master.similarSound,
     doseCaution: master.doseCaution,
     doseCheck: master.doseCheck,
+    needsDiluent: master.needsDiluent,
+    needsNeedle: master.needsNeedle,
     highRisk: master.highRisk,
     nameCaution: master.nameCaution,
   };
@@ -959,6 +962,8 @@ function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabel
     master.similarSound ? "유사발음" : "",
     master.doseCaution ? "용량주의" : "",
     master.doseCheck ? "용량확인" : "",
+    master.needsDiluent ? "<용해액 필요>" : "",
+    master.needsNeedle ? "<니들 필요>" : "",
     master.nameCaution ? "이름주의" : "",
     master.highCost ? "고가약" : "",
     master.narcotic ? "마약" : "",
@@ -2191,7 +2196,7 @@ export function App() {
           })
           .find((quantity) => quantity > 0) ?? normalizeEcartItem(item).quantity;
       const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase());
-      return buildEcartLabelData(item, setQuantity, `general-${index}`, "ecart", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined);
+      return buildEcartLabelData(item, setQuantity, `general-${index}`, "ecart", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined, hospitalRow);
       });
   }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode]);
   const ecartNicuLabelRows = useMemo(() => {
@@ -2208,7 +2213,7 @@ export function App() {
           })
           .find((quantity) => quantity > 0) ?? normalizeEcartItem(item).quantity;
       const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase());
-      return buildEcartLabelData(item, setQuantity, `nicu-${index}`, "ecart-nicu", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined);
+      return buildEcartLabelData(item, setQuantity, `nicu-${index}`, "ecart-nicu", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined, hospitalRow);
       });
   }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode]);
   const ecartLabelBaseRows = useMemo(() => {

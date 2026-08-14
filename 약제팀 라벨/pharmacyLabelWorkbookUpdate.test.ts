@@ -51,6 +51,8 @@ describe("pharmacy label workbook update", () => {
       similarSound: false,
       doseCaution: false,
       doseCheck: true,
+      needsDiluent: true,
+      needsNeedle: true,
       highRisk: false,
     } satisfies HospitalDrugLabelRow;
 
@@ -63,6 +65,8 @@ describe("pharmacy label workbook update", () => {
       expect(savedRows[1]?.[headers.indexOf("위치")]).toBe("A-3");
       expect(savedRows[1]?.[headers.indexOf("약제팀 라벨 세부유형")]).toBe("영양수액, 냉장주사");
       expect(savedRows[1]?.[headers.indexOf("위해의약품")]).toBe("Y");
+      expect(savedRows[1]?.[headers.indexOf("용해액 필요")]).toBe("Y");
+      expect(savedRows[1]?.[headers.indexOf("니들 필요")]).toBe("Y");
       expect(savedRows).toHaveLength(2);
     } finally {
       fetchMock.mockRestore();
@@ -215,6 +219,8 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain('"1T 3단장 뺑뺑이 PTP 측면라벨"');
     expect(source).toContain('고위험의약품분류: row.highRiskCategory ?? ""');
     expect(source).toContain('용량확인: yes(row.doseCheck)');
+    expect(source).toContain('"용해액 필요": yes(row.needsDiluent)');
+    expect(source).toContain('"니들 필요": yes(row.needsNeedle)');
     expect(appSource).toContain("savePharmacyDrugMaster");
     expect(appSource).toContain("saveHospitalDrugMasterRowToWorkbook(row, hospitalDrugWorkbookUrl, originalCode)");
     expect(appSource).toContain("originalCodeKey");
@@ -227,5 +233,7 @@ describe("pharmacy label workbook update", () => {
     expect(appSource).toContain("previous.filter((current) => current.code.toUpperCase() !== originalCodeKey)");
     expect(appSource).toContain("hospitalDrugRowsByCode.get(row.code.toUpperCase()) ?? pharmacyHospitalDrugRowsByCode.get(row.code.toUpperCase())");
     expect(appSource).not.toContain("if (!existed) setPharmacyAdditionalRows");
+    expect(appSource).toContain('master.needsDiluent ? "<용해액 필요>" : ""');
+    expect(appSource).toContain('master.needsNeedle ? "<니들 필요>" : ""');
   });
 });

@@ -21,6 +21,7 @@ function compact(value: unknown) {
 
 const MASTER_BOOLEAN_HEADERS = [
   "고가약", "위해의약품", "고위험의약품", "유사모양", "유사발음", "용량주의", "용량확인", "이름주의",
+  "용해액 필요", "니들 필요",
   "마약", "향정", "항암제", "E-cart", "E-cart(NICU)", "측면라벨", "유색측면라벨",
   "병뚜껑", "유색병뚜껑", "정제용량 1T", "정제용량 0.5T", "정제용량 0.25T",
 ] as const;
@@ -328,6 +329,7 @@ function upsertHospitalDrugMasterRow(sheet: XLSX.WorkSheet, row: HospitalDrugLab
     차광필요: row.lightProtected ? "차광" : "", 고가약: yes(row.highCost), 위해의약품: yes(row.hazardous), 고위험의약품: yes(row.highRisk),
     고위험의약품분류: row.highRiskCategory ?? "", 유사모양: yes(row.similarLook), 유사발음: yes(row.similarSound),
     용량주의: yes(row.doseCaution), 용량확인: yes(row.doseCheck), 이름주의: yes(row.nameCaution), 마약: yes(row.narcotic),
+    "용해액 필요": yes(row.needsDiluent), "니들 필요": yes(row.needsNeedle),
     향정: yes(row.psychotropic), 항암제: yes(row.anticancer), "E-cart": yes(row.eCart), "E-cart(NICU)": yes(row.eCartNicu),
     측면라벨: yes(row.sideLabel), 유색측면라벨: yes(isLabelMarked(row.coloredSideLabel)), 병뚜껑: yes(row.regularCapLabel),
     유색병뚜껑: yes(row.coloredCapLabel), "정제용량 1T": yes(row.labelDose1T), "정제용량 0.5T": yes(row.labelDoseHalfT),

@@ -31,6 +31,8 @@ export type HospitalDrugLabelRow = {
   similarSound: boolean;
   doseCaution: boolean;
   doseCheck: boolean;
+  needsDiluent?: boolean;
+  needsNeedle?: boolean;
   highRisk: boolean;
   highRiskCategory?: string;
   atc?: string;
@@ -166,6 +168,8 @@ export function getHospitalDrugLabelWarnings(row: HospitalDrugLabelRow) {
     row.similarSound ? "유사발음" : "",
     row.similarLook ? "유사모양" : "",
     row.highRisk ? "고위험의약품" : "",
+    row.needsDiluent ? "<용해액 필요>" : "",
+    row.needsNeedle ? "<니들 필요>" : "",
     requiresMandatoryDilutionLabel(row.code) ? MANDATORY_DILUTION_LABEL : "",
     row.nameCaution ? "이름주의" : "",
     row.doseCheck ? "용량확인" : "",

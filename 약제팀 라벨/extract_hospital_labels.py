@@ -351,6 +351,8 @@ def main() -> None:
                 "similarSound": is_yes(raw[index["유사발음"]]),
                 "doseCaution": is_yes(raw[index["용량주의"]]),
                 "doseCheck": is_yes(raw[index["용량확인"]]),
+                "needsDiluent": is_yes(read_optional(raw, "용해액 필요")),
+                "needsNeedle": is_yes(read_optional(raw, "니들 필요")),
                 "highRisk": is_yes(raw[index["고위험의약품"]]),
                 "highRiskCategory": read(raw, "고위험의약품분류"),
                 "atc": read(raw, "ATC"),
