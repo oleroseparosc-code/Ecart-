@@ -4138,10 +4138,10 @@ export function App() {
               <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-label-editor/</code>
             </div>
             <div className="viewer-link-item">
-              <a href="https://donggukpharm7992-star.github.io/Ecart-/pharmacy-drug-locator/" target="_blank" rel="noreferrer">
+              <a href="https://donggukpharm7992-star.github.io/pharmacy-drug-locator/" target="_blank" rel="noreferrer">
                 약제팀 약품 위치 찾기
               </a>
-              <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-drug-locator/</code>
+              <code>https://donggukpharm7992-star.github.io/pharmacy-drug-locator/</code>
             </div>
           </div>
           <div className="viewer-link-help">

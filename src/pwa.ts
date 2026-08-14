@@ -32,7 +32,7 @@ export function getPwaMetadata(pathname = "/"): PwaMetadata {
     return {
       manifestPath: "pharmacy-drug-locator.webmanifest",
       iconPath: "icons/pharmacy-drug-locator-icon-192.png",
-      documentTitle: "약제팀 약품 위치 찾기",
+      documentTitle: "약품 위치 찾기",
       appleTitle: "약품 위치 찾기",
       themeColor: "#E8843C",
     };
