@@ -4,13 +4,19 @@ const APP_SHELL = [
   "/Ecart-/viewer/",
   "/Ecart-/pharmacy-viewer/",
   "/Ecart-/pharmacy-label-editor/",
+  "/Ecart-/pharmacy-label-editor/v2/",
   "/Ecart-/pharmacy-drug-locator/",
   "/Ecart-/narcotic-viewer/",
   "/Ecart-/manifest.webmanifest?v=20260713a",
   "/Ecart-/viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-viewer.webmanifest?v=20260713a",
+<<<<<<< HEAD
   "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814e",
   "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814f",
+=======
+  "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814f",
+  "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814b",
+>>>>>>> 4091d5d (Deploy app update)
   "/Ecart-/narcotic-viewer.webmanifest?v=20260713a",
   "/Ecart-/icons/app-icon-192.png?v=20260713a",
   "/Ecart-/icons/app-icon-desktop-512.png?v=20260713a",
@@ -20,8 +26,8 @@ const APP_SHELL = [
   "/Ecart-/icons/narcotic-icon-desktop-512.png?v=20260713a",
   "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814b",
   "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814b",
-  "/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814e",
-  "/Ecart-/icons/pharmacy-label-editor-icon-512.png?v=20260814e",
+  "/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814f",
+  "/Ecart-/icons/pharmacy-label-editor-icon-512.png?v=20260814f",
 ];
 
 self.addEventListener("install", (event) => {
