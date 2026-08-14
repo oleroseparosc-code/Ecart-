@@ -4093,7 +4093,7 @@ export function App() {
             </div>
             <div className="viewer-link-item">
               <a href="https://donggukpharm7992-star.github.io/Ecart-/pharmacy-viewer/" target="_blank" rel="noreferrer">
-                약제팀 라벨 마스터 관리
+                비치약품 배정 및 코드 관리
               </a>
               <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-viewer/</code>
             </div>
@@ -4102,6 +4102,12 @@ export function App() {
                 약제팀 라벨 편집 전용
               </a>
               <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-label-editor/</code>
+            </div>
+            <div className="viewer-link-item">
+              <a href="https://donggukpharm7992-star.github.io/Ecart-/pharmacy-drug-locator/" target="_blank" rel="noreferrer">
+                약제팀 약품 위치 찾기
+              </a>
+              <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-drug-locator/</code>
             </div>
           </div>
           <div className="viewer-link-help">
