@@ -44,6 +44,11 @@ const ROUTE_GROUPS = {
   주사: ["앰플", "바이알", "냉장주사", "영양수액", "일반수액"],
 } as const;
 
+const INJECTABLE_SOURCE_TYPE_DEFAULTS: Record<string, (typeof ROUTE_GROUPS)["주사"][number]> = {
+  백신: "냉장주사",
+  제로관리약: "냉장주사",
+};
+
 const SHARED_FLAGS: { key: SharedFlagKey; label: string }[] = [
   { key: "highRisk", label: "고위험의약품" },
   { key: "similarLook", label: "유사모양" },
@@ -84,12 +89,15 @@ function setRefrigerated(storage: string, checked: boolean) {
 
 function routeForType(drugType: string) {
   if (drugType in ROUTE_GROUPS) return drugType as keyof typeof ROUTE_GROUPS;
+  if (drugType in INJECTABLE_SOURCE_TYPE_DEFAULTS) return "주사";
   return (Object.entries(ROUTE_GROUPS).find(([, types]) => (types as readonly string[]).includes(drugType))?.[0] ?? "경구") as keyof typeof ROUTE_GROUPS;
 }
 
 function subtypeForType(drugType: string) {
   const route = routeForType(drugType);
-  return (ROUTE_GROUPS[route] as readonly string[]).includes(drugType) ? drugType : ROUTE_GROUPS[route][0];
+  return (ROUTE_GROUPS[route] as readonly string[]).includes(drugType)
+    ? drugType
+    : INJECTABLE_SOURCE_TYPE_DEFAULTS[drugType] ?? ROUTE_GROUPS[route][0];
 }
 
 export function normalizePharmacyLabelMasterRow(row: HospitalDrugLabelRow): HospitalDrugLabelRow {
