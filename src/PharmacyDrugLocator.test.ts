@@ -15,5 +15,7 @@ describe("PharmacyDrugLocator", () => {
   it("matches recognized label trade-name text to a registered drug", () => {
     expect(findRecognizedDrug(drugs, "MMR II 0.5ml inj")?.code).toBe("XMMR2");
     expect(findRecognizedDrug(drugs, "Nasea 0.3mg/2ml inj")?.code).toBe("XRAMOSET");
+    expect(findRecognizedDrug([...drugs, { code: "XMEXO", itemCode: "", name: "MACperan 10mg/2ml inj", koreanName: "", strength: "", drugType: "", storage: "" }], "Macperan 10mg/2ml inj")?.code).toBe("XMEXO");
+    expect(findRecognizedDrug([...drugs, { code: "EDOXA1", itemCode: "", name: "Lixiana 15mg tab", koreanName: "", strength: "", drugType: "", storage: "" }], "Lixiana")?.code).toBe("EDOXA1");
   });
 });

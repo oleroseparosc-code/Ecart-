@@ -55,6 +55,8 @@ function compactName(value: string) {
 
 function nameTokens(value: string) {
   return compact(value)
+    .replace(/([a-z가-힣])([0-9])/g, "$1 $2")
+    .replace(/([0-9])([a-z가-힣])/g, "$1 $2")
     .split(/[^0-9a-z가-힣.]+/)
     .map(compactName)
     .filter((token) => token.length >= 3 && !["inj", "tab", "cap", "syr", "soln"].includes(token));
@@ -166,11 +168,10 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
       setCameraMessage("카메라 영상이 준비된 후 다시 시도해 주세요.");
       return;
     }
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    const nameAreaHeight = Math.round(video.videoHeight * 0.35);
-    canvas.height = nameAreaHeight;
-    canvas.getContext("2d")?.drawImage(video, 0, video.videoHeight - nameAreaHeight, video.videoWidth, nameAreaHeight, 0, 0, canvas.width, canvas.height);
+    const crops = [
+      { top: Math.round(video.videoHeight * 0.18), height: Math.round(video.videoHeight * 0.64) },
+      { top: Math.round(video.videoHeight * 0.65), height: Math.round(video.videoHeight * 0.35) },
+    ];
     setIsRecognizing(true);
     setScannedDrug(null);
     setCameraMessage("라벨의 상용명 문자를 읽는 중입니다.");
@@ -179,8 +180,21 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
       const { createWorker, PSM } = await import("tesseract.js");
       worker = await createWorker(["kor", "eng"]);
       await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK });
-      const { data } = await worker.recognize(canvas);
-      const matched = findRecognizedDrug(rows, data.text);
+      let matched: LocatorDrug | undefined;
+      const recognizedTexts: string[] = [];
+      for (const crop of crops) {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth * 2;
+        canvas.height = crop.height * 2;
+        const context = canvas.getContext("2d");
+        if (!context) continue;
+        context.filter = "grayscale(1) contrast(1.6)";
+        context.drawImage(video, 0, crop.top, video.videoWidth, crop.height, 0, 0, canvas.width, canvas.height);
+        const { data } = await worker.recognize(canvas);
+        recognizedTexts.push(data.text);
+        matched = findRecognizedDrug(rows, data.text) ?? findRecognizedDrug(rows, recognizedTexts.join(" "));
+        if (matched) break;
+      }
       if (!matched) {
         setCameraMessage("상용명 문자를 읽었지만 등록 약품과 일치하지 않습니다. 라벨 전체가 선명하게 보이도록 다시 촬영해 주세요.");
         return;
@@ -217,7 +231,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
             <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", padding: 20 }}>
               <div style={{ width: "92%", aspectRatio: "100 / 61", position: "relative", border: "3px solid #E8843C", borderRadius: 14, boxShadow: "0 0 0 999px rgba(0,0,0,0.28)", overflow: "hidden" }}>
                 <div style={{ position: "absolute", left: 0, top: 0, width: "35%", height: "20%", background: "rgba(169,181,192,0.48)", borderRight: "1px dashed #fff", borderBottom: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>분류 참고 영역</div>
-                <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: "30%", background: "rgba(232,132,60,0.38)", borderTop: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>상용명 문자 인식 영역</div>
+                <div style={{ position: "absolute", left: 0, top: "20%", width: "100%", height: "60%", background: "rgba(232,132,60,0.28)", borderTop: "1px dashed #fff", borderBottom: "1px dashed #fff", padding: 6, fontSize: 11, fontWeight: 700 }}>앰플 상용명 문자 인식 영역</div>
                 <div style={{ position: "absolute", left: "44%", top: "31%", width: 44, height: 44, borderRadius: "50%", background: "#E8843C", display: "grid", placeItems: "center", boxShadow: "0 0 0 6px rgba(232,132,60,0.24)" }}>⌁</div>
               </div>
             </div>
