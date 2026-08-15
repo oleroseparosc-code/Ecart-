@@ -11,7 +11,11 @@ const APP_SHELL = [
   "/Ecart-/viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814f",
+<<<<<<< HEAD
   "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814g",
+=======
+  "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814f",
+>>>>>>> 2503b95 (Deploy app update)
   "/Ecart-/narcotic-viewer.webmanifest?v=20260713a",
   "/Ecart-/icons/app-icon-192.png?v=20260713a",
   "/Ecart-/icons/app-icon-desktop-512.png?v=20260713a",
