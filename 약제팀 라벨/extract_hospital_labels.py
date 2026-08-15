@@ -4,8 +4,8 @@ import json
 import hashlib
 import mimetypes
 import re
-import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode, urljoin
@@ -17,6 +17,7 @@ from openpyxl import load_workbook
 LABEL_DIR = Path(__file__).resolve().parent
 SOURCE = LABEL_DIR / "원내보유의약품리스트.xlsx"
 OUTPUT = LABEL_DIR / "data" / "hospitalDrugLabels.generated.json"
+IMAGE_CACHE_OUTPUT = LABEL_DIR / "data" / "healthImageCache.generated.json"
 MARKDOWN_OUTPUT_DIR = LABEL_DIR / "원내보유의약품리스트 마크다운"
 SIDE_LABEL_TEMPLATE = LABEL_DIR / "뺑뺑이 PTP통, 병_측면라벨_양식.xlsx"
 IMAGE_OUTPUT_DIR = LABEL_DIR.parent / "public" / "pharmacy-drug-images"
@@ -24,7 +25,10 @@ RULE_SHEET_NAMES = ["라벨 생성규칙", "경구 주사 리스트", "영양수
 HEALTH_SEARCH_URL = "https://health.kr/searchDrug/search_detail.asp"
 HEALTH_POPUP_URL = "https://health.kr/searchDrug/ajax/ajax_result_pop.asp"
 HEALTH_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-FETCH_HEALTH_IMAGES = "--fetch-health-images" in sys.argv
+CURATED_IMAGE_PATH_BY_CODE = {
+    "XXFILG15W": "/pharmacy-drug-images/health-a11aooooo1645-595d6b626951cd9e.jpg",
+    "XXFILG3W": "/pharmacy-drug-images/health-a11aooooo1646-c9b12ab82fbba5da.jpg",
+}
 
 
 def clean(value: object) -> str:
@@ -215,15 +219,7 @@ def health_search_terms(korean_name: str, common_name: str) -> list[str]:
     return [term for term in terms if clean(term)]
 
 
-def find_health_drug_code(korean_name: str, common_name: str, source_url: str = "") -> str:
-    if source_url:
-        try:
-            html = health_request(source_url).decode("utf-8", errors="ignore")
-            match = re.search(r"drug_detailHref\('([^']+)'\)", html)
-            if match:
-                return match.group(1)
-        except Exception:
-            pass
+def find_health_drug_code(korean_name: str, common_name: str) -> str:
     for term in health_search_terms(korean_name, common_name):
         body = urlencode({"search_detail": "Y", "input_drug_nm": term, "movefrom": "drug"}).encode("utf-8")
         html = health_request(HEALTH_SEARCH_URL, body).decode("utf-8", errors="ignore")
@@ -251,9 +247,9 @@ def health_image_url_candidates(url: str) -> list[str]:
     return list(dict.fromkeys(candidates))
 
 
-def fetch_health_image(korean_name: str, common_name: str, source_url: str = "") -> tuple[str, str]:
+def fetch_health_image(korean_name: str, common_name: str) -> tuple[str, str]:
     try:
-        drug_code = find_health_drug_code(korean_name, common_name, source_url)
+        drug_code = find_health_drug_code(korean_name, common_name)
         if not drug_code:
             return "", f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
         popup_url = f"{HEALTH_POPUP_URL}?drug_cd={quote(drug_code)}"
@@ -294,8 +290,54 @@ def fetch_health_image(korean_name: str, common_name: str, source_url: str = "")
         return "", f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
 
 
+def fetch_health_image_for_code(item: tuple[str, str, str]) -> tuple[str, str, str]:
+    code, korean_name, common_name = item
+    image_path, image_source_url = fetch_health_image(korean_name, common_name)
+    return code, image_path, image_source_url
+
+
+def source_url_for_local_image(image_path: str) -> str:
+    file_stem = Path(image_path).stem
+    if not file_stem.startswith("health-"):
+        return ""
+    drug_code = file_stem.removeprefix("health-").rsplit("-", 1)[0]
+    return f"https://health.kr/searchDrug/result_drug.asp?drug_cd={drug_code.upper()}"
+
+
+def load_existing_image_by_code() -> dict[str, tuple[str, str]]:
+    images: dict[str, tuple[str, str]] = {}
+    for source in (OUTPUT, IMAGE_CACHE_OUTPUT):
+        if not source.exists():
+            continue
+        try:
+            payload = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        entries = payload.items() if isinstance(payload, dict) else ((row.get("code", ""), row) for row in payload)
+        for code, row in entries:
+            values = row if isinstance(row, dict) else {}
+            code = clean(code).upper()
+            image_path = clean(values.get("imagePath", ""))
+            if not code or not image_path or image_path.startswith(("http://", "https://", "data:")):
+                continue
+            if not (IMAGE_OUTPUT_DIR.parent / image_path.lstrip("/")).exists():
+                continue
+            images[code] = (image_path, source_url_for_local_image(image_path) or clean(values.get("imageSourceUrl", "")))
+    return images
+
+
+def write_image_cache(images: dict[str, tuple[str, str]]) -> None:
+    IMAGE_CACHE_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        code: {"imagePath": image_path, "imageSourceUrl": image_source_url}
+        for code, (image_path, image_source_url) in sorted(images.items())
+    }
+    IMAGE_CACHE_OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> None:
     image_by_name = extract_side_label_images()
+    existing_image_by_code = load_existing_image_by_code()
     workbook = load_workbook(SOURCE, data_only=True, read_only=True)
     write_rule_markdowns(workbook)
     worksheet = workbook.worksheets[0]
@@ -312,8 +354,31 @@ def main() -> None:
     def read_optional(raw: tuple[object, ...], header: str) -> str:
         return clean(raw[index[header]]) if header in index else ""
 
+    raw_rows = list(worksheet.iter_rows(min_row=2, values_only=True))
+    pending_health_images: list[tuple[str, str, str]] = []
+    for raw in raw_rows:
+        code = read(raw, "약품코드")
+        name = read(raw, "상용약품명")
+        if not code or not name:
+            continue
+        korean_name = read(raw, "한글약품명")
+        cached_image_path, cached_image_source_url = existing_image_by_code.get(code.upper(), ("", ""))
+        image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name) or CURATED_IMAGE_PATH_BY_CODE.get(code.upper(), "") or cached_image_path
+        image_source_url = source_url_for_local_image(image_path) or read_optional(raw, "식별사진출처") or cached_image_source_url
+        if image_path:
+            existing_image_by_code[code.upper()] = (image_path, image_source_url)
+        elif is_yes(raw[index["원내보유"]]):
+            pending_health_images.append((code.upper(), korean_name, name))
+
+    if pending_health_images:
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            for code, image_path, image_source_url in executor.map(fetch_health_image_for_code, pending_health_images):
+                if image_path:
+                    existing_image_by_code[code] = (image_path, image_source_url)
+    write_image_cache(existing_image_by_code)
+
     rows: list[dict[str, object]] = []
-    for raw in worksheet.iter_rows(min_row=2, values_only=True):
+    for raw in raw_rows:
         code = read(raw, "약품코드")
         name = read(raw, "상용약품명")
         if not code or not name:
@@ -323,11 +388,9 @@ def main() -> None:
         nutrition_info = nutrition_entries.get(name.lower())
         external_info = external_entries.get(code)
         syrup_info = syrup_entries.get(code)
-        image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name)
-        image_source_url = read_optional(raw, "식별사진출처")
-        needs_colored_side_label_image = is_yes(read_optional(raw, "유색측면라벨"))
-        if (FETCH_HEALTH_IMAGES or needs_colored_side_label_image) and not image_path and image_source_url:
-            image_path, image_source_url = fetch_health_image(korean_name, name, image_source_url)
+        cached_image_path, cached_image_source_url = existing_image_by_code.get(code.upper(), ("", ""))
+        image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name) or CURATED_IMAGE_PATH_BY_CODE.get(code.upper(), "") or cached_image_path
+        image_source_url = source_url_for_local_image(image_path) or read_optional(raw, "식별사진출처") or cached_image_source_url
         if not image_source_url:
             image_source_url = f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
         drug_type = read(raw, "약품유형")

@@ -1,9 +1,9 @@
 {
-  "id": "/Ecart-/pharmacy-drug-locator-20260814g",
-  "name": "약품 라벨 스캔",
-  "short_name": "약품 라벨 스캔",
+  "id": "/Ecart-/pharmacy-drug-locator",
+  "name": "약품 위치 찾기",
+  "short_name": "약품 위치 찾기",
   "description": "약품명·약품코드·위치 코드로 원내 의약품 위치를 확인합니다.",
-  "start_url": "/Ecart-/pharmacy-drug-locator/?install=20260814g",
+  "start_url": "/Ecart-/pharmacy-drug-locator/",
   "scope": "/Ecart-/pharmacy-drug-locator/",
   "display": "standalone",
   "orientation": "portrait-primary",
