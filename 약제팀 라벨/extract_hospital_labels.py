@@ -28,6 +28,7 @@ HEALTH_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Apple
 CURATED_IMAGE_PATH_BY_CODE = {
     "XXFILG15W": "/pharmacy-drug-images/health-a11aooooo1645-595d6b626951cd9e.jpg",
     "XXFILG3W": "/pharmacy-drug-images/health-a11aooooo1646-c9b12ab82fbba5da.jpg",
+    "LANS30LFDT": "/pharmacy-drug-images/health-a11aooooo6656-0036369b63ae54d9.jpg",
 }
 
 
@@ -363,7 +364,7 @@ def main() -> None:
             continue
         korean_name = read(raw, "한글약품명")
         cached_image_path, cached_image_source_url = existing_image_by_code.get(code.upper(), ("", ""))
-        image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name) or CURATED_IMAGE_PATH_BY_CODE.get(code.upper(), "") or cached_image_path
+        image_path = CURATED_IMAGE_PATH_BY_CODE.get(code.upper(), "") or read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name) or cached_image_path
         image_source_url = source_url_for_local_image(image_path) or read_optional(raw, "식별사진출처") or cached_image_source_url
         if image_path:
             existing_image_by_code[code.upper()] = (image_path, image_source_url)
@@ -389,7 +390,7 @@ def main() -> None:
         external_info = external_entries.get(code)
         syrup_info = syrup_entries.get(code)
         cached_image_path, cached_image_source_url = existing_image_by_code.get(code.upper(), ("", ""))
-        image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name) or CURATED_IMAGE_PATH_BY_CODE.get(code.upper(), "") or cached_image_path
+        image_path = CURATED_IMAGE_PATH_BY_CODE.get(code.upper(), "") or read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name) or cached_image_path
         image_source_url = source_url_for_local_image(image_path) or read_optional(raw, "식별사진출처") or cached_image_source_url
         if not image_source_url:
             image_source_url = f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
