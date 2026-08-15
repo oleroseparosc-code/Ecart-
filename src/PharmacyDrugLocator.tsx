@@ -19,6 +19,8 @@ export type LocatorDrug = {
   nameCaution?: boolean;
   lightProtected?: boolean;
   ampouleHolder?: string;
+  needsDiluent?: boolean;
+  needsNeedle?: boolean;
 };
 
 type Props = { rows: LocatorDrug[]; isLoading: boolean };
@@ -35,7 +37,6 @@ const PREPARATION_NOTES_BY_CODE: Record<string, string[]> = {
   XMMR2: ["용해액 필요"],
   XMMR2W: ["용해액 필요"],
   XMMR2G: ["용해액 필요"],
-  XRAMOSET: ["니들 필요"],
 };
 
 const LOCATOR_IMAGE_OVERRIDES: Record<string, string> = {
@@ -51,15 +52,22 @@ function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }
 
-export function preparationNotes(row: Pick<LocatorDrug, "code" | "ampouleHolder">) {
-  return [
-    ...(PREPARATION_NOTES_BY_CODE[row.code.trim().toUpperCase()] ?? []),
+export function preparationNotes(row: Pick<LocatorDrug, "code" | "ampouleHolder" | "needsDiluent" | "needsNeedle">) {
+  return [...new Set([
+    ...(PREPARATION_NOTES_BY_CODE[row.code?.trim().toUpperCase() ?? ""] ?? []),
+    row.needsDiluent ? "용해액 필요" : "",
+    row.needsNeedle ? "니들 필요" : "",
     row.ampouleHolder?.trim().toUpperCase() === "Y" ? "앰플꽂이 필요" : "",
-  ].filter(Boolean);
+  ].filter(Boolean))];
+}
+
+export function selectDefaultDrug(rows: LocatorDrug[], query: string) {
+  const keyword = compact(query);
+  return rows.find((row) => compact(row.code) === keyword || compact(row.itemCode ?? "") === keyword) ?? rows[0];
 }
 
 function compactName(value: string) {
-  return compact(value).replace(/[^0-9a-z가-힣]/g, "");
+  return compact(value).replace(/[^0-9a-z가-힣]/g, "").replace("mecperan", "macperan");
 }
 
 function nameTokens(value: string) {

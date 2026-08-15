@@ -112,7 +112,7 @@ describe("PWA install metadata", () => {
   });
 
   it("registers a versioned service worker URL to bypass stale CDN responses", () => {
-    expect(readFileSync("src/pwa.ts", "utf8")).toContain('"sw.js?v=20260814f"');
+    expect(readFileSync("src/pwa.ts", "utf8")).toContain('"sw.js?v=20260814g"');
   });
 
   it("keeps runtime sync config out of the service worker cache", () => {
@@ -125,7 +125,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v40"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v41"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
