@@ -52,7 +52,7 @@ function compact(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }
 
-export function preparationNotes(row: Pick<LocatorDrug, "code" | "ampouleHolder" | "needsDiluent" | "needsNeedle">) {
+export function preparationNotes(row: Partial<Pick<LocatorDrug, "code" | "ampouleHolder" | "needsDiluent" | "needsNeedle">>) {
   return [...new Set([
     ...(PREPARATION_NOTES_BY_CODE[row.code?.trim().toUpperCase() ?? ""] ?? []),
     row.needsDiluent ? "용해액 필요" : "",
