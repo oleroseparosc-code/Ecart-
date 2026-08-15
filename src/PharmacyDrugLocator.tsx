@@ -7,6 +7,8 @@ export type LocatorDrug = {
   koreanName: string;
   strength: string;
   drugType: string;
+  ptpOpened?: boolean;
+  inpatientPowderPtp?: boolean;
   storage: string;
   location?: string;
   imagePath?: string;
@@ -122,12 +124,13 @@ function warningBadges(row: LocatorDrug): WarningBadge[] {
   ].filter((badge): badge is WarningBadge => badge !== null);
 }
 
-function locationPopupColor(row: LocatorDrug): string {
+export function locationPopupColor(row: LocatorDrug): string {
   const location = compact(row.location ?? "");
   const type = compact(row.drugType);
+  // PTP는 다른 분류가 함께 입력돼도 항상 회색으로 표시한다.
+  if (type.includes("ptp") || row.ptpOpened || row.inpatientPowderPtp) return "#9ca3af";
   if (location.includes("창고")) return "#ef4444";
   if (type.includes("냉장주사") || type.includes("백신")) return "#0ea5e9";
-  if (type.includes("PTP")) return "#9ca3af";
   if (type.includes("원병")) return "#fde047";
   if (type.includes("바이알")) return "#a16207";
   if (type.includes("외용")) return "#f97316";
@@ -314,7 +317,7 @@ export function PharmacyDrugLocator({ rows, isLoading }: Props) {
             <div><p style={{ margin: 0, color: "#8C7A6B", fontSize: 13 }}>{selected.code}</p><h2 style={{ margin: "4px 0", fontSize: 22 }}>{selected.name}</h2><p style={{ margin: 0, color: "#8C7A6B" }}>{[selected.koreanName, selected.strength, selected.drugType].filter(Boolean).join(" · ")}</p></div>
           </div>
           <section style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>주의사항</p>{warnings.length ? <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{warnings.map((warning) => <span key={warning.label} style={{ borderRadius: 999, padding: "6px 10px", background: WARNING_COLORS[warning.tone], color: "#fff", fontSize: 13, fontWeight: 700 }}>{warning.label}</span>)}</div> : null}{selectedPreparationNotes.length ? <div style={{ marginTop: 10, borderLeft: "4px solid #E8843C", borderRadius: 8, padding: "10px 12px", background: "#FFF6EF", color: "#5D4037" }}><strong style={{ display: "block", fontSize: 13 }}>준비물·조제 안내</strong>{selectedPreparationNotes.map((note) => <span key={note} style={{ display: "block", marginTop: 4 }}>{note}</span>)}</div> : null}{!warnings.length && !selectedPreparationNotes.length ? <p style={{ margin: 0, color: "#8C7A6B", fontSize: 14 }}>등록된 추가 주의사항이 없습니다.</p> : null}</section>
-          <section style={{ marginTop: 20, padding: 16, background: "#FFF6EF", borderRadius: 12 }}><p style={{ margin: 0, color: "#8C7A6B", fontWeight: 700, fontSize: 13 }}>현재 약품 위치</p><strong style={{ display: "block", marginTop: 4, color: "#E8843C", fontSize: 24 }}>{selected.location || "위치 미등록"}</strong><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 14 }}>보관 조건: {selected.storage || "마스터 미등록"}</p></section>
+          <section style={{ marginTop: 20, padding: 16, background: `${selectedLocationColor}1A`, border: `2px solid ${selectedLocationColor}`, borderRadius: 12 }}><p style={{ margin: 0, color: "#8C7A6B", fontWeight: 700, fontSize: 13 }}>현재 약품 위치</p><strong style={{ display: "block", marginTop: 4, color: selectedLocationColor, fontSize: 24 }}>{selected.location || "위치 미등록"}</strong><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 14 }}>보관 조건: {selected.storage || "마스터 미등록"}</p></section>
           <section aria-label="3D 위치 안내" style={{ marginTop: 20 }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>3D 위치 안내</p><div style={{ position: "relative", height: 148, borderRadius: 14, overflow: "hidden", background: "linear-gradient(145deg, #A9B5C0, #7D8D9B)", perspective: 500 }}><div style={{ position: "absolute", inset: "28px 20px 16px", transform: "rotateX(58deg) rotateZ(-28deg)", transformStyle: "preserve-3d" }}>{[0, 1, 2].map((shelf) => <div key={shelf} style={{ position: "absolute", left: 0, right: 0, top: shelf * 31, height: 21, background: "#F5F5F0", border: "2px solid #8C7A6B", boxShadow: "0 10px 0 rgba(61,56,51,0.22)" }} />)}<div style={{ position: "absolute", left: "52%", top: 31, width: 38, height: 21, background: selectedLocationColor, border: "2px solid #fff", boxShadow: `0 0 0 4px ${selectedLocationColor}66` }} /></div><span style={{ position: "absolute", left: 14, bottom: 12, color: "#fff", fontWeight: 700 }}>{locationParts.length ? locationParts.join(" › ") : "좌표 도면 미등록"}</span></div><p style={{ margin: "8px 0 0", color: "#8C7A6B", fontSize: 12 }}>위치 코드를 기준으로 표시한 선반 안내입니다. 실제 도면 좌표를 등록하면 병동·약품장별 3D 지도와 연결할 수 있습니다.</p></section>
         </article> : null}
       </section>

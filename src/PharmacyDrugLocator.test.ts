@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findRecognizedDrug, preparationNotes, selectDefaultDrug, type LocatorDrug } from "./PharmacyDrugLocator";
+import { findRecognizedDrug, locationPopupColor, preparationNotes, selectDefaultDrug, type LocatorDrug } from "./PharmacyDrugLocator";
 
 const drugs: LocatorDrug[] = [
   { code: "XMMR2", itemCode: "8806555002726", name: "MMR II 0.5ml inj", koreanName: "엠엠알", strength: ".5 ml", drugType: "백신", storage: "냉장", needsDiluent: true },
@@ -7,6 +7,11 @@ const drugs: LocatorDrug[] = [
 ];
 
 describe("PharmacyDrugLocator", () => {
+  it("uses gray for PTP and yellow for original bottles", () => {
+    expect(locationPopupColor({ code: "PTP", name: "PTP", koreanName: "", strength: "", drugType: "PTP", storage: "" })).toBe("#9ca3af");
+    expect(locationPopupColor({ code: "BTL", name: "원병", koreanName: "", strength: "", drugType: "원병", storage: "" })).toBe("#fde047");
+  });
+
   it("shows only checked preparation notes below cautions", () => {
     expect(preparationNotes(drugs[0])).toEqual(["용해액 필요"]);
     expect(preparationNotes(drugs[1])).toEqual(["앰플꽂이 필요"]);
