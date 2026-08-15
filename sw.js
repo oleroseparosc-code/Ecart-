@@ -1,4 +1,4 @@
-const CACHE_NAME = "hospital-inventory-app-v41";
+const CACHE_NAME = "hospital-inventory-app-v42";
 const APP_SHELL = [
   "/Ecart-/inventory/",
   "/Ecart-/viewer/",
@@ -11,7 +11,7 @@ const APP_SHELL = [
   "/Ecart-/viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814f",
-  "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814g",
+  "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260815a",
   "/Ecart-/narcotic-viewer.webmanifest?v=20260713a",
   "/Ecart-/icons/app-icon-192.png?v=20260713a",
   "/Ecart-/icons/app-icon-desktop-512.png?v=20260713a",
