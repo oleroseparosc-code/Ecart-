@@ -394,7 +394,14 @@ function getPharmacyLabelWarnings(row: HospitalDrugLabelRow, cabinetInfo?: Hospi
 }
 
 export function formatPharmacyExpiry(value: string) {
-  return value.replace(/\s+00:00:00$/, "").trim();
+  const normalized = value.replace(/\s+00:00:00$/, "").trim();
+  if (!/^\d+(?:\.0+)?$/.test(normalized)) return normalized;
+
+  const serial = Number(normalized);
+  if (!Number.isInteger(serial) || serial < 1 || serial > 99999) return normalized;
+
+  const excelEpoch = Date.UTC(1899, 11, 30);
+  return new Date(excelEpoch + serial * 86_400_000).toISOString().slice(0, 10);
 }
 
 export function resolvePharmacyLabelDraft(

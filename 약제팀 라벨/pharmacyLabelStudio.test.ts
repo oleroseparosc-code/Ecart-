@@ -4,6 +4,7 @@ import {
   DRUG_CATEGORIES,
   categoryForGroupedRow,
   createPharmacyLabelDraft,
+  formatPharmacyExpiry,
   groupPharmacyLabelsForPaper,
   mergeDoseHighlightStyles,
   planPharmacyLabelsForPaper,
@@ -48,6 +49,11 @@ const row: HospitalDrugLabelRow = {
 };
 
 describe("pharmacy label studio rules", () => {
+  it("formats Excel expiry serial numbers as calendar dates", () => {
+    expect(formatPharmacyExpiry("47046")).toBe("2028-10-20");
+    expect(formatPharmacyExpiry("2027-01-31 00:00:00")).toBe("2027-01-31");
+  });
+
   it("filters by workbook drug type", () => {
     expect(rowMatchesCategory(row, "바이알")).toBe(true);
     expect(rowMatchesCategory(row, "PTP")).toBe(false);
