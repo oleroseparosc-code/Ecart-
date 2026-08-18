@@ -984,6 +984,23 @@ function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabel
   };
 }
 
+function pharmacyMasterToStockDrug(master: HospitalDrugLabelRow): StockDrug {
+  const code = normalizeStockCode(master.code, master.name);
+  return applySharedMasterToStockDrug(
+    {
+      code,
+      genericName: master.koreanName,
+      productName: master.name || code,
+      spec: master.strength || master.spec || master.package,
+      storage: master.storage || "실온",
+      note: "",
+      warning: "",
+      storageType: inferStorageType(master.storage || "실온"),
+    },
+    master,
+  );
+}
+
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
   for (const row of additional) {
@@ -1426,7 +1443,7 @@ export function App() {
       setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, pharmacyRowsFromSavedLabels(normalized.pharmacyLabels ?? [])));
     }
     if (normalized.pharmacyAdditionalRows) {
-      setPharmacyAdditionalRows(normalized.pharmacyAdditionalRows);
+      setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, normalized.pharmacyAdditionalRows ?? []));
       setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, normalized.pharmacyAdditionalRows ?? []));
     }
     if (normalized.deletedPharmacyDrugCodes) {
@@ -1945,10 +1962,18 @@ export function App() {
     () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
     [pharmacyHospitalDrugLabelRows],
   );
-  const effectiveStockDrugs = useMemo(
-    () => stockDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
-    [pharmacyHospitalDrugRowsByCode, stockDrugs],
-  );
+  const effectiveStockDrugs = useMemo(() => {
+    const existingCodes = new Set(stockDrugs.map((drug) => drug.code.toUpperCase()));
+    const pharmacyOnlyStockDrugs = pharmacyAdditionalRows
+      .filter((row) => {
+        const code = normalizeStockCode(row.code, row.name).toUpperCase();
+        return code && !existingCodes.has(code) && !isHospitalControlledDrugType(row);
+      })
+      .map(pharmacyMasterToStockDrug);
+    return dedupeStockDrugs([...stockDrugs, ...pharmacyOnlyStockDrugs], inventory.stock.drugs, normalizeStockCode, true).map((drug) =>
+      applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase())),
+    );
+  }, [pharmacyAdditionalRows, pharmacyHospitalDrugRowsByCode, stockDrugs]);
   const effectiveNarcoticDrugs = useMemo(
     () => narcoticDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
     [narcoticDrugs, pharmacyHospitalDrugRowsByCode],

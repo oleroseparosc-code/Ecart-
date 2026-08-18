@@ -215,6 +215,14 @@ describe("generated inventory data corrections", () => {
     expect(acetphenAllocations.find((allocation) => allocation.roomId === "91W")?.requiredQty).toBe(3);
   });
 
+  it("makes pharmacy-only additions available for stock assignment with their warning flags", () => {
+    const appSource = readFileSync("src/App.tsx", "utf8");
+
+    expect(appSource).toContain("function pharmacyMasterToStockDrug(master: HospitalDrugLabelRow): StockDrug");
+    expect(appSource).toContain(".map(pharmacyMasterToStockDrug)");
+    expect(appSource).toContain("!isHospitalControlledDrugType(row)");
+  });
+
   it("keeps the deployed static app state narcotic quantities aligned with generated source quantities", () => {
     const staticState = JSON.parse(readFileSync("app-state/shared-state.json", "utf8")) as {
       state?: { narcoticAllocations?: typeof NARCOTIC_ALLOCATIONS };
