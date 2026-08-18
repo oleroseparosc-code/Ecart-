@@ -1000,7 +1000,6 @@ function pharmacyMasterToStockDrug(master: HospitalDrugLabelRow): StockDrug {
     master,
   );
 }
-
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
   for (const row of additional) {
@@ -2728,6 +2727,14 @@ export function App() {
     if (roomIds.length === 0) return;
 
     if (selectedAssignmentKind === "stock") {
+      const selectedStockDrug = effectiveStockDrugs.find((drug) => drug.code === newAssignment.drugCode);
+      if (selectedStockDrug) {
+        setStockDrugs((previous) => (
+          previous.some((drug) => drug.code === selectedStockDrug.code)
+            ? previous
+            : sortStockDrugsByName([...previous, selectedStockDrug])
+        ));
+      }
       setStockAllocations((prev) => {
         let next = prev;
         for (const roomId of roomIds) {
