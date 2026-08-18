@@ -82,7 +82,7 @@ This app previews a pharmacist ward inventory workflow with real Excel data. The
 3. Show summary metrics from the generated data.
 4. Let the user select a stock room and filter/search its assigned drugs.
 5. Let the user inspect the full registered drug master, E-cart lists, and checklist source.
-6. Persist user edits in localStorage: stock counts, expiry checks, room checklists, E-cart target checklists, edited room update dates, uninspected stock-room flags, and the editable round-summary draft.
+6. Persist user edits in localStorage: stock counts, expiry checks, room checklists, E-cart target checklists, edited room update dates, uninspected stock-room flags, and the editable round-summary draft. On startup and shared-state sync, generated stock drugs and Excel allocations are restored ahead of stale saved values; user-added drugs, rooms, and allocations outside the Excel source remain available. Incoming shared states are merged with the current stock master before application so another device's stale state cannot remove locally registered drugs or their non-source allocations.
 7. The Vite dev server exposes `/api/app-state` and persists the same app state in `app-state/shared-state.json`.
    - The server commits and pushes that file to GitHub with the local repository's existing Git credentials.
    - Admin mode polls for newer server updates and automatically saves local edits after changes settle.

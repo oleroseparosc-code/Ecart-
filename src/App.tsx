@@ -547,18 +547,13 @@ function dedupeStockDrugs(
 }
 
 function normalizeStockAllocations(allocations: StockAllocation[], normalizeCode: NormalizeStockCode = normalizeStockCode) {
-  const byKey = new Map<string, StockAllocation>();
-  for (const allocation of allocations) {
-    const drugCode = normalizeCode(allocation.drugCode);
-    const key = stockKey(allocation.roomId, drugCode);
-    const current = byKey.get(key);
-    byKey.set(key, {
-      roomId: allocation.roomId,
-      drugCode,
-      requiredQty: Math.max(current?.requiredQty ?? 0, allocation.requiredQty),
-    });
-  }
-  return [...byKey.values()];
+  return reconcileGeneratedAllocations(
+    allocations,
+    initialStockAllocations,
+    initialStockRooms,
+    inventory.stock.drugs,
+    normalizeCode,
+  );
 }
 
 function normalizeNarcoticAllocations(allocations: StockAllocation[]) {
@@ -616,7 +611,7 @@ function normalizePersistedState(state: Partial<PersistedAppState>): Partial<Per
     : undefined;
   return {
     ...state,
-    stockDrugs: state.stockDrugs ? dedupeStockDrugs(state.stockDrugs, inventory.stock.drugs) : undefined,
+    stockDrugs: state.stockDrugs ? dedupeStockDrugs(state.stockDrugs, inventory.stock.drugs, normalizeStockCode, true) : undefined,
     stockRooms: state.stockRooms ? normalizeStockRooms(state.stockRooms) : undefined,
     stockAllocations: state.stockAllocations ? normalizeStockAllocations(state.stockAllocations) : undefined,
     narcoticRooms: state.narcoticRooms ? normalizeNarcoticRooms(state.narcoticRooms) : undefined,
@@ -1165,7 +1160,7 @@ export function App() {
   const [activeEcartTargetId, setActiveEcartTargetId] = useState(firstEcartTargetId);
   const [stockDrugs, setStockDrugs] = useState<StockDrug[]>(() =>
     filterDeletedDrugRows(
-      dedupeStockDrugs(persistedState.stockDrugs ?? inventory.stock.drugs, inventory.stock.drugs),
+      dedupeStockDrugs(persistedState.stockDrugs ?? inventory.stock.drugs, inventory.stock.drugs, normalizeStockCode, true),
       initialDeletedPharmacyDrugCodeSet,
     ),
   );
@@ -1394,10 +1389,16 @@ export function App() {
   function applyPersistedAppState(nextState: Partial<PersistedAppState>) {
     const normalized = normalizePersistedState(nextState);
     applyingRemoteRef.current = true;
-    if (normalized.stockDrugs) setStockDrugs(dedupeStockDrugs(normalized.stockDrugs, inventory.stock.drugs));
-    if (normalized.stockRooms) setStockRooms(normalizeStockRooms(normalized.stockRooms).filter((room) => !hiddenStockRooms.has(room.id)));
+    if (normalized.stockDrugs) {
+      setStockDrugs((previous) => dedupeStockDrugs([...previous, ...normalized.stockDrugs!], inventory.stock.drugs, normalizeStockCode, true));
+    }
+    if (normalized.stockRooms) {
+      setStockRooms((previous) => normalizeStockRooms([...previous, ...normalized.stockRooms!]).filter((room) => !hiddenStockRooms.has(room.id)));
+    }
     if (normalized.stockAllocations) {
-      setStockAllocations(normalizeStockAllocations(normalized.stockAllocations).filter((allocation) => !hiddenStockRooms.has(allocation.roomId)));
+      setStockAllocations((previous) =>
+        normalizeStockAllocations([...previous, ...normalized.stockAllocations!]).filter((allocation) => !hiddenStockRooms.has(allocation.roomId)),
+      );
     }
     if (normalized.narcoticRooms) setNarcoticRooms(normalizeNarcoticRooms(normalized.narcoticRooms));
     if (normalized.narcoticDrugs) setNarcoticDrugs(dedupeStockDrugs(normalized.narcoticDrugs, NARCOTIC_DRUGS, normalizeNarcoticDrugCode, true));

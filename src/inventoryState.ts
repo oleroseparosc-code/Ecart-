@@ -58,19 +58,21 @@ export function applyCanonicalDrugNames<T extends StockDrug>(
 
 export function mergeGeneratedRooms(rooms: StockRoom[], generatedRooms: readonly StockRoom[]) {
   const generatedById = new Map(generatedRooms.map((room) => [room.id, room]));
-  const seen = new Set<string>();
-  const merged = rooms.map((room) => {
-    seen.add(room.id);
-    const generated = generatedById.get(room.id);
+  const savedById = new Map<string, StockRoom>();
+  for (const room of rooms) {
+    savedById.set(room.id, { ...(savedById.get(room.id) ?? {}), ...room });
+  }
+  const merged = generatedRooms.map((generated) => {
+    const saved = savedById.get(generated.id);
     return {
       ...generated,
-      ...room,
-      sourceUpdatedAt: room.sourceUpdatedAt ?? generated?.sourceUpdatedAt ?? "",
+      ...saved,
+      sourceUpdatedAt: saved?.sourceUpdatedAt ?? generated.sourceUpdatedAt ?? "",
     };
   });
 
-  for (const generated of generatedRooms) {
-    if (!seen.has(generated.id)) merged.push({ ...generated });
+  for (const [roomId, saved] of savedById) {
+    if (!generatedById.has(roomId)) merged.push(saved);
   }
 
   return merged;
@@ -115,14 +117,15 @@ export function reconcileGeneratedAllocations(
   generatedDrugs: readonly Pick<StockDrug, "code">[],
   normalizeCode: (code: string) => string = (code) => code,
 ) {
-  const generatedRoomIds = new Set(generatedRooms.map((room) => room.id));
-  const generatedDrugCodes = new Set(generatedDrugs.map((drug) => normalizeCode(drug.code)));
+  const generatedKeys = new Set(
+    generatedAllocations.map((allocation) => allocationKey(allocation.roomId, normalizeCode(allocation.drugCode))),
+  );
   const byKey = new Map<string, StockAllocation>();
 
   for (const allocation of allocations) {
     const normalized = normalizeAllocation(allocation, normalizeCode);
     if (normalized.requiredQty <= 0) continue;
-    if (generatedRoomIds.has(normalized.roomId) && generatedDrugCodes.has(normalized.drugCode)) continue;
+    if (generatedKeys.has(allocationKey(normalized.roomId, normalized.drugCode))) continue;
     byKey.set(allocationKey(normalized.roomId, normalized.drugCode), normalized);
   }
 

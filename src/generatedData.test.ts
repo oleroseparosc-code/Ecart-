@@ -41,7 +41,7 @@ import {
   normalizeChecklistRows,
   toggleStockSplitPart,
 } from "./appLogic";
-import { buildMasterRows } from "./inventoryState";
+import { buildMasterRows, mergeGeneratedStockDrugs, reconcileGeneratedAllocations } from "./inventoryState";
 import { NARCOTIC_LABEL_ROWS } from "./narcoticLabels";
 
 const inventory = rawInventory as InventoryData;
@@ -195,6 +195,24 @@ describe("generated inventory data corrections", () => {
       .map((drug) => `${drug.code}: ${drug.productName}`);
 
     expect(staleNames).toEqual([]);
+  });
+
+  it("restores source stock drugs and allocations when a saved app state is stale", () => {
+    const staticState = JSON.parse(readFileSync("app-state/shared-state.json", "utf8")) as {
+      state?: { stockAllocations?: typeof inventory.stock.allocations; stockDrugs?: typeof inventory.stock.drugs };
+    };
+    const restoredDrugs = mergeGeneratedStockDrugs(staticState.state?.stockDrugs ?? [], inventory.stock.drugs);
+    const restoredAllocations = reconcileGeneratedAllocations(
+      staticState.state?.stockAllocations ?? [],
+      inventory.stock.allocations,
+      inventory.stock.rooms,
+      inventory.stock.drugs,
+    );
+    const acetphenAllocations = restoredAllocations.filter((allocation) => allocation.drugCode === "XAPH1");
+
+    expect(restoredDrugs.some((drug) => drug.code === "XAPH1")).toBe(true);
+    expect(acetphenAllocations).toHaveLength(15);
+    expect(acetphenAllocations.find((allocation) => allocation.roomId === "91W")?.requiredQty).toBe(3);
   });
 
   it("keeps the deployed static app state narcotic quantities aligned with generated source quantities", () => {

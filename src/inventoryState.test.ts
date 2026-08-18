@@ -202,6 +202,7 @@ describe("inventory allocation state", () => {
     const savedAllocations = [
       { roomId: "DREMM", drugCode: "XMIDA5", requiredQty: 10 },
       { roomId: "DREMM", drugCode: "XFEN50", requiredQty: 15 },
+      { roomId: "ER", drugCode: "XMIDA5", requiredQty: 7 },
       { roomId: "CUSTOM", drugCode: "XMIDA5", requiredQty: 2 },
       { roomId: "DREMM", drugCode: "XCUSTOM", requiredQty: 3 },
     ];
@@ -211,6 +212,7 @@ describe("inventory allocation state", () => {
     ];
 
     expect(reconcileGeneratedAllocations(savedAllocations, generatedAllocations, generatedRooms, generatedDrugs)).toEqual([
+      { roomId: "ER", drugCode: "XMIDA5", requiredQty: 7 },
       { roomId: "CUSTOM", drugCode: "XMIDA5", requiredQty: 2 },
       { roomId: "DREMM", drugCode: "XCUSTOM", requiredQty: 3 },
       { roomId: "DREMM", drugCode: "XMIDA5", requiredQty: 5 },
