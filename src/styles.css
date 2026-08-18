@@ -2634,6 +2634,18 @@ button {
   text-transform: none;
 }
 
+/* E-cart: 차광은 단독일 때 초록 주의표기로, 다른 고주의 조건과 함께일 때는 약품명 배경으로만 표시한다. */
+.label-kind-ecart.light-protected-label h3 {
+  align-self: stretch;
+  align-content: center;
+  background: #e0f7e8;
+}
+
+.label-kind-ecart.light-protection-only-label .drug-label-warning-flag {
+  color: #fff;
+  background: #0f8f52;
+}
+
 .label-kind-fluid {
   display: grid;
   grid-template-rows: 1fr;

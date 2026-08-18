@@ -1035,6 +1035,11 @@ function hasControlledCautionLabel(labels: string[]) {
 
 function labelToplineFlagLabels(row: DrugLabelData, sizeKey?: DrugLabelSizeKey) {
   const labels = labelFlagLabels(row);
+  if (isEcartLabelKind(row.kind)) {
+    const priorityLabels = labels.filter(isRedPriorityCaution);
+    if (priorityLabels.length > 0) return priorityLabels;
+    return labels.filter((label) => !isStorageLabel(label) || label.includes("차광"));
+  }
   const usesCompactStoragePanel = usesCompactGeneralLabelStoragePanel(row, sizeKey)
     || ((sizeKey === "10x70" || sizeKey === "15x95") && row.kind === "narcotic");
   if (usesCompactStoragePanel) {
@@ -2234,10 +2239,11 @@ export function App() {
             return getEcartLabelQuantity(state, item);
           })
           .find((quantity) => quantity > 0) ?? normalizeEcartItem(item).quantity;
-      const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase());
+      const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase())
+        ?? pharmacyHospitalDrugRowsByCode.get(item.code.toUpperCase());
       return buildEcartLabelData(item, setQuantity, `general-${index}`, "ecart", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined, hospitalRow);
       });
-  }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode]);
+  }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode, pharmacyHospitalDrugRowsByCode]);
   const ecartNicuLabelRows = useMemo(() => {
     const allTargets = getAllEcartPrintTargets(ecartTargets);
     const nicuTargets = allTargets.filter((entry) => entry.tab === "nicu");
@@ -2251,10 +2257,11 @@ export function App() {
             return getEcartLabelQuantity(state, item);
           })
           .find((quantity) => quantity > 0) ?? normalizeEcartItem(item).quantity;
-      const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase());
+      const hospitalRow = hospitalDrugRowsByCode.get(item.code.toUpperCase())
+        ?? pharmacyHospitalDrugRowsByCode.get(item.code.toUpperCase());
       return buildEcartLabelData(item, setQuantity, `nicu-${index}`, "ecart-nicu", hospitalRow?.drugType === "일반수액" ? hospitalRow.fluidColor : undefined, hospitalRow);
       });
-  }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode]);
+  }, [deletedPharmacyDrugCodeSet, ecartByTarget, hospitalDrugRowsByCode, pharmacyHospitalDrugRowsByCode]);
   const ecartLabelBaseRows = useMemo(() => {
     return [...ecartGeneralLabelRows, ...ecartNicuLabelRows];
   }, [ecartGeneralLabelRows, ecartNicuLabelRows]);
@@ -3709,6 +3716,9 @@ export function App() {
     const toplineFlagLabels = labelFlagLabels(toplineRow);
     const isLightProtected = isLightProtectedLabel(row);
     const hasRedPriority = hasRedPriorityLabel(row);
+    const isLightProtectionOnly = isEcartLabelKind(row.kind)
+      && toplineFlagLabels.length === 1
+      && toplineFlagLabels[0].includes("차광");
     const hasControlledCaution = hasControlledCautionLabel(toplineFlagLabels);
     const renderedKind = isEcartLabelKind(row.kind) ? "ecart" : row.kind;
     const fluidTone = row.fluidTone;
@@ -3727,6 +3737,7 @@ export function App() {
       hasSavedGeneralFluidTextColor ? "saved-general-fluid-text-color" : "",
       row.highRisk ? "high-risk-label" : "",
       isLightProtected ? "light-protected-label" : "",
+      isLightProtectionOnly ? "light-protection-only-label" : "",
       hasRedPriority ? "has-red-priority-label" : "",
       hasControlledCaution ? "has-controlled-caution-label" : "",
       hasControlledCaution && usesCompactGeneralLabelStoragePanel(row, sizeKey) ? "compact-controlled-caution-label" : "",
