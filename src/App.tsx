@@ -474,10 +474,6 @@ function filterDeletedDrugRows<T extends { code: string }>(rows: T[], deletedCod
   return rows.filter((row) => !deletedCodes.has(row.code.trim().toUpperCase()));
 }
 
-function filterDeletedPharmacyLabelRows<T extends HospitalDrugLabelRow>(rows: T[], deletedCodes: ReadonlySet<string>) {
-  return rows.filter((row) => row.drugType.trim() === "백신" || !deletedCodes.has(row.code.trim().toUpperCase()));
-}
-
 function filterDeletedDrugAllocations(allocations: StockAllocation[], deletedCodes: ReadonlySet<string>) {
   return allocations.filter((allocation) => !deletedCodes.has(allocation.drugCode.trim().toUpperCase()));
 }
@@ -547,13 +543,18 @@ function dedupeStockDrugs(
 }
 
 function normalizeStockAllocations(allocations: StockAllocation[], normalizeCode: NormalizeStockCode = normalizeStockCode) {
-  return reconcileGeneratedAllocations(
-    allocations,
-    initialStockAllocations,
-    initialStockRooms,
-    inventory.stock.drugs,
-    normalizeCode,
-  );
+  const byKey = new Map<string, StockAllocation>();
+  for (const allocation of allocations) {
+    const drugCode = normalizeCode(allocation.drugCode);
+    const key = stockKey(allocation.roomId, drugCode);
+    const current = byKey.get(key);
+    byKey.set(key, {
+      roomId: allocation.roomId,
+      drugCode,
+      requiredQty: Math.max(current?.requiredQty ?? 0, allocation.requiredQty),
+    });
+  }
+  return [...byKey.values()];
 }
 
 function normalizeNarcoticAllocations(allocations: StockAllocation[]) {
@@ -611,7 +612,7 @@ function normalizePersistedState(state: Partial<PersistedAppState>): Partial<Per
     : undefined;
   return {
     ...state,
-    stockDrugs: state.stockDrugs ? dedupeStockDrugs(state.stockDrugs, inventory.stock.drugs, normalizeStockCode, true) : undefined,
+    stockDrugs: state.stockDrugs ? dedupeStockDrugs(state.stockDrugs, inventory.stock.drugs) : undefined,
     stockRooms: state.stockRooms ? normalizeStockRooms(state.stockRooms) : undefined,
     stockAllocations: state.stockAllocations ? normalizeStockAllocations(state.stockAllocations) : undefined,
     narcoticRooms: state.narcoticRooms ? normalizeNarcoticRooms(state.narcoticRooms) : undefined,
@@ -984,33 +985,45 @@ function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabel
   };
 }
 
+function stockDrugFromPharmacyMaster(master: HospitalDrugLabelRow): StockDrug {
+  const code = master.code.trim().toUpperCase();
+  const storage = master.storage || (master.lightProtected ? "차광" : "실온보관");
+  return applySharedMasterToStockDrug({
+    code,
+    genericName: master.koreanName || master.name || code,
+    productName: master.name || master.koreanName || code,
+    spec: master.strength || master.spec || master.package,
+    storage,
+    note: "",
+    warning: "",
+    storageType: master.lightProtected ? "LIGHT_PROTECTED" : inferStorageType(storage),
+  }, master);
+}
+
 function pharmacyMasterToStockDrug(master: HospitalDrugLabelRow): StockDrug {
-  const code = normalizeStockCode(master.code, master.name);
-  return applySharedMasterToStockDrug(
-    {
-      code,
-      genericName: master.koreanName,
-      productName: master.name || code,
-      spec: master.strength || master.spec || master.package,
-      storage: master.storage || "실온",
-      note: "",
-      warning: "",
-      storageType: inferStorageType(master.storage || "실온"),
-    },
-    master,
-  );
+  return stockDrugFromPharmacyMaster(master);
+}
+
+function mergeStockDrugsWithPharmacyMaster(stockDrugs: StockDrug[], masterRows: HospitalDrugLabelRow[]) {
+  const byCode = new Map(stockDrugs.map((drug) => [drug.code.toUpperCase(), drug]));
+  const pharmacyOnlyStockDrugs = masterRows
+    .filter((row) => {
+      const code = row.code.trim().toUpperCase();
+      return code && !byCode.has(code) && !isHospitalControlledDrugType(row);
+    })
+    .map(pharmacyMasterToStockDrug);
+  for (const master of masterRows) {
+    const code = master.code.trim().toUpperCase();
+    if (!code || master.narcotic || master.psychotropic) continue;
+    const existing = byCode.get(code);
+    if (existing) byCode.set(code, applySharedMasterToStockDrug(existing, master));
+  }
+  for (const drug of pharmacyOnlyStockDrugs) byCode.set(drug.code.toUpperCase(), drug);
+  return sortStockDrugsByName([...byCode.values()]);
 }
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
-  for (const row of additional) {
-    const sourceRow = byCode.get(row.code);
-    const isSourceVaccine = sourceRow?.drugType.trim() === "백신";
-    byCode.set(row.code, {
-      ...(sourceRow ?? {}),
-      ...row,
-      ...(isSourceVaccine ? { drugType: "백신", inHospital: true } : {}),
-    });
-  }
+  for (const row of additional) byCode.set(row.code, { ...(byCode.get(row.code) ?? {}), ...row });
   return [...byCode.values()];
 }
 
@@ -1181,7 +1194,7 @@ export function App() {
   const [activeEcartTargetId, setActiveEcartTargetId] = useState(firstEcartTargetId);
   const [stockDrugs, setStockDrugs] = useState<StockDrug[]>(() =>
     filterDeletedDrugRows(
-      dedupeStockDrugs(persistedState.stockDrugs ?? inventory.stock.drugs, inventory.stock.drugs, normalizeStockCode, true),
+      dedupeStockDrugs(persistedState.stockDrugs ?? inventory.stock.drugs, inventory.stock.drugs),
       initialDeletedPharmacyDrugCodeSet,
     ),
   );
@@ -1379,7 +1392,7 @@ export function App() {
   function removePharmacyDrugsFromApp(codes: string[]) {
     const deletedCodes = new Set(normalizeDeletedPharmacyDrugCodes(codes));
     if (deletedCodes.size === 0) return;
-    setPharmacyHospitalDrugLabelRows((previous) => filterDeletedPharmacyLabelRows(previous, deletedCodes));
+    setPharmacyHospitalDrugLabelRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
     setHospitalDrugLabelRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
     setPharmacyAdditionalRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
     setPharmacyLabelMatchRows((previous) => filterDeletedDrugRows(previous, deletedCodes));
@@ -1410,16 +1423,10 @@ export function App() {
   function applyPersistedAppState(nextState: Partial<PersistedAppState>) {
     const normalized = normalizePersistedState(nextState);
     applyingRemoteRef.current = true;
-    if (normalized.stockDrugs) {
-      setStockDrugs((previous) => dedupeStockDrugs([...previous, ...normalized.stockDrugs!], inventory.stock.drugs, normalizeStockCode, true));
-    }
-    if (normalized.stockRooms) {
-      setStockRooms((previous) => normalizeStockRooms([...previous, ...normalized.stockRooms!]).filter((room) => !hiddenStockRooms.has(room.id)));
-    }
+    if (normalized.stockDrugs) setStockDrugs(dedupeStockDrugs(normalized.stockDrugs, inventory.stock.drugs));
+    if (normalized.stockRooms) setStockRooms(normalizeStockRooms(normalized.stockRooms).filter((room) => !hiddenStockRooms.has(room.id)));
     if (normalized.stockAllocations) {
-      setStockAllocations((previous) =>
-        normalizeStockAllocations([...previous, ...normalized.stockAllocations!]).filter((allocation) => !hiddenStockRooms.has(allocation.roomId)),
-      );
+      setStockAllocations(normalizeStockAllocations(normalized.stockAllocations).filter((allocation) => !hiddenStockRooms.has(allocation.roomId)));
     }
     if (normalized.narcoticRooms) setNarcoticRooms(normalizeNarcoticRooms(normalized.narcoticRooms));
     if (normalized.narcoticDrugs) setNarcoticDrugs(dedupeStockDrugs(normalized.narcoticDrugs, NARCOTIC_DRUGS, normalizeNarcoticDrugCode, true));
@@ -1447,7 +1454,7 @@ export function App() {
       setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, pharmacyRowsFromSavedLabels(normalized.pharmacyLabels ?? [])));
     }
     if (normalized.pharmacyAdditionalRows) {
-      setPharmacyAdditionalRows((previous) => mergePharmacyRows(previous, normalized.pharmacyAdditionalRows ?? []));
+      setPharmacyAdditionalRows(normalized.pharmacyAdditionalRows);
       setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, normalized.pharmacyAdditionalRows ?? []));
     }
     if (normalized.deletedPharmacyDrugCodes) {
@@ -1792,9 +1799,7 @@ export function App() {
     const loadRows = labelMode === "pharmacy" ? loadPharmacyHospitalDrugLabelRows : loadWardHospitalDrugLabelRows;
     void loadRows()
       .then((rows) => {
-        const visibleRows = labelMode === "pharmacy"
-          ? filterDeletedPharmacyLabelRows(rows, deletedPharmacyDrugCodeSet)
-          : filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
+        const visibleRows = filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
         if (labelMode === "pharmacy") {
           setPharmacyHospitalDrugLabelRows(
             mergePharmacyRows(mergePharmacyRows(visibleRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
@@ -1814,7 +1819,7 @@ export function App() {
     if (!isPharmacyLocator || pharmacyHospitalDrugLabelRows.length > 0) return;
     setIsHospitalDrugLabelsLoading(true);
     void loadPharmacyHospitalDrugLabelRows()
-      .then((rows) => setPharmacyHospitalDrugLabelRows(filterDeletedPharmacyLabelRows(rows, deletedPharmacyDrugCodeSet)))
+      .then((rows) => setPharmacyHospitalDrugLabelRows(filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)))
       .catch((error) => console.error(error))
       .finally(() => setIsHospitalDrugLabelsLoading(false));
   }, [deletedPharmacyDrugCodeSet, isPharmacyLocator, pharmacyHospitalDrugLabelRows.length]);
@@ -1824,7 +1829,7 @@ export function App() {
     setIsPharmacyLabelMatchesLoading(true);
     void Promise.all([loadPharmacyLabelMatchRows(), loadPharmacyHospitalDrugLabelRows()])
       .then(([matchRows, hospitalRows]) => {
-        const visibleHospitalRows = filterDeletedPharmacyLabelRows(hospitalRows, deletedPharmacyDrugCodeSet);
+        const visibleHospitalRows = filterDeletedDrugRows(hospitalRows, deletedPharmacyDrugCodeSet);
         setPharmacyHospitalDrugLabelRows(
           mergePharmacyRows(mergePharmacyRows(visibleHospitalRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
         );
@@ -1966,18 +1971,10 @@ export function App() {
     () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
     [pharmacyHospitalDrugLabelRows],
   );
-  const effectiveStockDrugs = useMemo(() => {
-    const existingCodes = new Set(stockDrugs.map((drug) => drug.code.toUpperCase()));
-    const pharmacyOnlyStockDrugs = pharmacyAdditionalRows
-      .filter((row) => {
-        const code = normalizeStockCode(row.code, row.name).toUpperCase();
-        return code && !existingCodes.has(code) && !isHospitalControlledDrugType(row);
-      })
-      .map(pharmacyMasterToStockDrug);
-    return dedupeStockDrugs([...stockDrugs, ...pharmacyOnlyStockDrugs], inventory.stock.drugs, normalizeStockCode, true).map((drug) =>
-      applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase())),
-    );
-  }, [pharmacyAdditionalRows, pharmacyHospitalDrugRowsByCode, stockDrugs]);
+  const effectiveStockDrugs = useMemo(
+    () => mergeStockDrugsWithPharmacyMaster(stockDrugs, pharmacyAdditionalRows.filter(isSelectableHospitalDrugLabelRow)),
+    [pharmacyAdditionalRows, stockDrugs],
+  );
   const effectiveNarcoticDrugs = useMemo(
     () => narcoticDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
     [narcoticDrugs, pharmacyHospitalDrugRowsByCode],
@@ -4182,10 +4179,10 @@ export function App() {
               <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-label-editor/</code>
             </div>
             <div className="viewer-link-item">
-              <a href="https://donggukpharm7992-star.github.io/pharmacy-drug-locator/" target="_blank" rel="noreferrer">
+              <a href="https://donggukpharm7992-star.github.io/Ecart-/pharmacy-drug-locator/" target="_blank" rel="noreferrer">
                 약제팀 약품 위치 찾기
               </a>
-              <code>https://donggukpharm7992-star.github.io/pharmacy-drug-locator/</code>
+              <code>https://donggukpharm7992-star.github.io/Ecart-/pharmacy-drug-locator/</code>
             </div>
           </div>
           <div className="viewer-link-help">

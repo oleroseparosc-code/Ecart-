@@ -26,23 +26,23 @@ export function getPwaMetadata(pathname = "/"): PwaMetadata {
   }
 
   const isPharmacyViewer = normalizedPath.endsWith("/pharmacy-viewer");
-  const isPharmacyEditor = normalizedPath.includes("/pharmacy-label-editor");
+  const isPharmacyEditor = normalizedPath.endsWith("/pharmacy-label-editor");
   const isPharmacyLocator = normalizedPath.endsWith("/pharmacy-drug-locator");
   if (isPharmacyLocator) {
     return {
       manifestPath: "pharmacy-drug-locator.webmanifest",
       iconPath: "icons/pharmacy-drug-locator-icon-192.png",
-      documentTitle: "약품 위치 찾기",
+      documentTitle: "약제팀 약품 위치 찾기",
       appleTitle: "약품 위치 찾기",
       themeColor: "#E8843C",
     };
   }
   if (isPharmacyEditor) {
     return {
-      manifestPath: "pharmacy-label-editor.webmanifest",
-      iconPath: "icons/pharmacy-label-editor-icon-192.png",
-      documentTitle: "약제팀 라벨 편집기",
-      appleTitle: "약제팀 라벨 편집기",
+      manifestPath: "pharmacy-viewer.webmanifest",
+      iconPath: "icons/app-icon-192.png",
+      documentTitle: "약제팀 라벨 편집",
+      appleTitle: "약제팀 라벨 편집",
       themeColor: "#f97316",
     };
   }
@@ -88,7 +88,7 @@ function setMetaContent(selector: string, content: string) {
 
 export function applyPwaMetadata() {
   if (typeof window === "undefined") return;
-  const version = "20260815a";
+  const version = "20260814a";
   const metadata = getPwaMetadata(window.location.pathname);
   const manifestHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.manifestPath}?v=${version}`);
   const iconHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.iconPath}?v=${version}`);
@@ -112,7 +112,7 @@ export function registerAppServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
   window.addEventListener("load", () => {
-    const serviceWorkerUrl = buildPwaAssetUrl(import.meta.env.BASE_URL, "sw.js?v=20260815a");
+    const serviceWorkerUrl = buildPwaAssetUrl(import.meta.env.BASE_URL, "sw.js");
     const wasControlled = Boolean(navigator.serviceWorker.controller);
     let isReloading = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {

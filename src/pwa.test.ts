@@ -111,10 +111,6 @@ describe("PWA install metadata", () => {
     expect(shouldReloadAfterServiceWorkerUpdate({ wasControlled: true, isReloading: true })).toBe(false);
   });
 
-  it("registers a versioned service worker URL to bypass stale CDN responses", () => {
-    expect(readFileSync("src/pwa.ts", "utf8")).toContain('"sw.js?v=20260815a"');
-  });
-
   it("keeps runtime sync config out of the service worker cache", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
@@ -125,7 +121,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v42"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v35"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
@@ -140,34 +136,15 @@ describe("PWA install metadata", () => {
     expect(versionAssetLinks(html, "20260720a")).toContain('/Ecart-/assets/index-demo.css?v=20260720a');
   });
 
-  it("writes static install metadata for the pharmacy label editor route", async () => {
-    // @ts-ignore build script is plain JavaScript.
-    const { addRouteInstallMetadata } = await import("../scripts/create_pwa_routes.mjs");
-    const html = '<head><meta name="apple-mobile-web-app-title" content="비품점검" /><script></script><title>비품점검</title></head>';
-    const routeHtml = addRouteInstallMetadata(html, "pharmacy-label-editor");
-
-    expect(routeHtml).toContain('content="약제팀 라벨 편집기"');
-    expect(routeHtml).toContain('href="/Ecart-/pharmacy-label-editor.webmanifest?v=20260814f"');
-    expect(routeHtml).toContain('href="/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814f"');
-  });
-
   it("selects separate install metadata for the master viewer route", () => {
     expect(getPwaMetadata("/Ecart-/").manifestPath).toBe("manifest.webmanifest");
     expect(getPwaMetadata("/Ecart-/pharmacy-drug-locator")).toEqual({
       manifestPath: "pharmacy-drug-locator.webmanifest",
       iconPath: "icons/pharmacy-drug-locator-icon-192.png",
-      documentTitle: "약품 위치 찾기",
+      documentTitle: "약제팀 약품 위치 찾기",
       appleTitle: "약품 위치 찾기",
       themeColor: "#E8843C",
     });
-    expect(getPwaMetadata("/Ecart-/pharmacy-label-editor")).toEqual({
-      manifestPath: "pharmacy-label-editor.webmanifest",
-      iconPath: "icons/pharmacy-label-editor-icon-192.png",
-      documentTitle: "약제팀 라벨 편집기",
-      appleTitle: "약제팀 라벨 편집기",
-      themeColor: "#f97316",
-    });
-    expect(getPwaMetadata("/Ecart-/pharmacy-label-editor/v2")).toEqual(getPwaMetadata("/Ecart-/pharmacy-label-editor"));
     expect(getPwaMetadata("/Ecart-/viewer")).toEqual({
       manifestPath: "viewer.webmanifest",
       iconPath: "icons/viewer-icon-192.png",
@@ -295,8 +272,8 @@ describe("PWA install metadata", () => {
     expect(manifest.start_url).toBe("/Ecart-/pharmacy-drug-locator/");
     expect(manifest.scope).toBe("/Ecart-/pharmacy-drug-locator/");
     expect(manifest.icons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814b", sizes: "192x192", type: "image/png", purpose: "any" }),
-      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814b", sizes: "512x512", type: "image/png", purpose: "any" }),
+      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814a", sizes: "192x192", type: "image/png", purpose: "any" }),
+      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814a", sizes: "512x512", type: "image/png", purpose: "any" }),
     ]));
     expect(readPngSize("public/icons/pharmacy-drug-locator-icon-192.png")).toEqual({ width: 192, height: 192 });
     expect(readPngSize("public/icons/pharmacy-drug-locator-icon-512.png")).toEqual({ width: 512, height: 512 });
