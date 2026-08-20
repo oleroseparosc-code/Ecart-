@@ -5109,7 +5109,7 @@ export function App() {
                   : printPreviewMode === "all-ecart"
                     ? renderBulkEcartReports()
                     : printPreviewMode === "drug-labels"
-                      ? <>{renderDrugLabelSheet(printPreviewRef, "drug-label-sheet print-preview-report", 6)}<div className="pdf-full-label-source">{renderDrugLabelSheet(reportRef, "drug-label-sheet")}</div></>
+                      ? <>{renderDrugLabelSheet(printPreviewRef, "drug-label-sheet print-preview-report", 6)}<div className="pdf-full-label-source">{renderDrugLabelSheet(reportRef, "drug-label-sheet pdf-label-export")}</div></>
                       : renderReportCard(printPreviewRef, "report-card print-preview-report")}
             </div>
           </div>

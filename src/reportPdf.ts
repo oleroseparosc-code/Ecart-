@@ -6,6 +6,7 @@ type PdfImagePage = {
   height: number;
   drawWidth: number;
   drawHeight: number;
+  filter?: "/FlateDecode";
 };
 
 const PAPER_SIZES = {
@@ -51,6 +52,25 @@ function dataUrlToBytes(dataUrl: string) {
   return bytes;
 }
 
+async function canvasToLosslessPdfImage(canvas: HTMLCanvasElement) {
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) throw new Error("Canvas is not available.");
+
+  const rgba = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  const rgb = new Uint8Array(canvas.width * canvas.height * 3);
+  for (let source = 0, target = 0; source < rgba.length; source += 4, target += 3) {
+    const alpha = rgba[source + 3];
+    rgb[target] = Math.round((rgba[source] * alpha + 255 * (255 - alpha)) / 255);
+    rgb[target + 1] = Math.round((rgba[source + 1] * alpha + 255 * (255 - alpha)) / 255);
+    rgb[target + 2] = Math.round((rgba[source + 2] * alpha + 255 * (255 - alpha)) / 255);
+  }
+
+  if (typeof CompressionStream === "undefined") return { bytes: rgb };
+  const compressed = new CompressionStream("deflate");
+  const bytes = new Uint8Array(await new Response(new Blob([rgb]).stream().pipeThrough(compressed)).arrayBuffer());
+  return { bytes, filter: "/FlateDecode" as const };
+}
+
 async function renderElementToCanvas(element: HTMLElement, exactElementWidth = false) {
   const measuredWidth = Math.max(element.scrollWidth, element.getBoundingClientRect().width);
   const measuredHeight = Math.max(element.scrollHeight, element.getBoundingClientRect().height);
@@ -58,7 +78,7 @@ async function renderElementToCanvas(element: HTMLElement, exactElementWidth = f
   const height = Math.ceil(measuredHeight);
   return html2canvas(element, {
     backgroundColor: "#ffffff",
-    scale: Math.min(4, Math.max(3, window.devicePixelRatio || 1)),
+    scale: Math.min(8, Math.max(6, window.devicePixelRatio || 1)),
     useCORS: true,
     width,
     height,
@@ -76,10 +96,10 @@ async function renderElementToCanvas(element: HTMLElement, exactElementWidth = f
   });
 }
 
-function canvasToFullBleedPdfPage(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): PdfImagePage {
+async function canvasToFullBleedPdfPage(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): Promise<PdfImagePage> {
   const { width, height } = paperSize(paper, orientation);
   return {
-    bytes: dataUrlToBytes(canvas.toDataURL("image/jpeg", 1)),
+    ...(await canvasToLosslessPdfImage(canvas)),
     width: canvas.width,
     height: canvas.height,
     drawWidth: width,
@@ -87,7 +107,7 @@ function canvasToFullBleedPdfPage(canvas: HTMLCanvasElement, paper: PdfPaper, or
   };
 }
 
-function canvasToPdfPages(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): PdfImagePage[] {
+async function canvasToPdfPages(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): Promise<PdfImagePage[]> {
   const pages: PdfImagePage[] = [];
   const { width: paperWidth, height: paperHeight } = paperSize(paper, orientation);
   const printableWidth = paperWidth - PAGE_MARGIN * 2;
@@ -107,7 +127,7 @@ function canvasToPdfPages(canvas: HTMLCanvasElement, paper: PdfPaper, orientatio
 
     const drawHeight = Math.min(printableHeight, (currentSliceHeight / canvas.width) * printableWidth);
     pages.push({
-      bytes: dataUrlToBytes(pageCanvas.toDataURL("image/jpeg", 1)),
+      ...(await canvasToLosslessPdfImage(pageCanvas)),
       width: pageCanvas.width,
       height: pageCanvas.height,
       drawWidth: printableWidth,
@@ -162,7 +182,7 @@ function buildPdf(pages: PdfImagePage[], paper: PdfPaper, orientation: PdfOrient
   for (const page of pageDefinitions) {
     beginObject(page.imageObjectId);
     addText(
-      `<< /Type /XObject /Subtype /Image /Width ${page.width} /Height ${page.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${page.bytes.length} >>\nstream\n`,
+      `<< /Type /XObject /Subtype /Image /Width ${page.width} /Height ${page.height} /ColorSpace /DeviceRGB /BitsPerComponent 8${page.filter ? ` /Filter ${page.filter}` : ""} /Length ${page.bytes.length} >>\nstream\n`,
     );
     addBytes(page.bytes);
     addText("\nendstream\nendobj\n");
@@ -215,16 +235,16 @@ export async function downloadElementAsPdf(
     for (const child of childPages) {
       const canvas = await renderElementToCanvas(child, fullBleed);
       if (fullBleed) {
-        pages.push(canvasToFullBleedPdfPage(canvas, paper, orientation));
+        pages.push(await canvasToFullBleedPdfPage(canvas, paper, orientation));
       } else {
-        pages.push(...canvasToPdfPages(canvas, paper, orientation));
+        pages.push(...(await canvasToPdfPages(canvas, paper, orientation)));
       }
     }
   } else {
     const canvas = await renderElementToCanvas(element, fullBleed);
     pages = fullBleed
-      ? [canvasToFullBleedPdfPage(canvas, paper, orientation)]
-      : canvasToPdfPages(canvas, paper, orientation);
+      ? [await canvasToFullBleedPdfPage(canvas, paper, orientation)]
+      : await canvasToPdfPages(canvas, paper, orientation);
   }
 
   const pdf = buildPdf(pages, paper, orientation, fullBleed ? 0 : PAGE_MARGIN);

@@ -6515,6 +6515,25 @@ button {
   pointer-events: none;
 }
 
+/* Keep lowercase descenders distinct in the PDF export raster. */
+.pdf-label-export .drug-label-item h3,
+.pdf-label-export .drug-label-item .drug-label-name-lines,
+.pdf-label-export .drug-label-item .drug-label-name-line {
+  font-family: Arial, "Arial Nova", "Segoe UI", "Malgun Gothic", sans-serif !important;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+}
+
+.pdf-label-export .drug-label-item h3 {
+  overflow: visible !important;
+  padding-block: 0.1em;
+}
+
+.pdf-label-export .drug-label-item .drug-label-name-line {
+  font-weight: 700 !important;
+  line-height: 1.12 !important;
+}
+
 .pharmacy-inline-border-choice span {
   font-size: 12px;
   font-weight: 900;
