@@ -5,6 +5,7 @@ import hashlib
 import mimetypes
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode, urljoin
@@ -23,6 +24,20 @@ RULE_SHEET_NAMES = ["라벨 생성규칙", "경구 주사 리스트", "영양수
 HEALTH_SEARCH_URL = "https://health.kr/searchDrug/search_detail.asp"
 HEALTH_POPUP_URL = "https://health.kr/searchDrug/ajax/ajax_result_pop.asp"
 HEALTH_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+INJECTABLE_DRUG_TYPES = {"앰플", "바이알", "냉장주사", "영양수액", "일반수액", "항암제", "백신", "제로관리약"}
+HEALTH_IMAGE_WORKERS = 8
+# 약학정보원 팝업 응답의 품목 코드와 실제 포장 사진이 교차된 것이 확인된 항목입니다.
+# 사진의 라벨·용량을 사람이 확인한 경로만 이 표에 기록합니다.
+VERIFIED_IMAGE_OVERRIDES = {
+    "XXFILG15W": (
+        "/pharmacy-drug-images/health-a11aooooo1645-595d6b626951cd9e.jpg",
+        "https://health.kr/searchDrug/result_drug.asp?drug_cd=A11AOOOOO1645",
+    ),
+    "XXFILG3W": (
+        "/pharmacy-drug-images/health-a11aooooo1646-c9b12ab82fbba5da.jpg",
+        "https://health.kr/searchDrug/result_drug.asp?drug_cd=A11AOOOOO1646",
+    ),
+}
 
 
 def clean(value: object) -> str:
@@ -185,7 +200,7 @@ def read_cabinet_code_entries(worksheet, source: str) -> dict[str, dict[str, str
     return entries
 
 
-def read_with_retries(request: Request, timeout: int = 30, attempts: int = 3) -> tuple[bytes, str]:
+def read_with_retries(request: Request, timeout: int = 8, attempts: int = 1) -> tuple[bytes, str]:
     last_error: Exception | None = None
     for attempt in range(attempts):
         try:
@@ -246,6 +261,9 @@ def fetch_health_image(korean_name: str, common_name: str) -> tuple[str, str]:
         drug_code = find_health_drug_code(korean_name, common_name)
         if not drug_code:
             return "", f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
+        cached_images = sorted(IMAGE_OUTPUT_DIR.glob(f"health-{drug_code.lower()}-*.*"))
+        if cached_images:
+            return f"/pharmacy-drug-images/{cached_images[0].name}", f"https://health.kr/searchDrug/result_drug.asp?drug_cd={quote(drug_code)}"
         popup_url = f"{HEALTH_POPUP_URL}?drug_cd={quote(drug_code)}"
         payload = health_request(popup_url).decode("utf-8", errors="ignore")
         data = json.loads(payload)
@@ -263,7 +281,7 @@ def fetch_health_image(korean_name: str, common_name: str) -> tuple[str, str]:
                 try:
                     image_url = resolved_url
                     image_request = Request(image_url, headers=HEALTH_HEADERS)
-                    image_data, content_type = read_with_retries(image_request, timeout=45)
+                    image_data, content_type = read_with_retries(image_request, timeout=12)
                     extension = image_extension(image_url, content_type)
                     break
                 except Exception:
@@ -302,24 +320,52 @@ def main() -> None:
     def read_optional(raw: tuple[object, ...], header: str) -> str:
         return clean(raw[index[header]]) if header in index else ""
 
+    raw_rows = list(worksheet.iter_rows(min_row=2, values_only=True))
+
+    def needs_health_image(raw: tuple[object, ...]) -> bool:
+        code = read(raw, "약품코드")
+        name = read(raw, "상용약품명")
+        if not code or not name:
+            return False
+        image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, read(raw, "한글약품명"))
+        return not image_path and (
+            read(raw, "약품유형") in INJECTABLE_DRUG_TYPES
+            or is_yes(raw[index["3단장 유색 반티통 측면라벨"]])
+        )
+
+    image_targets = [
+        (read(raw, "약품코드"), read(raw, "한글약품명"), read(raw, "상용약품명"))
+        for raw in raw_rows
+        if needs_health_image(raw)
+    ]
+    health_images: dict[str, tuple[str, str]] = {}
+    with ThreadPoolExecutor(max_workers=HEALTH_IMAGE_WORKERS) as executor:
+        futures = {executor.submit(fetch_health_image, korean_name, name): code for code, korean_name, name in image_targets}
+        for completed, future in enumerate(as_completed(futures), start=1):
+            health_images[futures[future]] = future.result()
+            if completed % 25 == 0 or completed == len(futures):
+                print(f"Fetched {completed}/{len(futures)} health.kr images", flush=True)
+
     rows: list[dict[str, object]] = []
-    for raw in worksheet.iter_rows(min_row=2, values_only=True):
+    for raw in raw_rows:
         code = read(raw, "약품코드")
         name = read(raw, "상용약품명")
         if not code or not name:
             continue
         korean_name = read(raw, "한글약품명")
+        drug_type = read(raw, "약품유형")
         oral_injection_info = oral_injection_entries.get(name.lower())
         nutrition_info = nutrition_entries.get(name.lower())
         external_info = external_entries.get(code)
         syrup_info = syrup_entries.get(code)
         image_path = read_optional(raw, "식별사진경로") or match_image(image_by_name, name, korean_name)
         image_source_url = read_optional(raw, "식별사진출처")
-        if not image_path and is_yes(raw[index["3단장 유색 반티통 측면라벨"]]):
-            image_path, image_source_url = fetch_health_image(korean_name, name)
+        if not image_path and code in health_images:
+            image_path, image_source_url = health_images[code]
+        if code in VERIFIED_IMAGE_OVERRIDES:
+            image_path, image_source_url = VERIFIED_IMAGE_OVERRIDES[code]
         if not image_source_url:
             image_source_url = f"{HEALTH_SEARCH_URL}?search_detail=Y&input_drug_nm={quote(korean_name)}"
-        drug_type = read(raw, "약품유형")
         legacy_side_1t = read(raw, "1T 3단장 뺑뺑이 PTP 측면라벨")
         legacy_side_half = read(raw, "0.5T 3단장 뺑뺑이 병 측면라벨")
         legacy_side_quarter = read(raw, "0.25T 3단장 뺑뺑이 병 측면라벨")
@@ -377,7 +423,7 @@ def main() -> None:
                 "capBackground": cap_background,
                 "nameCaution": is_yes(raw[index["이름주의"]]),
                 "border": is_yes(raw[index["테두리"]]),
-                "borderColor": read(raw, "테두리 색기호"),
+                "borderColor": read_optional(raw, "테두리 색기호"),
                 "cabinetOralInjection": oral_injection_info is not None,
                 "cabinetNutrition": nutrition_info is not None,
                 "cabinetExternal": external_info is not None,

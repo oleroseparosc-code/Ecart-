@@ -121,7 +121,7 @@ describe("PWA install metadata", () => {
   it("uses a versioned cache name so deployed app bundles can replace stale caches", () => {
     const serviceWorker = readFileSync("public/sw.js", "utf8");
 
-    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v34"');
+    expect(serviceWorker).toContain('CACHE_NAME = "hospital-inventory-app-v35"');
   });
 
   it("adds an asset version query to built CSS and JS links", async () => {
@@ -138,6 +138,13 @@ describe("PWA install metadata", () => {
 
   it("selects separate install metadata for the master viewer route", () => {
     expect(getPwaMetadata("/Ecart-/").manifestPath).toBe("manifest.webmanifest");
+    expect(getPwaMetadata("/Ecart-/pharmacy-drug-locator")).toEqual({
+      manifestPath: "pharmacy-drug-locator.webmanifest",
+      iconPath: "icons/pharmacy-drug-locator-icon-192.png",
+      documentTitle: "약제팀 약품 위치 찾기",
+      appleTitle: "약품 위치 찾기",
+      themeColor: "#E8843C",
+    });
     expect(getPwaMetadata("/Ecart-/viewer")).toEqual({
       manifestPath: "viewer.webmanifest",
       iconPath: "icons/viewer-icon-192.png",
@@ -254,6 +261,22 @@ describe("PWA install metadata", () => {
         }),
       ]),
     );
+  });
+
+  it("defines a separate installable manifest and icon set for the drug locator", () => {
+    const manifest = JSON.parse(readFileSync("public/pharmacy-drug-locator.webmanifest", "utf8"));
+
+    expect(manifest.name).toBe("약품 위치 찾기");
+    expect(manifest.short_name).toBe("약품 위치 찾기");
+    expect(manifest.id).toBe("/Ecart-/pharmacy-drug-locator");
+    expect(manifest.start_url).toBe("/Ecart-/pharmacy-drug-locator/");
+    expect(manifest.scope).toBe("/Ecart-/pharmacy-drug-locator/");
+    expect(manifest.icons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814a", sizes: "192x192", type: "image/png", purpose: "any" }),
+      expect.objectContaining({ src: "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814a", sizes: "512x512", type: "image/png", purpose: "any" }),
+    ]));
+    expect(readPngSize("public/icons/pharmacy-drug-locator-icon-192.png")).toEqual({ width: 192, height: 192 });
+    expect(readPngSize("public/icons/pharmacy-drug-locator-icon-512.png")).toEqual({ width: 512, height: 512 });
   });
 
   it("defines a separate installable manifest and icon set for the narcotic viewer", () => {

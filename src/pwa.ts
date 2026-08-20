@@ -30,8 +30,8 @@ export function getPwaMetadata(pathname = "/"): PwaMetadata {
   const isPharmacyLocator = normalizedPath.endsWith("/pharmacy-drug-locator");
   if (isPharmacyLocator) {
     return {
-      manifestPath: "pharmacy-viewer.webmanifest",
-      iconPath: "icons/app-icon-192.png",
+      manifestPath: "pharmacy-drug-locator.webmanifest",
+      iconPath: "icons/pharmacy-drug-locator-icon-192.png",
       documentTitle: "약제팀 약품 위치 찾기",
       appleTitle: "약품 위치 찾기",
       themeColor: "#E8843C",
@@ -88,7 +88,7 @@ function setMetaContent(selector: string, content: string) {
 
 export function applyPwaMetadata() {
   if (typeof window === "undefined") return;
-  const version = "20260720a";
+  const version = "20260814a";
   const metadata = getPwaMetadata(window.location.pathname);
   const manifestHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.manifestPath}?v=${version}`);
   const iconHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.iconPath}?v=${version}`);

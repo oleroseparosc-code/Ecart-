@@ -980,6 +980,32 @@ function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabel
   };
 }
 
+function stockDrugFromPharmacyMaster(master: HospitalDrugLabelRow): StockDrug {
+  const code = master.code.trim().toUpperCase();
+  const storage = master.storage || (master.lightProtected ? "차광" : "실온보관");
+  return applySharedMasterToStockDrug({
+    code,
+    genericName: master.koreanName || master.name || code,
+    productName: master.name || master.koreanName || code,
+    spec: master.strength || master.spec || master.package,
+    storage,
+    note: "",
+    warning: "",
+    storageType: master.lightProtected ? "LIGHT_PROTECTED" : inferStorageType(storage),
+  }, master);
+}
+
+function mergeStockDrugsWithPharmacyMaster(stockDrugs: StockDrug[], masterRows: HospitalDrugLabelRow[]) {
+  const byCode = new Map(stockDrugs.map((drug) => [drug.code.toUpperCase(), drug]));
+  for (const master of masterRows) {
+    const code = master.code.trim().toUpperCase();
+    if (!code || master.narcotic || master.psychotropic) continue;
+    const existing = byCode.get(code);
+    byCode.set(code, existing ? applySharedMasterToStockDrug(existing, master) : stockDrugFromPharmacyMaster(master));
+  }
+  return sortStockDrugsByName([...byCode.values()]);
+}
+
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
   for (const row of additional) byCode.set(row.code, { ...(byCode.get(row.code) ?? {}), ...row });
@@ -1926,8 +1952,8 @@ export function App() {
     [pharmacyHospitalDrugLabelRows],
   );
   const effectiveStockDrugs = useMemo(
-    () => stockDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
-    [pharmacyHospitalDrugRowsByCode, stockDrugs],
+    () => mergeStockDrugsWithPharmacyMaster(stockDrugs, pharmacyAdditionalRows.filter(isSelectableHospitalDrugLabelRow)),
+    [pharmacyAdditionalRows, stockDrugs],
   );
   const effectiveNarcoticDrugs = useMemo(
     () => narcoticDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
@@ -2683,6 +2709,14 @@ export function App() {
     if (roomIds.length === 0) return;
 
     if (selectedAssignmentKind === "stock") {
+      const selectedStockDrug = effectiveStockDrugs.find((drug) => drug.code === newAssignment.drugCode);
+      if (selectedStockDrug) {
+        setStockDrugs((previous) => (
+          previous.some((drug) => drug.code === selectedStockDrug.code)
+            ? previous
+            : sortStockDrugsByName([...previous, selectedStockDrug])
+        ));
+      }
       setStockAllocations((prev) => {
         let next = prev;
         for (const roomId of roomIds) {

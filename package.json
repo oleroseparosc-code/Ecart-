@@ -13,6 +13,9 @@
     "autosync:hospital-drugs:install": "node scripts/watch_hospital_drug_list.mjs --install",
     "autosync:ward-labels": "node scripts/watch_ward_drug_list.mjs",
     "autosync:ward-labels:install": "node scripts/watch_ward_drug_list.mjs --install",
+    "inventory:workbook:initialize": "pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\sync_inventory_workbook.ps1 -InitializeFromWorkbook -Watch",
+    "inventory:workbook:watch": "pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\sync_inventory_workbook.ps1 -Watch",
+    "inventory:workbook:install": "pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\sync_inventory_workbook.ps1 -Install",
     "validate:data": "node scripts/run_python.mjs scripts/validate_inventory.py",
     "test": "vitest run --no-watch --reporter=basic --testTimeout=10000 --config vitest.config.ts",
     "dev": "vite --host 0.0.0.0",
@@ -29,6 +32,7 @@
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tesseract.js": "^7.0.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.1",
     "xlsx": "^0.18.5"

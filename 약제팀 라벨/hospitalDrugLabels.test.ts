@@ -180,11 +180,25 @@ describe("hospital drug label source", () => {
     expect(coloredSideLabels.some((row) => row.imageSourceUrl?.includes("health.kr/searchDrug/result_drug.asp"))).toBe(true);
   });
 
-  it("generates markdown rule files and fetches missing side-label images through health.kr APIs", () => {
+  it("keeps the verified Grasin images matched to their printed strengths", async () => {
+    const rows = await loadHospitalDrugLabelRows();
+    const grasin150 = rows.find((row) => row.code === "XXFILG15W");
+    const grasin300 = rows.find((row) => row.code === "XXFILG3W");
+
+    expect(grasin150?.imagePath).toContain("health-a11aooooo1645-");
+    expect(grasin300?.imagePath).toContain("health-a11aooooo1646-");
+  });
+
+  it("generates markdown rule files and fetches missing injectable and side-label images through health.kr APIs", () => {
     expect(extractHospitalLabelsSource).toContain("MARKDOWN_OUTPUT_DIR");
     expect(extractHospitalLabelsSource).toContain("RULE_SHEET_NAMES");
     expect(extractHospitalLabelsSource).toContain("ajax_result_pop.asp");
     expect(extractHospitalLabelsSource).toContain("input_drug_nm");
+    expect(extractHospitalLabelsSource).toContain("INJECTABLE_DRUG_TYPES");
+    expect(extractHospitalLabelsSource).toContain("HEALTH_IMAGE_WORKERS");
+    expect(extractHospitalLabelsSource).toContain("cached_images");
+    expect(extractHospitalLabelsSource).toContain("VERIFIED_IMAGE_OVERRIDES");
+    expect(extractHospitalLabelsSource).toContain('read_optional(raw, "테두리 색기호")');
   });
 
   it("excludes PCA and test-use controlled drug names from the 40x70 list", () => {
