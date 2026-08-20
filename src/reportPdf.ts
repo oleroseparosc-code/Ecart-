@@ -53,13 +53,17 @@ function dataUrlToBytes(dataUrl: string) {
 
 async function renderElementToCanvas(element: HTMLElement, exactElementWidth = false) {
   const measuredWidth = Math.max(element.scrollWidth, element.getBoundingClientRect().width);
+  const measuredHeight = Math.max(element.scrollHeight, element.getBoundingClientRect().height);
   const width = Math.ceil(exactElementWidth ? measuredWidth : Math.max(measuredWidth, 960));
+  const height = Math.ceil(measuredHeight);
   return html2canvas(element, {
     backgroundColor: "#ffffff",
-    scale: Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
+    scale: Math.min(4, Math.max(3, window.devicePixelRatio || 1)),
     useCORS: true,
     width,
+    height,
     windowWidth: Math.max(width, window.innerWidth),
+    windowHeight: Math.max(height, window.innerHeight),
     onclone: (_, clonedElement) => {
       const root = clonedElement as HTMLElement;
       root.style.boxShadow = "none";
@@ -75,7 +79,7 @@ async function renderElementToCanvas(element: HTMLElement, exactElementWidth = f
 function canvasToFullBleedPdfPage(canvas: HTMLCanvasElement, paper: PdfPaper, orientation: PdfOrientation): PdfImagePage {
   const { width, height } = paperSize(paper, orientation);
   return {
-    bytes: dataUrlToBytes(canvas.toDataURL("image/jpeg", 0.92)),
+    bytes: dataUrlToBytes(canvas.toDataURL("image/jpeg", 1)),
     width: canvas.width,
     height: canvas.height,
     drawWidth: width,
@@ -103,7 +107,7 @@ function canvasToPdfPages(canvas: HTMLCanvasElement, paper: PdfPaper, orientatio
 
     const drawHeight = Math.min(printableHeight, (currentSliceHeight / canvas.width) * printableWidth);
     pages.push({
-      bytes: dataUrlToBytes(pageCanvas.toDataURL("image/jpeg", 0.92)),
+      bytes: dataUrlToBytes(pageCanvas.toDataURL("image/jpeg", 1)),
       width: pageCanvas.width,
       height: pageCanvas.height,
       drawWidth: printableWidth,
