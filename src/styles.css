@@ -7822,6 +7822,7 @@ button {
   gap: 0;
   padding: 0;
   font-size: 6.4pt;
+  overflow: visible;
 }
 
 .pharmacy-cabinet-full-list-row.with-category-details {
@@ -7992,8 +7993,10 @@ button {
 }
 
 .pharmacy-cabinet-full-list-row.atc-row > div strong {
+  font-family: Arial, "Arial Nova", "Segoe UI", "Malgun Gothic", sans-serif;
   font-size: 6.8pt;
-  font-weight: 1000;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .pharmacy-atc-detail {
