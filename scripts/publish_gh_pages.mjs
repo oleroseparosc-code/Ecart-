@@ -208,6 +208,7 @@ async function main() {
   const token = readToken();
   const message = process.env.PUBLISH_MESSAGE?.trim() || "Deploy app update";
   const localKeep = captureDistKeepFiles();
+  run("git", distGitArgs(["reset", "--hard", "HEAD"]), { cwd: distDir });
   syncDistWithRemote(token);
   const remoteKeep = captureDistKeepFiles();
   const keep = new Map([...localKeep, ...remoteKeep]);

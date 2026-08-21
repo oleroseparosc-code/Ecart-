@@ -6264,6 +6264,36 @@ button {
   font-weight: 1000;
 }
 
+.pharmacy-print-label footer.anticancer-footer.has-reconstitution {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: .45mm;
+  min-height: 12mm;
+  height: 12mm;
+  padding: .8mm 2mm;
+  text-align: left;
+}
+
+.pharmacy-print-label .anticancer-footer-title {
+  color: #fff;
+  font-size: 8pt;
+  line-height: 1;
+  text-align: center;
+}
+
+.pharmacy-print-label .anticancer-footer-reconstitution {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #fff200;
+  font-size: 6.5pt;
+  font-weight: 800;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 1px #111827;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .pharmacy-print-label footer {
   grid-column: 1 / -1;
   padding: 1mm 2mm;
