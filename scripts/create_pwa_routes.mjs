@@ -6,7 +6,7 @@ const distDir = path.resolve("dist");
 const indexPath = path.join(distDir, "index.html");
 const appStatePath = path.resolve("app-state", "shared-state.json");
 const routes = ["inventory", "viewer", "pharmacy-viewer", "pharmacy-label-editor", "pharmacy-label-editor/v2", "pharmacy-drug-locator", "narcotic-viewer"];
-const assetVersion = "20260810b";
+const assetVersion = "20260821a";
 const routeInstallMetadata = {
   "pharmacy-drug-locator": {
     title: "약품 라벨 스캔",

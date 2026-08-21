@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-18T18:55:28+09:00",
+  "generatedAt": "2026-08-21T13:43:52+09:00",
   "sourceFiles": {
     "stockWorkbook": "병동별비품현황 202606.xlsx",
     "ecartWorkbook": "20260302E-cart 약품목록_ cortisolu 삭제.xlsx",
@@ -1169,7 +1169,7 @@
       {
         "code": "XXHEXA6",
         "genericName": "",
-        "productName": "Hexaxim pfs inj (일반)",
+        "productName": "Hexaxim pfs inj",
         "spec": "",
         "storage": "동결을 피하여 2~8 ℃에서 차광하여 냉장보관",
         "note": "",
@@ -1899,7 +1899,7 @@
       {
         "code": "XNTENS5",
         "genericName": "",
-        "productName": "Ntense EF 506mL inj",
+        "productName": "Ntense EF central 506mL inj",
         "spec": "",
         "storage": "밀봉용기, 실온(1 ~ 25℃) 보관",
         "note": "",
@@ -2099,7 +2099,7 @@
       {
         "code": "XMPD1W",
         "genericName": "",
-        "productName": "Predi-sol 125mg inj",
+        "productName": "Predisol 125mg inj",
         "spec": "",
         "storage": "실온보관,밀봉용기",
         "note": "",
@@ -6185,7 +6185,7 @@
       {
         "id": "XD50W1",
         "code": "XD50W1",
-        "name": "50% DW 100ml bag중외",
+        "name": "50% DW 100ml 중외",
         "dosage": "100ml / Bottle",
         "quantity": 2
       },
@@ -6327,7 +6327,7 @@
       {
         "id": "NICU-18",
         "code": "XMPD1W",
-        "name": "Predi-sol 125mg inj",
+        "name": "Predisol 125mg inj",
         "dosage": "주:125mg/2ml/ Vial",
         "quantity": 2
       },
@@ -6383,7 +6383,7 @@
       {
         "id": "NICU-26",
         "code": "XD50W1",
-        "name": "50% DW 100ml bag중외",
+        "name": "50% DW 100ml 중외",
         "dosage": "100ml - Bottle",
         "quantity": 1
       },
