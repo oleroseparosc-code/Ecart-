@@ -1451,11 +1451,11 @@ export function App() {
     if (normalized.pharmacyLabels) {
       setSavedPharmacyLabels(normalized.pharmacyLabels);
       writeSavedPharmacyLabelsToStorage(window.localStorage, normalized.pharmacyLabels);
-      setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, pharmacyRowsFromSavedLabels(normalized.pharmacyLabels ?? [])));
+      setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(pharmacyRowsFromSavedLabels(normalized.pharmacyLabels ?? []), previous));
     }
     if (normalized.pharmacyAdditionalRows) {
       setPharmacyAdditionalRows(normalized.pharmacyAdditionalRows);
-      setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(previous, normalized.pharmacyAdditionalRows ?? []));
+      setPharmacyHospitalDrugLabelRows((previous) => mergePharmacyRows(normalized.pharmacyAdditionalRows ?? [], previous));
     }
     if (normalized.deletedPharmacyDrugCodes) {
       setDeletedPharmacyDrugCodes(normalized.deletedPharmacyDrugCodes);
