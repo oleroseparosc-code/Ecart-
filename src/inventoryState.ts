@@ -1,4 +1,6 @@
 import type { StockAllocation, StockDrug, StockRoom } from "./types";
+import type { HospitalDrugLabelRow } from "../약제팀 라벨/hospitalDrugLabels";
+import { inferStorageType } from "./storageDisplay";
 
 export type MasterRoomDetail = {
   roomId: string;
@@ -96,6 +98,76 @@ export function mergeGeneratedStockDrugs<T extends StockDrug>(
   }
 
   return sortStockDrugsByName([...byCode.values()]);
+}
+
+export function applyPharmacyMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabelRow | undefined): StockDrug {
+  if (!master) return drug;
+  const warning = [
+    master.highRisk ? "고위험의약품" : "",
+    master.hazardous ? "위해의약품" : "",
+    master.similarLook ? "유사모양" : "",
+    master.similarSound ? "유사발음" : "",
+    master.doseCaution ? "용량주의" : "",
+    master.doseCheck ? "용량확인" : "",
+    master.needsDiluent ? "<용해액 필요>" : "",
+    master.needsNeedle ? "<니들 필요>" : "",
+    master.nameCaution ? "이름주의" : "",
+    master.highCost ? "고가약" : "",
+    master.narcotic ? "마약" : "",
+    master.psychotropic ? "향정" : "",
+    master.anticancer ? "항암제" : "",
+    master.eCart ? "E-cart" : "",
+    master.eCartNicu ? "E-cart(NICU)" : "",
+  ].filter(Boolean).join(", ");
+  const storage = master.storage || (master.lightProtected ? "차광" : "실온");
+  return {
+    ...drug,
+    genericName: master.koreanName || drug.genericName,
+    productName: master.name || drug.productName,
+    spec: master.strength || drug.spec,
+    storage,
+    warning,
+    note: warning,
+    storageType: master.lightProtected ? "LIGHT_PROTECTED" : inferStorageType(storage),
+  };
+}
+
+export function pharmacyMasterToStockDrug(
+  master: HospitalDrugLabelRow,
+  normalizeCode: (code: string, fallback?: string) => string,
+): StockDrug {
+  const code = normalizeCode(master.code, master.name);
+  return applyPharmacyMasterToStockDrug(
+    {
+      code,
+      genericName: master.koreanName,
+      productName: master.name || code,
+      spec: master.strength || master.spec || master.package,
+      storage: master.storage || "실온",
+      note: "",
+      warning: "",
+      storageType: inferStorageType(master.storage || "실온"),
+    },
+    master,
+  );
+}
+
+export function projectPharmacyAdditionalStockDrugs(
+  stockDrugs: StockDrug[],
+  pharmacyRows: HospitalDrugLabelRow[],
+  generatedDrugs: readonly StockDrug[],
+  normalizeCode: (code: string, fallback?: string) => string,
+  isControlled: (row: HospitalDrugLabelRow) => boolean,
+) {
+  const existingCodes = new Set(stockDrugs.map((drug) => drug.code.toUpperCase()));
+  const additions = pharmacyRows
+    .filter((row) => {
+      const code = normalizeCode(row.code, row.name).toUpperCase();
+      return code && !existingCodes.has(code) && !isControlled(row);
+    })
+    .map((row) => pharmacyMasterToStockDrug(row, normalizeCode));
+
+  return mergeGeneratedStockDrugs([...stockDrugs, ...additions], generatedDrugs, (code) => normalizeCode(code));
 }
 
 function allocationKey(roomId: string, drugCode: string) {

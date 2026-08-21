@@ -135,6 +135,7 @@ import {
   loadSavedPharmacyLabelsFromStorage,
   writeSavedPharmacyLabelsToStorage,
   formatPharmacyExpiry,
+  isAnticancerCategory,
   mergeDoseHighlightStyles,
   splitDoseText,
   splitNutritionDoseParts,
@@ -152,8 +153,10 @@ import {
   filterMasterRowsByKind,
   filterMasterRowsWithStock,
   applyCanonicalDrugNames,
+  applyPharmacyMasterToStockDrug,
   mergeGeneratedRooms,
   mergeGeneratedStockDrugs,
+  projectPharmacyAdditionalStockDrugs,
   reconcileGeneratedAllocations,
   type MasterRow,
   type MasterRowKind,
@@ -914,16 +917,16 @@ function pharmacyRowFromDraft(draft: PharmacyLabelDraft): HospitalDrugLabelRow {
     similarSound: warnings.has("유사발음"),
     doseCaution: warnings.has("용량주의"),
     doseCheck: warnings.has("용량확인"),
-    highRisk: warnings.has("고위험의약품"),
+    highRisk: warnings.has("고위험의약품") || draft.category === "주사 항암제",
     hazardous: warnings.has("위해의약품"),
-    highRiskCategory: warnings.has("고위험의약품") ? "고위험의약품" : "",
+    highRiskCategory: draft.category === "주사 항암제" ? "주사용 항암제" : warnings.has("고위험의약품") ? "고위험의약품" : "",
     atc: draft.atc,
     expiry: draft.expiry,
     location: draft.location,
     nameCaution: warnings.has("이름주의"),
     border: draft.style.outerBorderPx > 0,
     borderColor: draft.style.outerBorderColor,
-    oralAnticancer: draft.category === "항암제",
+    oralAnticancer: draft.category === "경구 항암제",
   };
 }
 
@@ -953,74 +956,6 @@ function applySharedPharmacyMasterFields(base: HospitalDrugLabelRow, master: Hos
   };
 }
 
-function applySharedMasterToStockDrug(drug: StockDrug, master: HospitalDrugLabelRow | undefined): StockDrug {
-  if (!master) return drug;
-  const warning = [
-    master.highRisk ? "고위험의약품" : "",
-    master.hazardous ? "위해의약품" : "",
-    master.similarLook ? "유사모양" : "",
-    master.similarSound ? "유사발음" : "",
-    master.doseCaution ? "용량주의" : "",
-    master.doseCheck ? "용량확인" : "",
-    master.needsDiluent ? "<용해액 필요>" : "",
-    master.needsNeedle ? "<니들 필요>" : "",
-    master.nameCaution ? "이름주의" : "",
-    master.highCost ? "고가약" : "",
-    master.narcotic ? "마약" : "",
-    master.psychotropic ? "향정" : "",
-    master.anticancer ? "항암제" : "",
-    master.eCart ? "E-cart" : "",
-    master.eCartNicu ? "E-cart(NICU)" : "",
-  ].filter(Boolean).join(", ");
-  const storage = master.storage || (master.lightProtected ? "차광" : "실온");
-  return {
-    ...drug,
-    genericName: master.koreanName || drug.genericName,
-    productName: master.name || drug.productName,
-    spec: master.strength || drug.spec,
-    storage,
-    warning,
-    note: warning,
-    storageType: master.lightProtected ? "LIGHT_PROTECTED" : inferStorageType(storage),
-  };
-}
-
-function stockDrugFromPharmacyMaster(master: HospitalDrugLabelRow): StockDrug {
-  const code = master.code.trim().toUpperCase();
-  const storage = master.storage || (master.lightProtected ? "차광" : "실온보관");
-  return applySharedMasterToStockDrug({
-    code,
-    genericName: master.koreanName || master.name || code,
-    productName: master.name || master.koreanName || code,
-    spec: master.strength || master.spec || master.package,
-    storage,
-    note: "",
-    warning: "",
-    storageType: master.lightProtected ? "LIGHT_PROTECTED" : inferStorageType(storage),
-  }, master);
-}
-
-function pharmacyMasterToStockDrug(master: HospitalDrugLabelRow): StockDrug {
-  return stockDrugFromPharmacyMaster(master);
-}
-
-function mergeStockDrugsWithPharmacyMaster(stockDrugs: StockDrug[], masterRows: HospitalDrugLabelRow[]) {
-  const byCode = new Map(stockDrugs.map((drug) => [drug.code.toUpperCase(), drug]));
-  const pharmacyOnlyStockDrugs = masterRows
-    .filter((row) => {
-      const code = row.code.trim().toUpperCase();
-      return code && !byCode.has(code) && !isHospitalControlledDrugType(row);
-    })
-    .map(pharmacyMasterToStockDrug);
-  for (const master of masterRows) {
-    const code = master.code.trim().toUpperCase();
-    if (!code || master.narcotic || master.psychotropic) continue;
-    const existing = byCode.get(code);
-    if (existing) byCode.set(code, applySharedMasterToStockDrug(existing, master));
-  }
-  for (const drug of pharmacyOnlyStockDrugs) byCode.set(drug.code.toUpperCase(), drug);
-  return sortStockDrugsByName([...byCode.values()]);
-}
 function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDrugLabelRow[]) {
   const byCode = new Map(base.map((row) => [row.code, row]));
   for (const row of additional) byCode.set(row.code, { ...(byCode.get(row.code) ?? {}), ...row });
@@ -1997,16 +1932,27 @@ export function App() {
 
   const inspectedNarcoticRoomIds = useMemo(() => getInspectedRoomIdsFromCheckedItems(narcoticCheckedItems), [narcoticCheckedItems]);
 
+  const pharmacyMasterRows = useMemo(
+    () => mergePharmacyRows(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow), pharmacyAdditionalRows),
+    [pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows],
+  );
   const pharmacyHospitalDrugRowsByCode = useMemo(
-    () => new Map(pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow).map((row) => [row.code.toUpperCase(), row])),
-    [pharmacyHospitalDrugLabelRows],
+    () => new Map(pharmacyMasterRows.map((row) => [row.code.toUpperCase(), row])),
+    [pharmacyMasterRows],
   );
-  const effectiveStockDrugs = useMemo(
-    () => mergeStockDrugsWithPharmacyMaster(stockDrugs, pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow)),
-    [pharmacyHospitalDrugLabelRows, stockDrugs],
-  );
+  const effectiveStockDrugs = useMemo(() => {
+    return projectPharmacyAdditionalStockDrugs(
+      stockDrugs,
+      pharmacyMasterRows,
+      inventory.stock.drugs,
+      normalizeStockCode,
+      isHospitalControlledDrugType,
+    ).map((drug) =>
+      applyPharmacyMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase())),
+    );
+  }, [pharmacyHospitalDrugRowsByCode, pharmacyMasterRows, stockDrugs]);
   const effectiveNarcoticDrugs = useMemo(
-    () => narcoticDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
+    () => narcoticDrugs.map((drug) => applyPharmacyMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
     [narcoticDrugs, pharmacyHospitalDrugRowsByCode],
   );
   const drugByCode = useMemo(() => new Map(effectiveStockDrugs.map((drug) => [drug.code, drug])), [effectiveStockDrugs]);
@@ -3796,6 +3742,7 @@ export function App() {
     const isSideLabel = draft.accessory === "측면라벨" || draft.accessory === "유색 측면라벨";
     const isCapLabel = draft.accessory === "병뚜껑" || draft.accessory === "유색 병뚜껑";
     const isExternalShelfLabel = ["외용제", "외용점안제", "팩제", "시럽"].includes(draft.category) && draft.size.presetKey === "13.5x105";
+    const isAnticancerLabel = isAnticancerCategory(draft.category);
     const hasDoseHighlight = draft.warnings.some((warning) => warning === "용량주의" || warning === "용량확인");
     const hasCautionWarning = draft.warnings.some((warning) =>
       ["위해의약품", "용량주의", "용량확인", "유사발음", "유사모양", "이름주의", "고위험의약품"].includes(warning)
@@ -3880,7 +3827,7 @@ export function App() {
     } as CSSProperties;
 
     return (
-      <article className={`pharmacy-print-label print-label label-size-${draft.size.presetKey} ${draft.category === "항암제" ? "anticancer" : ""} ${draft.category === "고가약" ? "high-cost" : ""} ${draft.category === "마약/향정" ? "controlled-drug-label" : ""} ${hasCustomOuterBorderColor ? "custom-outer-border" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${draft.category === "시럽" ? "syrup-label" : ""} ${draft.category === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${isAmpouleHolder ? "has-ampoule-holder" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={style} key={key}>
+      <article className={`pharmacy-print-label print-label label-size-${draft.size.presetKey} ${isAnticancerLabel ? "anticancer" : ""} ${draft.category === "고가약" ? "high-cost" : ""} ${draft.category === "마약/향정" ? "controlled-drug-label" : ""} ${hasCustomOuterBorderColor ? "custom-outer-border" : ""} ${storageOnlyClass} ${storageToneClass} ${isCapLabel ? "cap-label" : ""} ${isSideLabel ? "side-label" : ""} ${isExternalShelfLabel ? "external-shelf-label" : ""} ${draft.category === "시럽" ? "syrup-label" : ""} ${draft.category === "영양수액" ? "nutrition-fluid-label" : ""} ${isGeneralFluidLabel ? `general-fluid-label fluid-tone-${generalFluidTone}` : ""} ${isInjectionLabel ? "injection-label" : ""} ${isHeparinLabel ? "heparin-label" : ""} ${isAmpouleHolder ? "has-ampoule-holder" : ""} ${!showTopBanner ? "no-top-banner no-warning" : ""}`} style={style} key={key}>
         {draft.cabinetLayout ? <PharmacyCabinetLayoutView layout={draft.cabinetLayout}/> : isSideLabel ? <div className="pharmacy-side-label-form">
           <div className="pharmacy-side-label-photo">{imageUrl
             ? <img src={imageUrl} alt={`${draft.printable.koreanName} 식별사진`}/>
@@ -3921,7 +3868,7 @@ export function App() {
           {externalCautionWarnings.length > 0 && externalStorageText ? <aside className={hasLightWarning ? "light" : "cold"}>{externalStorageText}</aside> : null}
         </div> : <>
         {!isCapLabel && !isExternalShelfLabel && showTopBanner ? <div className={`pharmacy-label-top-banner ${!hasCautionWarning && hasLightWarning ? `light-only ${isAmpouleVial ? "ampoule-vial-light-only" : ""}` : !hasCautionWarning && hasColdWarning ? "cold-only" : ""}`}>
-          <span>{[draft.printable.topBanner, draft.category !== "항암제" ? cautionWarnings.join(" · ") : "", !hasCautionWarning && hasLightWarning ? (isAmpouleVial ? "차광보관" : "차광") : "", !hasCautionWarning && !hasLightWarning && hasColdWarning ? `${coldWarningText}보관` : ""].filter(Boolean).join(" · ")}</span>
+          <span>{[draft.printable.topBanner, !isAnticancerLabel ? cautionWarnings.join(" · ") : "", !hasCautionWarning && hasLightWarning ? (isAmpouleVial ? "차광보관" : "차광") : "", !hasCautionWarning && !hasLightWarning && hasColdWarning ? `${coldWarningText}보관` : ""].filter(Boolean).join(" · ")}</span>
           {hasCautionWarning && hasLightWarning ? <b className="pharmacy-storage-badge light">차광</b> : null}
           {hasCautionWarning && hasColdWarning ? <b className="pharmacy-storage-badge cold">{coldWarningText}</b> : null}
         </div> : null}
@@ -3938,7 +3885,7 @@ export function App() {
           {!isCapLabel && !isExternalShelfLabel && draft.location ? <small className="pharmacy-label-location">{draft.location}</small> : null}
         </div>
         {isAmpouleHolder ? <div className="pharmacy-ampoule-holder">앰플꽂이</div> : null}
-        {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) ? <footer className={draft.category === "항암제" ? "anticancer-footer" : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : draft.category === "항암제" ? "항암제" : draft.printable.footer.text}</footer> : null}
+        {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) ? <footer className={isAnticancerLabel ? "anticancer-footer" : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : isAnticancerLabel ? <><span>항암제</span>{draft.printable.reconstitution && <span style={{ color: "#fff200", fontWeight: 800, marginLeft: "1.5mm", textShadow: "0 1px 1px #111827" }}>용해액: {draft.printable.reconstitution}</span>}</> : draft.printable.footer.text}</footer> : null}
         </>}
       </article>
     );

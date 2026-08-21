@@ -12,6 +12,7 @@ import {
 
 const source = readFileSync(new URL("./pharmacyLabelWorkbookUpdate.ts", import.meta.url), "utf8");
 const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+const inventoryStateSource = readFileSync(new URL("../src/inventoryState.ts", import.meta.url), "utf8");
 
 describe("pharmacy label workbook update", () => {
   it("updates the existing workbook row when its drug code and name change", async () => {
@@ -225,7 +226,8 @@ describe("pharmacy label workbook update", () => {
     expect(appSource).toContain("saveHospitalDrugMasterRowToWorkbook(row, hospitalDrugWorkbookUrl, originalCode)");
     expect(appSource).toContain("originalCodeKey");
     expect(appSource).toContain("applySharedPharmacyMasterFields");
-    expect(appSource).toContain("applySharedMasterToStockDrug");
+    expect(appSource).toContain("applyPharmacyMasterToStockDrug");
+    expect(appSource).toContain("projectPharmacyAdditionalStockDrugs");
     expect(appSource).toContain("effectiveStockDrugs");
     expect(appSource).toContain("effectiveNarcoticDrugs");
     expect(appSource).toContain("onSaveMaster={savePharmacyDrugMaster}");
@@ -233,7 +235,7 @@ describe("pharmacy label workbook update", () => {
     expect(appSource).toContain("previous.filter((current) => current.code.toUpperCase() !== originalCodeKey)");
     expect(appSource).toContain("hospitalDrugRowsByCode.get(row.code.toUpperCase()) ?? pharmacyHospitalDrugRowsByCode.get(row.code.toUpperCase())");
     expect(appSource).not.toContain("if (!existed) setPharmacyAdditionalRows");
-    expect(appSource).toContain('master.needsDiluent ? "<용해액 필요>" : ""');
-    expect(appSource).toContain('master.needsNeedle ? "<니들 필요>" : ""');
+    expect(inventoryStateSource).toContain('master.needsDiluent ? "<용해액 필요>" : ""');
+    expect(inventoryStateSource).toContain('master.needsNeedle ? "<니들 필요>" : ""');
   });
 });

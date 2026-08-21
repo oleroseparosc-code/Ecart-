@@ -298,4 +298,15 @@ describe("pharmacy label workspace UI", () => {
     expect(workspaceSource).toContain('warning.includes("반드시 희석 후 사용")');
     expect(appSource).toContain('warning.includes("반드시 희석 후 사용")');
   });
+
+  it("shows injectable-anticancer diluent controls and prints the selected diluent in the footer", () => {
+    expect(studioSource).toContain('"경구 항암제", "주사 항암제"');
+    expect(studioSource).toContain('return Boolean(row.oralAnticancer)');
+    expect(studioSource).toContain('includes("주사용항암제")');
+    expect(workspaceSource).toContain("isInjectableAnticancerCategory(displayCategory)");
+    expect(workspaceSource).toContain('"NS", "D5W", "WI"');
+    expect(workspaceSource).toContain("용해액:");
+    expect(appSource).toContain("isAnticancerCategory(draft.category)");
+    expect(appSource).toContain("용해액:");
+  });
 });

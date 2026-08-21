@@ -81,6 +81,20 @@ describe("pharmacy label studio rules", () => {
     expect(rowMatchesCategory({ ...row, highCost: true, drugType: "바이알" }, "경구 고가약", "주사", "cabinet")).toBe(false);
   });
 
+  it("classifies oral and injectable anticancer drugs from their dedicated workbook columns", () => {
+    const oralAnticancer = { ...row, drugType: "PTP", oralAnticancer: true, anticancer: true };
+    const injectableAnticancer = { ...row, drugType: "바이알", oralAnticancer: false, highRiskCategory: "주사용 항암제" };
+    const nonAnticancerType = { ...row, drugType: "항암제", oralAnticancer: false, highRiskCategory: "고농도 전해질" };
+
+    expect(rowMatchesCategory(oralAnticancer, "경구 항암제")).toBe(true);
+    expect(rowMatchesCategory(oralAnticancer, "주사 항암제")).toBe(false);
+    expect(rowMatchesCategory(injectableAnticancer, "주사 항암제")).toBe(true);
+    expect(rowMatchesCategory(injectableAnticancer, "경구 항암제")).toBe(false);
+    expect(rowMatchesCategory(nonAnticancerType, "주사 항암제")).toBe(false);
+    expect(createPharmacyLabelDraft(injectableAnticancer, "주사 항암제", "drug").printable.footer.text).toContain("항암제");
+    expect(DRUG_CATEGORIES.at(-1)).toEqual(["경구 항암제", "주사 항암제"]);
+  });
+
   it("uses the workbook ampoule-holder flag as the default ampoule label accessory", () => {
     expect(createPharmacyLabelDraft({ ...row, drugType: "앰플", ampouleHolder: "Y" }, "앰플", "drug").accessory).toBe("앰플꽂이");
     expect(createPharmacyLabelDraft({ ...row, drugType: "앰플", ampouleHolder: "N" }, "앰플", "drug").accessory).toBeUndefined();

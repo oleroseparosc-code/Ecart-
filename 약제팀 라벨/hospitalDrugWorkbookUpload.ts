@@ -17,7 +17,7 @@ type ZipEntry = {
 const XLSX_EOCD_SIGNATURE = 0x06054b50;
 const XLSX_CENTRAL_DIRECTORY_SIGNATURE = 0x02014b50;
 const XLSX_LOCAL_FILE_SIGNATURE = 0x04034b50;
-const HOSPITAL_DRUG_WORKBOOK_STEM = "원내보유의약품리스트";
+const HOSPITAL_DRUG_WORKBOOK_STEMS = new Set(["원내보유의약품리스트", "원내보유의약품리스트_공유서버_최신"]);
 
 const HOSPITAL_DRUG_HEADERS = [
   "약품코드",
@@ -36,6 +36,7 @@ const HOSPITAL_DRUG_HEADERS = [
 const HOSPITAL_DRUG_TYPE_HEADERS = ["약품유형", "약품 유형"] as const;
 const HOSPITAL_DRUG_STORAGE_HEADERS = ["보관법", "보관조건"] as const;
 const HOSPITAL_DRUG_HIGH_RISK_HEADERS = ["고위험의약품", "고위험약품"] as const;
+const HOSPITAL_DRUG_HIGH_RISK_CATEGORY_HEADERS = ["고위험의약품분류", "고위험약품분류", "고위험의약품 분류"] as const;
 
 const textDecoder = new TextDecoder("utf-8");
 
@@ -236,7 +237,9 @@ function rowsToHospitalDrugLabels(rows: string[][]): HospitalDrugLabelRow[] {
         storage: readAny(row, HOSPITAL_DRUG_STORAGE_HEADERS),
         lightProtected: read(row, "차광필요") === "차광",
         highRisk: isYes(readAny(row, HOSPITAL_DRUG_HIGH_RISK_HEADERS)),
+        highRiskCategory: readAny(row, HOSPITAL_DRUG_HIGH_RISK_CATEGORY_HEADERS),
         inHospital: isYes(read(row, "원내보유")),
+        oralAnticancer: isYes(readOptional(row, "경구항암제")),
         similarLook: isYes(read(row, "유사모양")),
         similarSound: isYes(read(row, "유사발음")),
         doseCaution: isYes(read(row, "용량주의")),
@@ -270,7 +273,7 @@ export function isHospitalDrugWorkbookFileName(fileName: string) {
   const dotIndex = name.lastIndexOf(".");
   const stem = dotIndex >= 0 ? name.slice(0, dotIndex) : name;
   const extension = dotIndex >= 0 ? name.slice(dotIndex).toLowerCase() : "";
-  return stem === HOSPITAL_DRUG_WORKBOOK_STEM && [".xlsx", ".xlsm"].includes(extension);
+  return HOSPITAL_DRUG_WORKBOOK_STEMS.has(stem) && [".xlsx", ".xlsm"].includes(extension);
 }
 
 export async function parseHospitalDrugWorkbook(buffer: ArrayBufferLike) {

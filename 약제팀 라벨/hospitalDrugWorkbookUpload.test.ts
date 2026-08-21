@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import * as XLSX from "xlsx";
 import {
   isHospitalDrugWorkbookFileName,
   mergeHospitalDrugRowsIntoPharmacyLabelMatches,
@@ -10,6 +11,7 @@ describe("hospital drug workbook upload", () => {
   it("accepts only the 원내보유의약품리스트 workbook name", () => {
     expect(isHospitalDrugWorkbookFileName("원내보유의약품리스트.xlsx")).toBe(true);
     expect(isHospitalDrugWorkbookFileName("원내보유의약품리스트.xlsm")).toBe(true);
+    expect(isHospitalDrugWorkbookFileName("원내보유의약품리스트_공유서버_최신.xlsx")).toBe(true);
     expect(isHospitalDrugWorkbookFileName("원내보유의약품리스트_약품 라벨 준비용.xlsx")).toBe(false);
     expect(isHospitalDrugWorkbookFileName("고위험의약품리스트.xlsx")).toBe(false);
   });
@@ -34,6 +36,22 @@ describe("hospital drug workbook upload", () => {
     expect(rows.filter((row) => row.eCartNicu)).toHaveLength(29);
     expect(rows.some((row) => row.narcotic)).toBe(true);
     expect(rows.some((row) => row.psychotropic)).toBe(true);
+  });
+
+  it("reads the 경구항암제 Y flag independently from the 항암제 drug type", async () => {
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ["약품코드", "상용약품명", "한글약품명", "함량", "규격", "포장", "차광필요", "원내보유", "유사모양", "유사발음", "용량주의", "용량확인", "약품유형", "보관법", "고위험의약품", "고위험의약품분류", "경구항암제"],
+      ["ORAL", "Oral anticancer", "경구 항암제", "10mg", "1T", "1", "", "Y", "", "", "", "", "PTP", "실온", "", "", "Y"],
+      ["INJECT", "Injectable anticancer", "주사 항암제", "10mg", "1V", "1", "", "Y", "", "", "", "", "바이알", "실온", "Y", "주사용 항암제", ""],
+    ]);
+    XLSX.utils.book_append_sheet(workbook, sheet, "약품조회");
+    const rows = await parseHospitalDrugWorkbook(XLSX.write(workbook, { type: "array", bookType: "xlsx" }));
+
+    expect(rows.map((row) => row.code)).toContain("ORAL");
+    expect(rows.find((row) => row.code === "ORAL")?.oralAnticancer).toBe(true);
+    expect(rows.find((row) => row.code === "INJECT")?.oralAnticancer).toBe(false);
+    expect(rows.find((row) => row.code === "INJECT")?.highRiskCategory).toBe("주사용 항암제");
   });
 
   it("updates the pharmacy label list while preserving existing match details by drug code", () => {

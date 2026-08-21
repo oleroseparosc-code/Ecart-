@@ -13,7 +13,7 @@ export type PharmacyLabelCategory =
   | "원병" | "PTP" | "ATC" | "입원산제" | "경구 고가약" | "유색라벨" | "측면라벨"
   | "외용제" | "외용점안제" | "팩제" | "시럽"
   | "앰플" | "바이알" | "냉장주사" | "백신" | "영양수액" | "일반수액"
-  | "마약/향정" | "고가약" | "항암제";
+  | "마약/향정" | "고가약" | "항암제" | "경구 항암제" | "주사 항암제";
 export type PharmacyHighCostRoute = "주사" | "경구";
 export type PharmacyLabelSizePresetKey = string;
 export type PharmacyLabelPaper = { key: "A4" | "A3"; widthMm: number; heightMm: number; marginMm: number };
@@ -107,7 +107,7 @@ export const DRUG_CATEGORIES: PharmacyLabelCategory[][] = [
   ["앰플", "바이알", "냉장주사", "백신", "영양수액", "일반수액"],
   ["마약/향정"],
   ["고가약"],
-  ["항암제"],
+  ["경구 항암제", "주사 항암제"],
 ];
 export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = [
   ["원병", "PTP", "ATC", "입원산제", "경구 고가약", "유색라벨", "측면라벨"],
@@ -116,6 +116,7 @@ export const CABINET_CATEGORIES: PharmacyLabelCategory[][] = [
 export const PHARMACY_CATEGORY_GROUP_NAMES = ["경구", "외용", "주사"] as const;
 export type PharmacyCategoryGroupName = (typeof PHARMACY_CATEGORY_GROUP_NAMES)[number];
 const PHARMACY_TYPE_CATEGORIES = new Set<PharmacyLabelCategory>(DRUG_CATEGORIES.slice(0, 3).flat());
+const ANTICANCER_CATEGORIES: PharmacyLabelCategory[] = ["항암제", "경구 항암제", "주사 항암제"];
 
 const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   외용제: sizes(["33*100", "13.5*105", "40*80", "44*100"]),
@@ -133,6 +134,8 @@ const SIZE_MAP: Record<string, PharmacyLabelSize[]> = {
   "마약/향정": sizes(["40*70"]),
   고가약: sizes(["43*80", "50*80"]),
   항암제: sizes(["46*80"]),
+  "경구 항암제": sizes(["46*80"]),
+  "주사 항암제": sizes(["46*80"]),
   원병: sizes(["33*100", "23*102", "10*27", "15*30"]),
 };
 
@@ -148,6 +151,14 @@ export function sizesForCategory(category: PharmacyLabelCategory, row?: Hospital
   if (category === "영양수액") return [row && getHospitalDrugLabelWarnings(row).length > 0 ? available[1] : available[0]];
   if (row?.border && ["PTP", "바이알", "냉장주사", "백신"].includes(category)) return available.filter((size) => size.heightMm > 40);
   return available;
+}
+
+export function isAnticancerCategory(category: PharmacyLabelCategory) {
+  return ANTICANCER_CATEGORIES.includes(category);
+}
+
+export function isInjectableAnticancerCategory(category: PharmacyLabelCategory) {
+  return category === "주사 항암제";
 }
 
 export function rowMatchesCategory(
@@ -172,6 +183,8 @@ export function rowMatchesCategory(
     if (!row.highCost) return false;
     return highCostRoute === "주사" ? isInjection : !isInjection;
   }
+  if (category === "경구 항암제") return Boolean(row.oralAnticancer);
+  if (category === "주사 항암제") return (row.highRiskCategory ?? "").replace(/\s+/g, "").includes("주사용항암제");
   if (category === "항암제") return Boolean(row.anticancer) || type === "항암제" || (row.highRiskCategory ?? "").includes("주사용항암제");
   if (category === "마약/향정") return Boolean(row.narcotic || row.psychotropic) || type === "마약" || type === "향정";
   if (category === "냉장주사") {
@@ -246,7 +259,7 @@ export function createPharmacyLabelDraft(
             : undefined
     : undefined;
   const size = cabinetSize ?? sizesForCategory(category, row)[0] ?? DEFAULT_PHARMACY_LABEL_SIZE;
-  const anticancer = category === "항암제";
+  const anticancer = isAnticancerCategory(category);
   const cabinetNameOnly = labelFamily === "cabinet" && category === "영양수액";
   const workbookBorderColor = extractHex(row.borderColor);
   const hasWorkbookBorder = row.border || Boolean(workbookBorderColor);

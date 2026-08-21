@@ -7,6 +7,7 @@ dist/
 .python/
 .tmp-python/
 .tmp-gh-pages-refresh/
+.standalone-pharmacy-drug-locator/
 output/
 tmp/
 ~$*.xlsx

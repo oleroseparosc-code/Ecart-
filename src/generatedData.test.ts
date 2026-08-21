@@ -41,7 +41,8 @@ import {
   normalizeChecklistRows,
   toggleStockSplitPart,
 } from "./appLogic";
-import { buildMasterRows, mergeGeneratedStockDrugs, reconcileGeneratedAllocations } from "./inventoryState";
+import { buildMasterRows, mergeGeneratedStockDrugs, projectPharmacyAdditionalStockDrugs, reconcileGeneratedAllocations } from "./inventoryState";
+import type { HospitalDrugLabelRow } from "../약제팀 라벨/hospitalDrugLabels";
 import { NARCOTIC_LABEL_ROWS } from "./narcoticLabels";
 
 const inventory = rawInventory as InventoryData;
@@ -216,11 +217,38 @@ describe("generated inventory data corrections", () => {
   });
 
   it("makes pharmacy-only additions available for stock assignment with their warning flags", () => {
-    const appSource = readFileSync("src/App.tsx", "utf8");
+    const acetphen5Percent: HospitalDrugLabelRow = {
+      code: "XAPH5",
+      name: "5% Acetphen premix",
+      koreanName: "아세트아미노펜",
+      strength: "5% 100mL",
+      drugType: "주사",
+      spec: "100mL",
+      package: "",
+      storage: "실온",
+      lightProtected: false,
+      inHospital: true,
+      similarLook: false,
+      similarSound: false,
+      doseCaution: false,
+      doseCheck: true,
+      highRisk: false,
+    };
+    const projected = projectPharmacyAdditionalStockDrugs(
+      [],
+      [acetphen5Percent],
+      [],
+      (code) => code.trim().toUpperCase(),
+      (row) => Boolean(row.narcotic || row.psychotropic || /^(마약|향정)$/.test(row.drugType.trim())),
+    );
 
-    expect(appSource).toContain("function pharmacyMasterToStockDrug(master: HospitalDrugLabelRow): StockDrug");
-    expect(appSource).toContain(".map(pharmacyMasterToStockDrug)");
-    expect(appSource).toContain("!isHospitalControlledDrugType(row)");
+    expect(projected).toHaveLength(1);
+    expect(projected[0]).toMatchObject({
+      code: "XAPH5",
+      productName: "5% Acetphen premix",
+      spec: "5% 100mL",
+    });
+    expect(projected[0].warning).toContain("용량확인");
   });
 
   it("keeps the deployed static app state narcotic quantities aligned with generated source quantities", () => {
