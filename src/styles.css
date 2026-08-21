@@ -5299,6 +5299,16 @@ button {
   background: #fff;
 }
 
+.pharmacy-tool-panel {
+  position: sticky;
+  top: 12px;
+  align-self: start;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .pharmacy-panel-head {
   display: flex;
   justify-content: space-between;
@@ -7111,6 +7121,12 @@ button {
 
   .pharmacy-master-column > header {
     min-height: 0;
+  }
+
+  .pharmacy-tool-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
   }
 }
 

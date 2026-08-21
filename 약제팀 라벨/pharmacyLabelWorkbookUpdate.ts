@@ -90,7 +90,7 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
   const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
   const index = new Map(headers.map((header, position) => [header, position]));
-  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형", "테두리", "테두리 색기호", FINAL_LABEL_SIZE_HEADER, LABEL_SETTINGS_HEADER, FINAL_LABEL_SETTINGS_HEADER]);
+  ensureColumns(sheet, headers, index, ["약제팀 라벨 세부유형", "용해액", "테두리", "테두리 색기호", FINAL_LABEL_SIZE_HEADER, LABEL_SETTINGS_HEADER, FINAL_LABEL_SETTINGS_HEADER]);
   const codeIndex = index.get("약품코드");
   if (codeIndex == null) throw new Error("원내보유의약품리스트에서 약품코드 열을 찾지 못했습니다.");
   let appendedCount = 0;
@@ -107,6 +107,7 @@ export async function savePharmacyLabelDraftsToWorkbook(drafts: readonly Pharmac
       ATC: draft.atc,
       약품유형: draft.drugTypes[0] ?? "",
       "약제팀 라벨 세부유형": draft.drugTypes.join(", "),
+      용해액: draft.printable.reconstitution,
       보관법: draft.warnings.includes("냉동") ? "냉동" : draft.warnings.includes("냉장") ? "냉장" : "",
       원내보유: "Y",
       유효기간: draft.expiry,
@@ -230,6 +231,7 @@ export async function loadSavedPharmacyLabelsFromWorkbook(workbookUrl: string): 
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true });
   const headers = (rows[0] ?? []).map((value) => String(value ?? "").replace(/\n/g, " ").trim());
   const codeIndex = headers.indexOf("약품코드");
+  const reconstitutionIndex = headers.indexOf("용해액");
   const settingsIndex = headers.indexOf(FINAL_LABEL_SETTINGS_HEADER) >= 0
     ? headers.indexOf(FINAL_LABEL_SETTINGS_HEADER)
     : headers.indexOf(LABEL_SETTINGS_HEADER);
@@ -260,6 +262,10 @@ export async function loadSavedPharmacyLabelsFromWorkbook(workbookUrl: string): 
         imagePath: saved.imagePath ?? "",
         imageSourceUrl: saved.imageSourceUrl ?? "",
         backgroundColor: saved.backgroundColor ?? "#ffffff",
+        printable: {
+          ...saved.printable,
+          reconstitution: String(row[reconstitutionIndex] ?? saved.printable.reconstitution ?? "").trim(),
+        },
         warnings: Array.isArray(saved.warnings) ? saved.warnings : [],
         drugTypes: Array.isArray(saved.drugTypes) ? saved.drugTypes : [],
         sourceType: "manual" as const,

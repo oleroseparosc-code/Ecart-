@@ -35,11 +35,11 @@ describe("release workflow", () => {
     expect(publishScript).toContain('for (const fileName of [".nojekyll", "sync-config.json"])');
     expect(publishScript).toContain("function commitDistChanges");
     expect(publishScript).toContain('const syncConfigFallbackPath = join(deployDir, "sync-config.json")');
-    expect(publishMain.indexOf("commitDistChanges(message);")).toBeLessThan(publishMain.indexOf("const localKeep = captureDistKeepFiles();"));
     expect(publishMain.indexOf("const localKeep = captureDistKeepFiles();")).toBeLessThan(publishMain.indexOf("syncDistWithRemote(token);"));
     expect(publishMain.indexOf("syncDistWithRemote(token);")).toBeLessThan(publishMain.indexOf("const remoteKeep = captureDistKeepFiles();"));
     expect(publishMain).toContain("const keep = new Map([...localKeep, ...remoteKeep])");
     expect(publishMain.indexOf("const keep = new Map([...localKeep, ...remoteKeep])")).toBeLessThan(publishMain.indexOf('npm.cmd run build'));
+    expect(publishMain.indexOf('const hasChanges = run("git", distGitArgs(["status", "--porcelain"]), { cwd: distDir, capture: true });')).toBeLessThan(publishMain.lastIndexOf("commitDistChanges(message);"));
     expect(deployWorkflow).toContain("Preserve sync server config");
     expect(deployWorkflow).toContain("git show origin/gh-pages:sync-config.json > dist/sync-config.json");
   });

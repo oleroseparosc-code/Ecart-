@@ -2,11 +2,13 @@ import { readFileSync } from "node:fs";
 import * as XLSX from "xlsx";
 import { describe, expect, it, vi } from "vitest";
 import type { HospitalDrugLabelRow } from "./hospitalDrugLabels";
+import type { PharmacyLabelDraft } from "./pharmacyLabelStudio";
 import {
   deleteHospitalDrugMasterRowFromWorkbook,
   deleteHospitalDrugMasterRowsFromWorkbook,
   saveHospitalDrugMasterRowToWorkbook,
   saveHospitalDrugMasterRowsToWorkbook,
+  savePharmacyLabelDraftsToWorkbook,
   loadSavedPharmacyLabelsFromWorkbook,
 } from "./pharmacyLabelWorkbookUpdate";
 
@@ -166,11 +168,47 @@ describe("pharmacy label workbook update", () => {
     expect(source).toContain("최종 라벨 설정이 엑셀에 확인되지 않았습니다");
     expect(source).toContain("JSON.stringify(saved.titleStyles ?? [])");
     expect(source).toContain("JSON.stringify(saved.size) !== JSON.stringify(draft.size)");
+    expect(source).toContain('"용해액", "테두리"');
+    expect(source).toContain('용해액: draft.printable.reconstitution');
     expect(source).toContain("showSaveFilePicker");
     expect(source).toContain("createWritable");
     expect(source).toContain('XLSX.writeFile(workbook, "원내보유의약품리스트.xlsx"');
     expect(source).toContain('window.location.hostname.endsWith(".github.io")');
     expect(source).toContain("클라우드 저장에 실패했습니다.");
+  });
+
+  it("writes reconstitution to its own workbook column and restores the column value", async () => {
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+      ["약품코드", "상용약품명", "한글약품명", "함량", "약품유형", "원내보유"],
+      ["CANCER-1", "Cancer inj", "항암주", "100mg", "바이알", "Y"],
+    ]), "약품조회");
+    let currentData = XLSX.write(workbook, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (_input, init) => {
+      if (init?.method === "PUT") {
+        currentData = await new Response(init.body).arrayBuffer();
+        return new Response(null, { status: 200 });
+      }
+      return new Response(currentData, { status: 200, headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" } });
+    });
+    const draft = {
+      id: "pharmacy-label-CANCER-1-drug-주사 항암제", code: "CANCER-1", itemCode: "", labelFamily: "drug", category: "주사 항암제",
+      size: { presetKey: "40x80", widthMm: 80, heightMm: 40 }, location: "A-1", atc: "", expiry: "", imagePath: "", imageSourceUrl: "",
+      printable: { title: "Cancer inj", koreanName: "항암주", strength: "100mg", warning: "", topBanner: "", footer: { enabled: true, text: "항암제" }, reconstitution: "D5W" },
+      warnings: [], drugTypes: ["바이알"], backgroundColor: "#ffffff", style: { outerBorderPx: 0.5, outerBorderColor: "#111827", textOutlinePx: 0, textOutlineColor: "#ffffff", fontFamily: "sans-serif", fontSizePt: 18, fontColor: "#111827", warningColor: "#d92d20" }, sourceType: "manual",
+    } satisfies PharmacyLabelDraft;
+
+    try {
+      await expect(savePharmacyLabelDraftsToWorkbook([draft], "/source.xlsx")).resolves.toBe("server");
+      const savedWorkbook = XLSX.read(currentData, { type: "array" });
+      const savedRows = XLSX.utils.sheet_to_json<unknown[]>(savedWorkbook.Sheets.약품조회, { header: 1, raw: true });
+      const headers = savedRows[0] as string[];
+      expect(savedRows[1]?.[headers.indexOf("용해액")]).toBe("D5W");
+      const restored = await loadSavedPharmacyLabelsFromWorkbook("/source.xlsx");
+      expect(restored[0]?.printable.reconstitution).toBe("D5W");
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("restores saved border and partial-title settings from the workbook", async () => {

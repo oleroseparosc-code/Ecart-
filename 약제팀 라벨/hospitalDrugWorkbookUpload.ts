@@ -244,6 +244,7 @@ function rowsToHospitalDrugLabels(rows: string[][]): HospitalDrugLabelRow[] {
         similarSound: isYes(read(row, "유사발음")),
         doseCaution: isYes(read(row, "용량주의")),
         doseCheck: isYes(read(row, "용량확인")),
+        reconstitution: readOptional(row, "용해액"),
         nameCaution: isYes(readOptional(row, "이름주의")),
         pharmacyLabelTypes: !index.has("약제팀 라벨 세부유형") || !readOptional(row, "약제팀 라벨 세부유형")
           ? undefined

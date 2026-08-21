@@ -288,7 +288,7 @@ export function createPharmacyLabelDraft(
           ? ["항암제", isHospitalDrugRefrigerated(row) ? "냉장" : "", isHospitalDrugLightProtected(row) ? "차광" : ""].filter(Boolean).join(" · ")
           : row.highRiskCategory ?? "",
       },
-      reconstitution: "",
+      reconstitution: row.reconstitution ?? "",
     },
     warnings,
     drugTypes: row.drugType ? [row.drugType] : [],

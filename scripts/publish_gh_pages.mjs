@@ -207,7 +207,6 @@ async function main() {
 
   const token = readToken();
   const message = process.env.PUBLISH_MESSAGE?.trim() || "Deploy app update";
-  commitDistChanges(message);
   const localKeep = captureDistKeepFiles();
   syncDistWithRemote(token);
   const remoteKeep = captureDistKeepFiles();

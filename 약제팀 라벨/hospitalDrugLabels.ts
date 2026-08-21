@@ -32,6 +32,7 @@ export type HospitalDrugLabelRow = {
   doseCaution: boolean;
   doseCheck: boolean;
   needsDiluent?: boolean;
+  reconstitution?: string;
   needsNeedle?: boolean;
   highRisk: boolean;
   highRiskCategory?: string;
