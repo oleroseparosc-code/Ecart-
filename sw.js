@@ -1,14 +1,17 @@
-const CACHE_NAME = "hospital-inventory-app-v35";
+const CACHE_NAME = "hospital-inventory-app-v42";
 const APP_SHELL = [
-  "/Ecart-/",
+  "/Ecart-/inventory/",
   "/Ecart-/viewer/",
   "/Ecart-/pharmacy-viewer/",
+  "/Ecart-/pharmacy-label-editor/",
+  "/Ecart-/pharmacy-label-editor/v2/",
   "/Ecart-/pharmacy-drug-locator/",
   "/Ecart-/narcotic-viewer/",
   "/Ecart-/manifest.webmanifest?v=20260713a",
   "/Ecart-/viewer.webmanifest?v=20260713a",
   "/Ecart-/pharmacy-viewer.webmanifest?v=20260713a",
-  "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260814a",
+  "/Ecart-/pharmacy-label-editor.webmanifest?v=20260814f",
+  "/Ecart-/pharmacy-drug-locator.webmanifest?v=20260815a",
   "/Ecart-/narcotic-viewer.webmanifest?v=20260713a",
   "/Ecart-/icons/app-icon-192.png?v=20260713a",
   "/Ecart-/icons/app-icon-desktop-512.png?v=20260713a",
@@ -16,8 +19,10 @@ const APP_SHELL = [
   "/Ecart-/icons/viewer-icon-desktop-512.png?v=20260713a",
   "/Ecart-/icons/narcotic-icon-192.png?v=20260713a",
   "/Ecart-/icons/narcotic-icon-desktop-512.png?v=20260713a",
-  "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814a",
-  "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814a",
+  "/Ecart-/icons/pharmacy-drug-locator-icon-192.png?v=20260814b",
+  "/Ecart-/icons/pharmacy-drug-locator-icon-512.png?v=20260814b",
+  "/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814f",
+  "/Ecart-/icons/pharmacy-label-editor-icon-512.png?v=20260814f",
 ];
 
 self.addEventListener("install", (event) => {
@@ -46,7 +51,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match("/Ecart-/")));
+    event.respondWith(fetch(request).catch(() => caches.match("/Ecart-/inventory/")));
     return;
   }
 
