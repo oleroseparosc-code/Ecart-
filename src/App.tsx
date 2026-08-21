@@ -116,7 +116,7 @@ import { normalizePharmacyLabelMasterRow } from "../약제팀 라벨/PharmacyDru
 import { PharmacyLabelWorkspace } from "../약제팀 라벨/PharmacyLabelWorkspace";
 import { PharmacyCabinetLayoutView } from "../약제팀 라벨/PharmacyCabinetLabelCanvas";
 import { PharmacyAutoFitLabelContent } from "../약제팀 라벨/PharmacyAutoFitLabelContent";
-import { mergeHospitalDrugRowsIntoPharmacyLabelMatches } from "../약제팀 라벨/hospitalDrugWorkbookUpload";
+import { mergeHospitalDrugRowsIntoPharmacyLabelMatches, parseHospitalDrugWorkbook } from "../약제팀 라벨/hospitalDrugWorkbookUpload";
 import hospitalDrugWorkbookUrl from "../약제팀 라벨/원내보유의약품리스트.xlsx?url";
 import { applyExpirationWorkbook } from "../약제팀 라벨/expirationWorkbookUpdate";
 import {
@@ -174,7 +174,7 @@ import {
   type RoundSummaryRow,
 } from "./roundSummary";
 import { loadRuntimeSyncConfig } from "./runtimeSyncConfig";
-import { configureServerSyncBaseUrl, loadServerState, saveServerState } from "./serverSync";
+import { buildPharmacyLabelWorkbookApiUrl, configureServerSyncBaseUrl, loadServerState, saveServerState } from "./serverSync";
 import { inferStorageType, isRefrigeratedDrug, storageDisplayLabel } from "./storageDisplay";
 import type { ChecklistItem, EcartItem, InventoryData, StockAllocation, StockDrug, StockRoom } from "./types";
 import {
@@ -1027,6 +1027,22 @@ function mergePharmacyRows(base: HospitalDrugLabelRow[], additional: HospitalDru
   return [...byCode.values()];
 }
 
+async function loadCurrentPharmacyHospitalDrugLabelRows() {
+  try {
+    const config = await loadRuntimeSyncConfig();
+    configureServerSyncBaseUrl(config?.apiBaseUrl);
+    const response = await fetch(buildPharmacyLabelWorkbookApiUrl(), { cache: "no-store" });
+    if (!response.ok) throw new Error(`원내보유의약품리스트를 불러오지 못했습니다. (${response.status})`);
+    const currentRows = await parseHospitalDrugWorkbook(await response.arrayBuffer());
+    const bundledRows = await loadPharmacyHospitalDrugLabelRows();
+    const bundledByCode = new Map(bundledRows.map((row) => [row.code.trim().toUpperCase(), row]));
+    return currentRows.map((row) => ({ ...bundledByCode.get(row.code.trim().toUpperCase()), ...row }));
+  } catch (error) {
+    console.error("공유 서버 원내보유의약품리스트 로드에 실패했습니다.", error);
+    throw error;
+  }
+}
+
 function pharmacyRowsFromSavedLabels(labels: PharmacySavedLabel[]) {
   return labels
     .filter((label) => label.code.trim())
@@ -1797,7 +1813,7 @@ export function App() {
     const loadedRows = labelMode === "pharmacy" ? pharmacyHospitalDrugLabelRows : hospitalDrugLabelRows;
     if (!isDrugLabelPanelOpen || !needsHospitalDrugLabels || loadedRows.length > 0) return;
     setIsHospitalDrugLabelsLoading(true);
-    const loadRows = labelMode === "pharmacy" ? loadPharmacyHospitalDrugLabelRows : loadWardHospitalDrugLabelRows;
+    const loadRows = labelMode === "pharmacy" ? loadCurrentPharmacyHospitalDrugLabelRows : loadWardHospitalDrugLabelRows;
     void loadRows()
       .then((rows) => {
         const visibleRows = filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
@@ -1819,7 +1835,7 @@ export function App() {
   useEffect(() => {
     if (!isPharmacyLocator || pharmacyHospitalDrugLabelRows.length > 0) return;
     setIsHospitalDrugLabelsLoading(true);
-    void loadPharmacyHospitalDrugLabelRows()
+    void loadCurrentPharmacyHospitalDrugLabelRows()
       .then((rows) => setPharmacyHospitalDrugLabelRows(filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)))
       .catch((error) => console.error(error))
       .finally(() => setIsHospitalDrugLabelsLoading(false));
@@ -1828,7 +1844,7 @@ export function App() {
   useEffect(() => {
     if (didLoadPharmacyMasterRef.current) return;
     didLoadPharmacyMasterRef.current = true;
-    void loadPharmacyHospitalDrugLabelRows()
+    void loadCurrentPharmacyHospitalDrugLabelRows()
       .then((rows) => setPharmacyHospitalDrugLabelRows((previous) =>
         mergePharmacyRows(previous, filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)),
       ))
@@ -1841,7 +1857,7 @@ export function App() {
   useEffect(() => {
     if (pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
     setIsPharmacyLabelMatchesLoading(true);
-    void Promise.all([loadPharmacyLabelMatchRows(), loadPharmacyHospitalDrugLabelRows()])
+    void Promise.all([loadPharmacyLabelMatchRows(), loadCurrentPharmacyHospitalDrugLabelRows()])
       .then(([matchRows, hospitalRows]) => {
         const visibleHospitalRows = filterDeletedDrugRows(hospitalRows, deletedPharmacyDrugCodeSet);
         setPharmacyHospitalDrugLabelRows(
