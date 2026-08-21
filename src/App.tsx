@@ -1802,7 +1802,7 @@ export function App() {
         const visibleRows = filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet);
         if (labelMode === "pharmacy") {
           setPharmacyHospitalDrugLabelRows(
-            mergePharmacyRows(mergePharmacyRows(visibleRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
+            mergePharmacyRows(mergePharmacyRows(pharmacyRowsFromSavedLabels(savedPharmacyLabels), pharmacyAdditionalRows), visibleRows),
           );
         }
         else setHospitalDrugLabelRows(visibleRows);
@@ -1825,13 +1825,22 @@ export function App() {
   }, [deletedPharmacyDrugCodeSet, isPharmacyLocator, pharmacyHospitalDrugLabelRows.length]);
 
   useEffect(() => {
+    if (pharmacyHospitalDrugLabelRows.length > 0) return;
+    void loadPharmacyHospitalDrugLabelRows()
+      .then((rows) => setPharmacyHospitalDrugLabelRows(
+        mergePharmacyRows(pharmacyAdditionalRows, filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)),
+      ))
+      .catch((error) => console.error(error));
+  }, [deletedPharmacyDrugCodeSet, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows.length]);
+
+  useEffect(() => {
     if (pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
     setIsPharmacyLabelMatchesLoading(true);
     void Promise.all([loadPharmacyLabelMatchRows(), loadPharmacyHospitalDrugLabelRows()])
       .then(([matchRows, hospitalRows]) => {
         const visibleHospitalRows = filterDeletedDrugRows(hospitalRows, deletedPharmacyDrugCodeSet);
         setPharmacyHospitalDrugLabelRows(
-          mergePharmacyRows(mergePharmacyRows(visibleHospitalRows, pharmacyRowsFromSavedLabels(savedPharmacyLabels)), pharmacyAdditionalRows),
+          mergePharmacyRows(mergePharmacyRows(pharmacyRowsFromSavedLabels(savedPharmacyLabels), pharmacyAdditionalRows), visibleHospitalRows),
         );
         setPharmacyLabelMatchRows(filterDeletedDrugRows(
           mergeHospitalDrugRowsIntoPharmacyLabelMatches(visibleHospitalRows, matchRows),
@@ -1972,8 +1981,8 @@ export function App() {
     [pharmacyHospitalDrugLabelRows],
   );
   const effectiveStockDrugs = useMemo(
-    () => mergeStockDrugsWithPharmacyMaster(stockDrugs, pharmacyAdditionalRows.filter(isSelectableHospitalDrugLabelRow)),
-    [pharmacyAdditionalRows, stockDrugs],
+    () => mergeStockDrugsWithPharmacyMaster(stockDrugs, pharmacyHospitalDrugLabelRows.filter(isSelectableHospitalDrugLabelRow)),
+    [pharmacyHospitalDrugLabelRows, stockDrugs],
   );
   const effectiveNarcoticDrugs = useMemo(
     () => narcoticDrugs.map((drug) => applySharedMasterToStockDrug(drug, pharmacyHospitalDrugRowsByCode.get(drug.code.toUpperCase()))),
