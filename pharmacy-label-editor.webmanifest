@@ -1,9 +1,9 @@
 {
-  "id": "/Ecart-/pharmacy-label-editor/v2/",
+  "id": "/Ecart-/pharmacy-label-editor/",
   "name": "약제팀 라벨 편집기",
   "short_name": "약제팀 라벨 편집기",
   "description": "약제팀 라벨을 편집하고 출력하는 앱입니다.",
-  "start_url": "/Ecart-/pharmacy-label-editor/v2/",
+  "start_url": "/Ecart-/pharmacy-label-editor/",
   "scope": "/Ecart-/pharmacy-label-editor/",
   "display": "standalone",
   "orientation": "portrait-primary",
