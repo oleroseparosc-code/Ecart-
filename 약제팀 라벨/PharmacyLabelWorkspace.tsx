@@ -237,6 +237,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
     : "";
   const nutritionHasFlags = hasCautionWarning || hasLightWarning;
   const isHeparinLabel = draft?.printable.footer.text.trim() === "헤파린";
+  const hasLongReconstitution = (draft?.printable.reconstitution.length ?? 0) > 28;
 
   function renderEditableTitle(title: string) {
     const titleStyles = mergeDoseHighlightStyles(title, draft?.titleStyles ?? [], hasDoseHighlight);
@@ -524,7 +525,7 @@ export function PharmacyLabelWorkspace({ rows, savedLabels, isLoading, onBack, o
             {!isCapLabel && !isExternalShelfLabel && draft.location && <small className="pharmacy-label-location">{draft.location}</small>}
             {!isExternalShelfLabel && !isAnticancerLabel && draft.printable.reconstitution && <em>{draft.printable.reconstitution}</em>}</div>
           {isAmpouleHolder && <div className="pharmacy-ampoule-holder">앰플꽂이</div>}
-          {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) && <footer className={isAnticancerLabel ? `anticancer-footer ${draft.printable.reconstitution ? "has-reconstitution" : ""}` : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : isAnticancerLabel ? <><span className="anticancer-footer-title">항암제</span>{draft.printable.reconstitution && <span className="anticancer-footer-reconstitution">용해액: {draft.printable.reconstitution}</span>}</> : draft.printable.footer.text}</footer>}
+          {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) && <footer className={isAnticancerLabel ? `anticancer-footer ${hasLongReconstitution ? "has-long-reconstitution" : ""}` : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : isAnticancerLabel ? <><span className="anticancer-footer-title">항암제</span>{draft.printable.reconstitution && <span className="anticancer-footer-reconstitution">용해액: {draft.printable.reconstitution}</span>}</> : draft.printable.footer.text}</footer>}
           </>}
         </article> : <span className="empty">표시할 라벨이 없습니다.</span>}</div>
         <section className="pharmacy-condition-dashboard">
