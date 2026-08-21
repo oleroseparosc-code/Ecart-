@@ -3796,7 +3796,7 @@ export function App() {
       ? fluidLabelTone({ code: draft.code, genericName: draft.printable.koreanName, productName: draft.printable.title, spec: draft.printable.strength })
       : undefined;
     const isHeparinLabel = draft.printable.footer.text.trim() === "헤파린";
-    const hasLongReconstitution = draft.printable.reconstitution.length > 28;
+    const hasSecondReconstitution = Boolean(draft.printable.reconstitutionSecondary?.trim());
     const hasCustomOuterBorderColor = draft.style.outerBorderPx > 0 && draft.style.outerBorderColor.toLowerCase() !== "#111827";
     const styledTitleStyles = mergeDoseHighlightStyles(renderedDisplayTitle, draft.titleStyles ?? [], hasDoseHighlight);
     const styledTitle = styledTitleStyles.length
@@ -3886,7 +3886,7 @@ export function App() {
           {!isCapLabel && !isExternalShelfLabel && draft.location ? <small className="pharmacy-label-location">{draft.location}</small> : null}
         </div>
         {isAmpouleHolder ? <div className="pharmacy-ampoule-holder">앰플꽂이</div> : null}
-        {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) ? <footer className={isAnticancerLabel ? `anticancer-footer ${hasLongReconstitution ? "has-long-reconstitution" : ""}` : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : isAnticancerLabel ? <><span className="anticancer-footer-title">항암제</span>{draft.printable.reconstitution && <span className="anticancer-footer-reconstitution">용해액: {draft.printable.reconstitution}</span>}</> : draft.printable.footer.text}</footer> : null}
+        {!isExternalShelfLabel && (draft.printable.footer.enabled || draft.warnings.includes("위해의약품")) ? <footer className={isAnticancerLabel ? `anticancer-footer ${hasSecondReconstitution ? "has-second-reconstitution" : ""}` : isHeparinLabel ? "heparin-footer" : ""}>{draft.warnings.includes("위해의약품") ? "<캅셀개봉. 분쇄 금지>" : isAnticancerLabel ? <><span className="anticancer-footer-title">항암제</span>{draft.printable.reconstitution && (hasSecondReconstitution ? <span className="anticancer-footer-reconstitution"><b>용해액:</b><span className="anticancer-footer-reconstitution-lines"><span>{draft.printable.reconstitution}</span><span>{draft.printable.reconstitutionSecondary}</span></span></span> : <span className="anticancer-footer-reconstitution">용해액: {draft.printable.reconstitution}</span>)}</> : draft.printable.footer.text}</footer> : null}
         </>}
       </article>
     );

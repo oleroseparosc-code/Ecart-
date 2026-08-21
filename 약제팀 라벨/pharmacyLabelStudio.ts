@@ -37,6 +37,7 @@ export type PharmacyPrintableText = {
   topBanner: string;
   footer: { enabled: boolean; text: string };
   reconstitution: string;
+  reconstitutionSecondary?: string;
 };
 export type PharmacyTitleStyle = {
   start: number;
@@ -289,6 +290,7 @@ export function createPharmacyLabelDraft(
           : row.highRiskCategory ?? "",
       },
       reconstitution: row.reconstitution ?? "",
+      reconstitutionSecondary: "",
     },
     warnings,
     drugTypes: row.drugType ? [row.drugType] : [],

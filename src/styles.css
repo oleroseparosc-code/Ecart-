@@ -6264,7 +6264,7 @@ button {
   font-weight: 1000;
 }
 
-.pharmacy-print-label footer.anticancer-footer.has-long-reconstitution {
+.pharmacy-print-label footer.anticancer-footer.has-second-reconstitution {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 1.5mm;
@@ -6285,7 +6285,7 @@ button {
   text-shadow: 0 1px 1px #111827;
 }
 
-.pharmacy-print-label footer.anticancer-footer.has-long-reconstitution .anticancer-footer-title {
+.pharmacy-print-label footer.anticancer-footer.has-second-reconstitution .anticancer-footer-title {
   grid-row: 1 / -1;
   margin-left: 0;
   font-size: 16pt;
@@ -6293,15 +6293,21 @@ button {
   white-space: nowrap;
 }
 
-.pharmacy-print-label footer.anticancer-footer.has-long-reconstitution .anticancer-footer-reconstitution {
-  display: -webkit-box;
-  overflow: hidden;
+.pharmacy-print-label footer.anticancer-footer.has-second-reconstitution .anticancer-footer-reconstitution {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .8mm;
   margin-left: 0;
   font-size: 8.5pt;
   line-height: 1.1;
+}
+
+.pharmacy-print-label .anticancer-footer-reconstitution-lines {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .pharmacy-print-label footer {
