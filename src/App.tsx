@@ -1275,6 +1275,7 @@ export function App() {
     ),
   );
   const restoredWorkbookLabelSettingsRef = useRef(false);
+  const didLoadPharmacyMasterRef = useRef(false);
   const deletedPharmacyDrugCodeSet = useMemo(
     () => new Set(normalizeDeletedPharmacyDrugCodes(deletedPharmacyDrugCodes)),
     [deletedPharmacyDrugCodes],
@@ -1825,13 +1826,17 @@ export function App() {
   }, [deletedPharmacyDrugCodeSet, isPharmacyLocator, pharmacyHospitalDrugLabelRows.length]);
 
   useEffect(() => {
-    if (pharmacyHospitalDrugLabelRows.length > 0) return;
+    if (didLoadPharmacyMasterRef.current) return;
+    didLoadPharmacyMasterRef.current = true;
     void loadPharmacyHospitalDrugLabelRows()
-      .then((rows) => setPharmacyHospitalDrugLabelRows(
-        mergePharmacyRows(pharmacyAdditionalRows, filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)),
+      .then((rows) => setPharmacyHospitalDrugLabelRows((previous) =>
+        mergePharmacyRows(previous, filterDeletedDrugRows(rows, deletedPharmacyDrugCodeSet)),
       ))
-      .catch((error) => console.error(error));
-  }, [deletedPharmacyDrugCodeSet, pharmacyAdditionalRows, pharmacyHospitalDrugLabelRows.length]);
+      .catch((error) => {
+        didLoadPharmacyMasterRef.current = false;
+        console.error(error);
+      });
+  }, [deletedPharmacyDrugCodeSet]);
 
   useEffect(() => {
     if (pharmacyLabelMatchRows.length > 0 || isPharmacyLabelMatchesLoading) return;
