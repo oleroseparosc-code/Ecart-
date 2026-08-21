@@ -8003,7 +8003,8 @@ button {
   grid-column: 3;
   grid-row: 1;
   display: grid;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, auto);
+  align-content: center;
   min-width: 0;
   border-left: .2mm solid #64748b;
 }
@@ -8014,11 +8015,12 @@ button {
   min-width: 0;
   align-items: center;
   justify-content: center;
-  padding: 0 .5mm;
-  overflow: hidden;
+  padding: .08mm .5mm;
+  overflow: visible;
+  font-family: Arial, "Arial Nova", "Segoe UI", "Malgun Gothic", sans-serif;
   font-size: 5.2pt;
-  font-weight: 1000;
-  text-overflow: ellipsis;
+  font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
