@@ -6296,10 +6296,15 @@ button {
 .pharmacy-print-label footer.anticancer-footer.has-second-reconstitution .anticancer-footer-reconstitution {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: .8mm;
+  gap: .25mm;
   margin-left: 0;
-  font-size: 8.5pt;
+  font-size: 10pt;
   line-height: 1.1;
+}
+
+.pharmacy-print-label footer.anticancer-footer.has-second-reconstitution .anticancer-footer-reconstitution b {
+  font-size: 10.5pt;
+  white-space: nowrap;
 }
 
 .pharmacy-print-label .anticancer-footer-reconstitution-lines {
