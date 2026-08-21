@@ -39,10 +39,10 @@ export function getPwaMetadata(pathname = "/"): PwaMetadata {
   }
   if (isPharmacyEditor) {
     return {
-      manifestPath: "pharmacy-viewer.webmanifest",
-      iconPath: "icons/app-icon-192.png",
-      documentTitle: "약제팀 라벨 편집",
-      appleTitle: "약제팀 라벨 편집",
+      manifestPath: "pharmacy-label-editor.webmanifest",
+      iconPath: "icons/pharmacy-label-editor-icon-192.png",
+      documentTitle: "약제팀 라벨 편집기",
+      appleTitle: "약제팀 라벨 편집기",
       themeColor: "#f97316",
     };
   }
@@ -88,7 +88,7 @@ function setMetaContent(selector: string, content: string) {
 
 export function applyPwaMetadata() {
   if (typeof window === "undefined") return;
-  const version = "20260814a";
+  const version = "20260821b";
   const metadata = getPwaMetadata(window.location.pathname);
   const manifestHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.manifestPath}?v=${version}`);
   const iconHref = buildPwaAssetUrl(import.meta.env.BASE_URL, `${metadata.iconPath}?v=${version}`);

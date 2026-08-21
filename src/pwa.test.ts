@@ -159,6 +159,13 @@ describe("PWA install metadata", () => {
       appleTitle: "약제팀 라벨 마스터 관리",
       themeColor: "#f97316",
     });
+    expect(getPwaMetadata("/Ecart-/pharmacy-label-editor")).toEqual({
+      manifestPath: "pharmacy-label-editor.webmanifest",
+      iconPath: "icons/pharmacy-label-editor-icon-192.png",
+      documentTitle: "약제팀 라벨 편집기",
+      appleTitle: "약제팀 라벨 편집기",
+      themeColor: "#f97316",
+    });
     expect(getPwaMetadata("/Ecart-/narcotic-viewer")).toEqual({
       manifestPath: "narcotic-viewer.webmanifest",
       iconPath: "icons/narcotic-icon-192.png",
@@ -259,6 +266,23 @@ describe("PWA install metadata", () => {
           type: "image/png",
           purpose: "any",
         }),
+      ]),
+    );
+  });
+
+  it("defines a separate installable manifest and icon set for the pharmacy label editor", () => {
+    const manifest = JSON.parse(readFileSync("public/pharmacy-label-editor.webmanifest", "utf8"));
+
+    expect(manifest.name).toBe("약제팀 라벨 편집기");
+    expect(manifest.short_name).toBe("약제팀 라벨 편집기");
+    expect(manifest.display).toBe("standalone");
+    expect(manifest.id).toBe("/Ecart-/pharmacy-label-editor/");
+    expect(manifest.start_url).toBe("/Ecart-/pharmacy-label-editor/");
+    expect(manifest.scope).toBe("/Ecart-/pharmacy-label-editor/");
+    expect(manifest.icons).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ src: "/Ecart-/icons/pharmacy-label-editor-icon-192.png?v=20260814f", sizes: "192x192", type: "image/png", purpose: "any" }),
+        expect.objectContaining({ src: "/Ecart-/icons/pharmacy-label-editor-icon-512.png?v=20260814f", sizes: "512x512", type: "image/png", purpose: "any" }),
       ]),
     );
   });
