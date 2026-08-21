@@ -13,12 +13,11 @@
 
     <script>
       (() => {
-        const version = "20260815a";
+        const version = "20260814a";
         const assetBase = "/Ecart-/";
         const normalizedPath = window.location.pathname.replace(/\/+$/, "");
         const isNarcoticViewer = normalizedPath.endsWith("/narcotic-viewer");
         const isPharmacyLocator = normalizedPath.endsWith("/pharmacy-drug-locator");
-        const isPharmacyLabelEditor = normalizedPath.includes("/pharmacy-label-editor");
         const isPharmacyViewer = normalizedPath.endsWith("/pharmacy-viewer");
         const isViewer = normalizedPath.endsWith("/viewer");
         const metadata = isNarcoticViewer
@@ -34,13 +33,6 @@
               icon: "icons/pharmacy-drug-locator-icon-192.png",
               title: "약품 위치 찾기",
               theme: "#E8843C",
-            }
-          : isPharmacyLabelEditor
-          ? {
-              manifest: "pharmacy-label-editor.webmanifest",
-              icon: "icons/pharmacy-label-editor-icon-192.png",
-              title: "약제팀 라벨 편집기",
-              theme: "#f97316",
             }
           : isPharmacyViewer
           ? {
@@ -67,28 +59,26 @@
         document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute("content", metadata.title);
         document.title = metadata.title;
 
-        if (!isPharmacyLabelEditor) {
-          const manifest = document.createElement("link");
-          manifest.rel = "manifest";
-          manifest.href = `${assetBase}${metadata.manifest}?v=${version}`;
-          document.head.appendChild(manifest);
+        const manifest = document.createElement("link");
+        manifest.rel = "manifest";
+        manifest.href = `${assetBase}${metadata.manifest}?v=${version}`;
+        document.head.appendChild(manifest);
 
-          const icon = document.createElement("link");
-          icon.rel = "icon";
-          icon.type = "image/png";
-          icon.href = `${assetBase}${metadata.icon}?v=${version}`;
-          document.head.appendChild(icon);
+        const icon = document.createElement("link");
+        icon.rel = "icon";
+        icon.type = "image/png";
+        icon.href = `${assetBase}${metadata.icon}?v=${version}`;
+        document.head.appendChild(icon);
 
-          const appleIcon = document.createElement("link");
-          appleIcon.rel = "apple-touch-icon";
-          appleIcon.href = `${assetBase}${metadata.icon}?v=${version}`;
-          document.head.appendChild(appleIcon);
-        }
+        const appleIcon = document.createElement("link");
+        appleIcon.rel = "apple-touch-icon";
+        appleIcon.href = `${assetBase}${metadata.icon}?v=${version}`;
+        document.head.appendChild(appleIcon);
       })();
     </script>
     <title>약제팀 라벨 편집기</title>
-    <script type="module" crossorigin src="/Ecart-/assets/index-DEZXoQlF.js?v=20260810b"></script>
-    <link rel="stylesheet" crossorigin href="/Ecart-/assets/index-D293xnSp.css?v=20260810b">
+    <script type="module" crossorigin src="/Ecart-/assets/index-CDIUQr6T.js?v=20260810b"></script>
+    <link rel="stylesheet" crossorigin href="/Ecart-/assets/index-D1o2qDxN.css?v=20260810b">
   </head>
   <body>
     <div id="root"></div>
